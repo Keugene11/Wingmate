@@ -247,7 +247,18 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
             </div>
           ) : (
             <div key={i} className="msg-in">
-              <p className="text-[15px] leading-[1.65] whitespace-pre-wrap text-text">{msg.content}</p>
+              {msg.content.split("\n").map((line, j) => {
+                const trimmed = line.trim();
+                const isTitle =
+                  trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length > 5 && trimmed.length < 80;
+                return isTitle ? (
+                  <p key={j} className="text-[16px] font-bold leading-[1.65] mt-5 mb-1 text-text">{trimmed.slice(1, -1)}</p>
+                ) : trimmed === "" ? (
+                  <br key={j} />
+                ) : (
+                  <p key={j} className="text-[15px] leading-[1.65] text-text">{line}</p>
+                );
+              })}
             </div>
           )
         )}
