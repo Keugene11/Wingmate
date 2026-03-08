@@ -238,19 +238,19 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-5 pb-4 space-y-4 pt-4"
       >
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[85%] px-4 py-2.5 ${
-                msg.role === "user"
-                  ? "bg-black text-white rounded-[18px] rounded-br-sm"
-                  : "text-text"
-              }`}
-            >
-              <p className="text-[15px] leading-[1.6] whitespace-pre-wrap">{msg.content}</p>
+        {messages.map((msg, i) =>
+          msg.role === "user" ? (
+            <div key={i} className="flex justify-end">
+              <div className="max-w-[85%] bg-black text-white rounded-[18px] rounded-br-sm px-4 py-2.5">
+                <p className="text-[15px] leading-[1.6] whitespace-pre-wrap">{msg.content}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            <div key={i}>
+              <p className="text-[15px] leading-[1.6] whitespace-pre-wrap text-text">{msg.content}</p>
+            </div>
+          )
+        )}
         {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex justify-start">
             <div className="px-1 py-3">
