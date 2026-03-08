@@ -95,29 +95,25 @@ export default function Home() {
   return (
     <main className="min-h-screen max-w-md mx-auto">
       {state === "home" && (
-        <div className="px-6 pt-16 pb-8 flex flex-col min-h-screen animate-fade-in">
+        <div className="px-5 pt-14 pb-8 flex flex-col min-h-screen animate-fade-in">
           <div className="flex-1">
-            {/* Serif headline like Hinge */}
-            <div className="mb-12 animate-slide-up">
-              <h1 className="text-[34px] font-bold tracking-tight leading-[1.1] mb-3">
-                She caught<br />your eye.
+            <div className="mb-10 animate-slide-up">
+              <h1 className="font-display text-[30px] font-extrabold tracking-tight leading-none mb-2">
+                ApproachAI
               </h1>
-              <p className="text-text-muted text-[16px] leading-relaxed font-light">
-                Get a real game plan and the confidence<br />to go talk to her.
+              <p className="text-text-muted text-[15px]">
+                Your confidence coach for cold approaches.
               </p>
             </div>
 
-            {/* Action cards with staggered animation */}
-            <div className="space-y-3 stagger-children">
-              <label className="flex items-center gap-4 bg-bg-card rounded-2xl px-5 py-4 cursor-pointer press-scale">
-                <div className="w-10 h-10 rounded-full bg-bg flex items-center justify-center shrink-0">
-                  <Camera size={18} strokeWidth={1.5} />
-                </div>
+            <div className="space-y-2.5 stagger">
+              <label className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl px-4 py-3.5 cursor-pointer press">
+                <Camera size={20} strokeWidth={1.5} className="text-text-muted shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[15px]">Take a photo</p>
-                  <p className="text-text-muted text-[13px] font-light">Use your camera right now</p>
+                  <p className="font-medium text-[15px] leading-tight">Take a photo</p>
+                  <p className="text-text-muted text-[13px] mt-0.5">Use your camera right now</p>
                 </div>
-                <ChevronRight size={16} className="text-text-muted/60" />
+                <ChevronRight size={16} className="text-border shrink-0" />
                 <input
                   type="file"
                   accept="image/*"
@@ -127,15 +123,13 @@ export default function Home() {
                 />
               </label>
 
-              <label className="flex items-center gap-4 bg-bg-card rounded-2xl px-5 py-4 cursor-pointer press-scale">
-                <div className="w-10 h-10 rounded-full bg-bg flex items-center justify-center shrink-0">
-                  <Upload size={18} strokeWidth={1.5} />
-                </div>
+              <label className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl px-4 py-3.5 cursor-pointer press">
+                <Upload size={20} strokeWidth={1.5} className="text-text-muted shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[15px]">Upload a photo</p>
-                  <p className="text-text-muted text-[13px] font-light">From your gallery or files</p>
+                  <p className="font-medium text-[15px] leading-tight">Upload a photo</p>
+                  <p className="text-text-muted text-[13px] mt-0.5">From your gallery or files</p>
                 </div>
-                <ChevronRight size={16} className="text-text-muted/60" />
+                <ChevronRight size={16} className="text-border shrink-0" />
                 <input
                   type="file"
                   accept="image/*"
@@ -146,21 +140,19 @@ export default function Home() {
 
               <button
                 onClick={() => updateState("chat", false)}
-                className="flex items-center gap-4 w-full bg-bg-card rounded-2xl px-5 py-4 text-left press-scale"
+                className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-left press"
               >
-                <div className="w-10 h-10 rounded-full bg-bg flex items-center justify-center shrink-0">
-                  <MessageCircle size={18} strokeWidth={1.5} />
-                </div>
+                <MessageCircle size={20} strokeWidth={1.5} className="text-text-muted shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[15px]">Just talk to me</p>
-                  <p className="text-text-muted text-[13px] font-light">Get coached through any situation</p>
+                  <p className="font-medium text-[15px] leading-tight">Just talk to me</p>
+                  <p className="text-text-muted text-[13px] mt-0.5">Get coached through any situation</p>
                 </div>
-                <ChevronRight size={16} className="text-text-muted/60" />
+                <ChevronRight size={16} className="text-border shrink-0" />
               </button>
             </div>
           </div>
 
-          <p className="text-center text-[12px] text-text-muted/60 mt-12 font-light animate-fade-in" style={{ animationDelay: "500ms" }}>
+          <p className="text-center text-[11px] text-text-muted mt-12 animate-fade-in" style={{ animationDelay: "400ms" }}>
             Your photos never leave your device.
           </p>
         </div>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap');
 
 @theme {
   --color-primary: #1a1a1a;
@@ -6,14 +7,15 @@
   --color-accent: #1a1a1a;
   --color-accent-dark: #000000;
   --color-bg: #fffefd;
-  --color-bg-card: #f6f5f3;
-  --color-bg-card-hover: #eeedeb;
-  --color-bg-input: #f2f1ef;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #fafaf9;
+  --color-bg-input: #f4f4f3;
   --color-text: #1a1a1a;
-  --color-text-muted: #8a8785;
-  --color-border: #e8e6e3;
+  --color-text-muted: #9a9a9a;
+  --color-border: #eeeeee;
   --color-nav: #1a1a1a;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
@@ -22,7 +24,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.01em;
 }
 
 ::-webkit-scrollbar {
@@ -35,7 +36,7 @@ body {
 
 /* Animations */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -45,29 +46,28 @@ body {
 }
 
 .animate-slide-up {
-  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.4s ease-out both;
+  animation: fade-in 0.35s ease-out both;
 }
 
-.stagger-children > * {
-  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+.stagger > * {
+  animation: slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 70ms; }
+.stagger > *:nth-child(3) { animation-delay: 140ms; }
+.stagger > *:nth-child(4) { animation-delay: 210ms; }
 
-.message-enter {
-  animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+.msg-in {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.press-scale {
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+.press {
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.press-scale:active {
-  transform: scale(0.97);
+.press:active {
+  transform: scale(0.975);
 }

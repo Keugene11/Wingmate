@@ -121,7 +121,7 @@ export default function ImageAnnotator({ imageData, onConfirm, onBack }: ImageAn
 
       <button
         onClick={onConfirm}
-        className="flex items-center justify-center gap-2 w-full bg-primary text-white py-4 rounded-full mt-5 font-medium text-[15px] press-scale"
+        className="flex items-center justify-center gap-2 w-full bg-primary text-white py-3.5 rounded-xl mt-5 font-medium text-[15px] press"
       >
         {hasDrawn ? "Continue" : "Skip marking"}
         <ArrowRight size={17} />

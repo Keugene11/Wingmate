@@ -220,15 +220,15 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-bg animate-fade-in">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 shrink-0 border-b border-border/60">
-        <button onClick={handleBack} className="text-text press-scale -ml-1 p-1">
+      <div className="flex items-center gap-3 px-5 py-3.5 shrink-0 border-b border-border">
+        <button onClick={handleBack} className="text-text press -ml-1 p-1">
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <button onClick={handleBack} className="text-[17px] font-bold flex-1 text-left tracking-tight">
+        <button onClick={handleBack} className="font-display text-[17px] font-bold flex-1 text-left">
           ApproachAI
         </button>
         {isLoading && (
-          <span className="text-[12px] text-text-muted font-light animate-fade-in">typing...</span>
+          <span className="text-[12px] text-text-muted animate-fade-in">typing...</span>
         )}
       </div>
 
@@ -240,14 +240,14 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
       >
         {messages.map((msg, i) =>
           msg.role === "user" ? (
-            <div key={i} className="flex justify-end message-enter">
-              <div className="max-w-[80%] bg-primary text-white rounded-[20px] rounded-br-[4px] px-4 py-3">
-                <p className="text-[15px] leading-[1.55] whitespace-pre-wrap">{msg.content}</p>
+            <div key={i} className="flex justify-end msg-in">
+              <div className="max-w-[80%] bg-primary text-white rounded-[18px] rounded-br-[4px] px-4 py-2.5">
+                <p className="text-[15px] leading-[1.5] whitespace-pre-wrap">{msg.content}</p>
               </div>
             </div>
           ) : (
-            <div key={i} className="message-enter">
-              <p className="text-[15px] leading-[1.7] whitespace-pre-wrap text-text">{msg.content}</p>
+            <div key={i} className="msg-in">
+              <p className="text-[15px] leading-[1.65] whitespace-pre-wrap text-text">{msg.content}</p>
             </div>
           )
         )}
@@ -264,10 +264,10 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 shrink-0 border-t border-border/60">
+      <div className="px-4 py-3 shrink-0 border-t border-border">
         <form
           onSubmit={handleSubmit}
-          className="flex items-end gap-2 bg-bg-card rounded-full pl-5 pr-2 py-2"
+          className="flex items-end gap-2 bg-bg-input rounded-full pl-5 pr-2 py-2"
         >
           <textarea
             ref={inputRef}
@@ -276,13 +276,13 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
             onKeyDown={handleKeyDown}
             placeholder="Message..."
             rows={1}
-            className="flex-1 bg-transparent text-text text-[15px] placeholder-text-muted/60 focus:outline-none resize-none leading-normal py-1 font-light"
+            className="flex-1 bg-transparent text-text text-[15px] placeholder-text-muted focus:outline-none resize-none leading-normal py-1"
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="bg-primary disabled:opacity-15 text-white p-2.5 rounded-full press-scale shrink-0 transition-opacity"
+            className="bg-primary disabled:opacity-15 text-white p-2 rounded-full press shrink-0 transition-opacity"
           >
             <ArrowUp size={15} strokeWidth={2.5} />
           </button>
