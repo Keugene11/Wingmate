@@ -1,172 +1,190 @@
 "use client";
 
-import { useState } from "react";
-import { Flame, Target, Zap } from "lucide-react";
-import CameraCapture from "@/components/CameraCapture";
+import { useState, useEffect, useCallback } from "react";
+import { Camera, Upload, ArrowRight, MessageCircle } from "lucide-react";
 import ImageAnnotator from "@/components/ImageAnnotator";
-import MotivationPanel from "@/components/MotivationPanel";
 import ChatCoach from "@/components/ChatCoach";
 
-type AppState = "home" | "camera" | "annotate" | "motivation" | "chat";
+type AppState = "home" | "annotate" | "chat";
+
+function getSessionState(): { state: AppState; fromPhoto: boolean } {
+  if (typeof window === "undefined") return { state: "home", fromPhoto: false };
+  try {
+    const saved = sessionStorage.getItem("approachai-state");
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return { state: "home", fromPhoto: false };
+}
 
 export default function Home() {
   const [state, setState] = useState<AppState>("home");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [cameFromPhoto, setCameFromPhoto] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  const handleCapture = (imageData: string) => {
-    setCapturedImage(imageData);
-    setState("annotate");
+  useEffect(() => {
+    const saved = getSessionState();
+    if (saved.state === "chat") {
+      setState("chat");
+      setCameFromPhoto(saved.fromPhoto);
+      try {
+        const img = sessionStorage.getItem("approachai-image");
+        if (img) setCapturedImage(img);
+      } catch {}
+    }
+    setHydrated(true);
+  }, []);
+
+  const updateState = useCallback(
+    (newState: AppState, fromPhoto?: boolean) => {
+      setState(newState);
+      if (fromPhoto !== undefined) setCameFromPhoto(fromPhoto);
+      try {
+        sessionStorage.setItem(
+          "approachai-state",
+          JSON.stringify({
+            state: newState,
+            fromPhoto: fromPhoto ?? cameFromPhoto,
+          })
+        );
+      } catch {}
+    },
+    [cameFromPhoto]
+  );
+
+  const compressImage = (dataUrl: string, maxWidth = 800): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.src = dataUrl;
+    });
   };
 
-  const handleAnnotationConfirm = async (
-    annotatedImage: string,
-    circleRegion: { x: number; y: number; radius: number } | null
-  ) => {
-    setState("motivation");
-
-    // Analyze image in background
-    setIsAnalyzing(true);
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageData: capturedImage,
-          hasCircle: !!circleRegion,
-        }),
-      });
-      const data = await res.json();
-      setAnalysis(data.analysis);
-    } catch {
-      setAnalysis(null);
-    }
-    setIsAnalyzing(false);
+  const handleCapture = async (imageData: string) => {
+    setCapturedImage(imageData);
+    setState("annotate");
+    // Compress for AI analysis (keep original for annotator display)
+    const compressed = await compressImage(imageData);
+    try { sessionStorage.setItem("approachai-image", compressed); } catch {}
   };
 
   const reset = () => {
-    setState("home");
     setCapturedImage(null);
-    setAnalysis(null);
+    try { sessionStorage.removeItem("approachai-image"); } catch {}
+    setCameFromPhoto(false);
+    updateState("home", false);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => handleCapture(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  if (!hydrated) return null;
+
   return (
-    <main className="min-h-screen px-4 py-6 max-w-lg mx-auto">
-      {/* Header */}
-      {state !== "chat" && (
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold gradient-text mb-2">
-            ApproachAI
-          </h1>
-          <p className="text-text-muted text-sm">
-            Your AI-powered cold approach wingman
-          </p>
-        </header>
-      )}
-
-      {/* Home Screen */}
+    <main className="min-h-screen max-w-md mx-auto">
       {state === "home" && (
-        <div className="space-y-6">
-          {/* Hero */}
-          <div className="bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 rounded-2xl p-6 text-center">
-            <Zap size={48} className="mx-auto mb-4 text-accent" />
-            <h2 className="text-2xl font-bold mb-2">
-              Stop Overthinking. Start Approaching.
-            </h2>
-            <p className="text-text-muted leading-relaxed">
-              Snap a photo, circle who caught your eye, and get instant
-              motivation + a personalized game plan to make your move.
-            </p>
+        <div className="px-6 pt-14 pb-8 flex flex-col min-h-screen">
+          <div className="flex-1">
+            <h1 className="text-[32px] font-bold tracking-tight leading-[1.15] mb-6">
+              Approach<span className="text-accent">AI</span>
+            </h1>
+
+            <div className="mb-8">
+              <p className="text-[22px] font-semibold leading-snug mb-2">
+                She caught your eye.
+              </p>
+              <p className="text-text-muted text-[15px] leading-relaxed">
+                Get a real game plan and the confidence to go talk to her. No overthinking, just action.
+              </p>
+            </div>
+
+            {/* Action cards */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-4 rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform border border-border">
+                <div className="w-11 h-11 rounded-full bg-accent/15 flex items-center justify-center shrink-0">
+                  <Camera size={20} className="text-accent" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px]">Take a photo</p>
+                  <p className="text-text-muted text-[13px]">Use your camera right now</p>
+                </div>
+                <ArrowRight size={18} className="text-text-muted shrink-0" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+
+              <label className="flex items-center gap-4 rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform border border-border">
+                <div className="w-11 h-11 rounded-full bg-accent/15 flex items-center justify-center shrink-0">
+                  <Upload size={20} className="text-accent" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px]">Upload a screenshot</p>
+                  <p className="text-text-muted text-[13px]">From your gallery or files</p>
+                </div>
+                <ArrowRight size={18} className="text-text-muted shrink-0" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+
+              <button
+                onClick={() => updateState("chat", false)}
+                className="flex items-center gap-4 w-full rounded-2xl p-4 text-left active:scale-[0.98] transition-transform border border-border"
+              >
+                <div className="w-11 h-11 rounded-full bg-accent/15 flex items-center justify-center shrink-0">
+                  <MessageCircle size={20} className="text-accent" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px]">Just talk to me</p>
+                  <p className="text-text-muted text-[13px]">Get a pep talk for any situation</p>
+                </div>
+                <ArrowRight size={18} className="text-text-muted shrink-0" />
+              </button>
+            </div>
           </div>
 
-          {/* Camera CTA */}
-          <CameraCapture onCapture={handleCapture} />
-
-          {/* Quick Chat */}
-          <button
-            onClick={() => setState("chat")}
-            className="w-full bg-bg-card hover:bg-bg-card-hover border border-border rounded-2xl p-5 text-left transition"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-primary/20 p-2 rounded-lg">
-                <Flame size={20} className="text-primary" />
-              </div>
-              <h3 className="font-semibold">Just Need a Pep Talk?</h3>
-            </div>
-            <p className="text-sm text-text-muted">
-              Skip the camera — talk directly to your AI approach coach about
-              any situation, fear, or excuse holding you back.
-            </p>
-          </button>
-
-          {/* Features */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-              <Target size={24} className="mx-auto mb-2 text-primary" />
-              <p className="text-xs font-medium">Scene Analysis</p>
-            </div>
-            <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-              <Flame size={24} className="mx-auto mb-2 text-accent" />
-              <p className="text-xs font-medium">Instant Hype</p>
-            </div>
-            <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-              <Zap size={24} className="mx-auto mb-2 text-green-400" />
-              <p className="text-xs font-medium">Game Plans</p>
-            </div>
-          </div>
+          <p className="text-center text-[12px] text-text-muted mt-10">
+            Your photos never leave your device.
+          </p>
         </div>
       )}
 
-      {/* Annotate Screen */}
       {state === "annotate" && capturedImage && (
-        <ImageAnnotator
-          imageData={capturedImage}
-          onConfirm={handleAnnotationConfirm}
-          onBack={() => {
-            setCapturedImage(null);
-            setState("home");
-          }}
-        />
-      )}
-
-      {/* Motivation Screen */}
-      {state === "motivation" && (
-        <div className="space-y-6">
-          {/* AI Analysis */}
-          {(isAnalyzing || analysis) && (
-            <div className="bg-bg-card border border-border rounded-2xl p-5">
-              <h3 className="font-bold mb-2 flex items-center gap-2">
-                <Target size={18} className="text-primary" />
-                AI Scene Analysis
-              </h3>
-              {isAnalyzing ? (
-                <div className="flex items-center gap-3 text-text-muted">
-                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm">Reading the room...</span>
-                </div>
-              ) : (
-                <p className="text-sm text-text-muted leading-relaxed whitespace-pre-wrap">
-                  {analysis}
-                </p>
-              )}
-            </div>
-          )}
-
-          <MotivationPanel
-            onStartChat={() => setState("chat")}
-            onReset={reset}
-            hasImage={!!capturedImage}
+        <div className="px-5 pt-6 pb-8">
+          <ImageAnnotator
+            imageData={capturedImage}
+            onConfirm={() => updateState("chat", true)}
+            onBack={() => {
+              setCapturedImage(null);
+              setState("home");
+            }}
           />
         </div>
       )}
 
-      {/* Chat Screen */}
       {state === "chat" && (
-        <ChatCoach
-          onBack={() => setState(capturedImage ? "motivation" : "home")}
-          imageContext={capturedImage}
-        />
+        <ChatCoach onBack={reset} fromPhoto={cameFromPhoto} imageData={capturedImage} />
       )}
     </main>
   );

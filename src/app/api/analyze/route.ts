@@ -1,60 +1,69 @@
-import { anthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
-
 export const runtime = "edge";
 
 export async function POST(req: Request) {
   const { imageData, hasCircle } = await req.json();
 
   const prompt = hasCircle
-    ? `You're ApproachAI, a confident and motivating cold approach coach. The user has taken a photo and circled someone they want to approach.
+    ? `You're a scene analyst for a cold approach coach app. The user has taken a photo and marked someone they want to approach.
 
-Analyze the scene and give them:
-1. A brief, hype read of the situation (what kind of venue/setting is this?)
-2. A personalized, context-aware opening line
-3. A quick body language tip
-4. One sentence of pure motivation
+Describe the scene in detail:
+1. What kind of venue/setting is this? (bar, cafe, gym, park, library, club, street, campus, etc.)
+2. What's the vibe? (crowded, quiet, energetic, chill, etc.)
+3. What is the person of interest doing? (sitting alone, with friends, reading, working out, etc.)
+4. Any notable details that could be used in an opener? (what they're drinking, wearing, reading, the music, etc.)
 
-Keep it punchy, real, and under 120 words. Use a confident, bro-friendly tone. No emojis.`
-    : `You're ApproachAI, a confident and motivating cold approach coach. The user has taken a photo of a social scene.
+Keep it factual and descriptive, 2-3 sentences. No motivational talk — just describe what you see.`
+    : `You're a scene analyst for a cold approach coach app. The user has taken a photo of a social scene.
 
-Give them:
-1. A quick read of the setting/vibe
-2. General tips for approaching in this environment
-3. A versatile opening line that works here
-4. A motivational push to take action
+Describe the scene in detail:
+1. What kind of venue/setting is this?
+2. What's the vibe?
+3. Any notable details useful for approaching someone here?
 
-Keep it punchy, real, and under 120 words. Use a confident, bro-friendly tone. No emojis.`;
+Keep it factual and descriptive, 2-3 sentences.`;
 
   try {
-    const result = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              image: imageData,
-            },
-            {
-              type: "text",
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      maxOutputTokens: 300,
+    const response = await fetch("https://api.dedaluslabs.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.DEDALUS_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "anthropic/claude-sonnet-4-20250514",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: { url: imageData },
+              },
+              {
+                type: "text",
+                text: prompt,
+              },
+            ],
+          },
+        ],
+        max_tokens: 300,
+      }),
     });
 
-    return Response.json({ analysis: result.text });
-  } catch {
-    return Response.json(
-      {
-        analysis:
-          "Couldn't analyze the image, but here's what I know — you're already ahead of 99% of guys just by being willing to try. Walk over, smile, and say: \"Hey, I noticed you and I'd regret not coming to say hi. I'm [your name].\" That's it. Simple, direct, confident. Go.",
-      },
-      { status: 200 }
-    );
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("[analyze] API error:", response.status, errText);
+      return Response.json({
+        analysis: "",
+      });
+    }
+
+    const data = await response.json();
+    const analysis = data.choices?.[0]?.message?.content || "";
+
+    return Response.json({ analysis });
+  } catch (e) {
+    console.error("[analyze] error:", e);
+    return Response.json({ analysis: "" });
   }
 }

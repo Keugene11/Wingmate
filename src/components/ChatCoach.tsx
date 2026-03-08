@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Send, ArrowLeft, Mic, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { ArrowLeft, ArrowUp } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -10,121 +10,187 @@ interface Message {
 
 interface ChatCoachProps {
   onBack: () => void;
-  imageContext?: string | null;
+  fromPhoto?: boolean;
+  imageData?: string | null;
 }
 
-const quickPrompts = [
-  "I'm scared of rejection",
-  "It's too loud/crowded here",
-  "I don't know what to say",
-  "She looks busy, should I still approach?",
-  "I feel like I'm not good enough",
-  "Give me an opening line",
-  "What if her friends judge me?",
-  "I keep making excuses",
-];
+const STORAGE_KEY = "approachai-messages";
 
-export default function ChatCoach({ onBack, imageContext }: ChatCoachProps) {
+function getSavedMessages(): Message[] | null {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return null;
+}
+
+function saveMessages(messages: Message[]) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  } catch {}
+}
+
+export function clearSavedMessages() {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem("approachai-state");
+  } catch {}
+}
+
+export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const userScrolledUp = useRef(false);
 
   useEffect(() => {
-    // Initial message
-    setMessages([
-      {
-        role: "assistant",
-        content: imageContext
-          ? "I can see you've spotted someone. Let's get you ready. What's holding you back right now? Tell me exactly what you're feeling — the nervousness, the excuses, all of it. I'm here to cut through the BS and get you moving."
-          : "Hey king. I'm your approach coach. Tell me what's going on — where are you, who caught your eye, and what's stopping you from walking over? No judgment here, just real talk and actionable advice.",
-      },
-    ]);
-  }, [imageContext]);
+    if (initialized && messages.length > 0) {
+      const toSave = messages.filter((m) => m.content.length > 0);
+      if (toSave.length > 0) saveMessages(toSave);
+    }
+  }, [messages, initialized]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const sendMessage = async (content: string) => {
-    if (!content.trim() || isLoading) return;
-
-    const userMessage: Message = { role: "user", content: content.trim() };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          hasImage: !!imageContext,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get response");
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader");
-
-      const decoder = new TextDecoder();
-      let assistantContent = "";
-
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        // Parse SSE data
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
+  const streamResponse = useCallback(
+    async (messagesToSend: Message[]) => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: messagesToSend,
+            mode: fromPhoto ? "photo-approach" : "general",
+          }),
+        });
+        if (!response.ok) throw new Error("Failed");
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No reader");
+        const decoder = new TextDecoder();
+        let content = "";
+        setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          for (const line of chunk.split("\n")) {
+            if (!line.startsWith("data: ")) continue;
             const data = line.slice(6);
             if (data === "[DONE]") continue;
             try {
               const parsed = JSON.parse(data);
               if (parsed.content) {
-                assistantContent += parsed.content;
+                content += parsed.content;
                 setMessages((prev) => {
                   const updated = [...prev];
-                  updated[updated.length - 1] = {
-                    role: "assistant",
-                    content: assistantContent,
-                  };
+                  updated[updated.length - 1] = { role: "assistant", content };
                   return updated;
                 });
               }
-            } catch {
-              // Not JSON, might be raw text
-              assistantContent += data;
-              setMessages((prev) => {
-                const updated = [...prev];
-                updated[updated.length - 1] = {
-                  role: "assistant",
-                  content: assistantContent,
-                };
-                return updated;
-              });
-            }
+            } catch {}
           }
         }
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "Something went wrong on my end. But you already know what to do — walk over and say hi.",
+          },
+        ]);
       }
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Listen, even my connection glitched — but you know what? That's life throwing curveballs. The point is, you showed up. You're here. Now take that same energy and go talk to her. You've got this.",
-        },
-      ]);
+      setIsLoading(false);
+    },
+    [fromPhoto]
+  );
+
+  useEffect(() => {
+    if (initialized) return;
+
+    // Try to get image from prop or sessionStorage
+    let photo = imageData;
+    if (!photo && fromPhoto) {
+      try { photo = sessionStorage.getItem("approachai-image"); } catch {}
     }
 
-    setIsLoading(false);
+    // If we have a photo, always analyze it fresh — don't restore old messages
+    if (fromPhoto && photo) {
+      setInitialized(true);
+      const analyzeAndStart = async () => {
+        let sceneDescription = "";
+        try {
+          const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageData: photo, hasCircle: true }),
+          });
+          const data = await res.json();
+          sceneDescription = data.analysis || "";
+        } catch (e) {
+          console.error("[ChatCoach] analyze failed:", e);
+        }
+        const trigger: Message = {
+          role: "user",
+          content: sceneDescription
+            ? `I just spotted someone I want to approach. I'm in the moment right now. Here's what the scene looks like: "${sceneDescription}"\n\nReference this scene directly. Give me the motivation, a game plan tailored to THIS specific setting and situation, and help me crush my fears. I need to move NOW.`
+            : "I just spotted someone I want to approach. I'm in the moment right now. Give me the motivation, the game plan, and help me crush my fears about this. I need to move NOW.",
+        };
+        setMessages([trigger]);
+        streamResponse([trigger]);
+      };
+      analyzeAndStart();
+      return;
+    }
+
+    const saved = getSavedMessages();
+    if (saved && saved.length > 0) {
+      setMessages(saved);
+      setInitialized(true);
+      return;
+    }
+
+    if (fromPhoto) {
+      const trigger: Message = {
+        role: "user",
+        content: "I just spotted someone I want to approach. I'm in the moment right now. Give me the motivation, the game plan, and help me crush my fears about this. I need to move NOW.",
+      };
+      setMessages([trigger]);
+      setInitialized(true);
+      streamResponse([trigger]);
+    } else {
+      setMessages([
+        {
+          role: "assistant",
+          content: "What's going on? Tell me where you are, who caught your eye, and what's running through your head right now.",
+        },
+      ]);
+      setInitialized(true);
+    }
+  }, [initialized, fromPhoto, imageData, streamResponse]);
+
+  useEffect(() => {
+    if (!userScrolledUp.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    userScrolledUp.current = el.scrollHeight - el.scrollTop - el.clientHeight > 50;
+  };
+
+  const sendMessage = async (content: string) => {
+    if (!content.trim() || isLoading) return;
+    const userMessage: Message = { role: "user", content: content.trim() };
+    const updated = [...messages, userMessage];
+    setMessages(updated);
+    setInput("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
+    await streamResponse(updated);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -132,85 +198,98 @@ export default function ChatCoach({ onBack, imageContext }: ChatCoachProps) {
     sendMessage(input);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
+  };
+
+  const handleBack = () => {
+    clearSavedMessages();
+    onBack();
+  };
+
+  const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  };
+
   return (
-    <div className="w-full max-w-lg mx-auto flex flex-col h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-bg">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={onBack}
-          className="bg-bg-card hover:bg-bg-card-hover p-2 rounded-xl border border-border transition"
-        >
-          <ArrowLeft size={20} />
+      <div className="flex items-center gap-3 px-5 py-4 shrink-0">
+        <button onClick={handleBack} className="text-text-muted active:opacity-60 -ml-1 p-1">
+          <ArrowLeft size={22} />
         </button>
-        <div>
-          <h2 className="font-bold text-lg">AI Approach Coach</h2>
-          <p className="text-xs text-text-muted">Your personal wingman — no BS, just results</p>
-        </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-green-400">Live</span>
-        </div>
+        <h1 className="text-[18px] font-bold flex-1">
+          Approach<span className="text-accent">AI</span>
+        </h1>
+        {isLoading && (
+          <span className="text-[12px] text-text-muted">typing...</span>
+        )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 pb-4 pr-1">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-5 pb-4 space-y-3"
+      >
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[85%] px-4 py-3 ${
                 msg.role === "user"
-                  ? "bg-primary text-white rounded-br-md"
-                  : "bg-bg-card border border-border text-text rounded-bl-md"
+                  ? "bg-accent text-white rounded-[20px] rounded-br-lg"
+                  : "text-text"
               }`}
             >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+              <p className="text-[15px] leading-[1.55] whitespace-pre-wrap">{msg.content}</p>
             </div>
           </div>
         ))}
         {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex justify-start">
-            <div className="bg-bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
-              <Loader2 size={18} className="animate-spin text-primary" />
+            <div className="px-4 py-3">
+              <div className="flex gap-1.5 py-1">
+                <div className="w-2 h-2 rounded-full bg-text-muted/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-text-muted/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-text-muted/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Prompts */}
-      {messages.length <= 2 && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          {quickPrompts.map((prompt) => (
-            <button
-              key={prompt}
-              onClick={() => sendMessage(prompt)}
-              className="text-xs bg-bg-card hover:bg-bg-card-hover border border-border rounded-full px-3 py-1.5 text-text-muted hover:text-white transition"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Input */}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Tell me what's on your mind..."
-          className="flex-1 bg-bg-card border border-border rounded-xl px-4 py-3 text-white placeholder-text-muted focus:outline-none focus:border-primary transition"
-          disabled={isLoading}
-        />
-        <button
-          type="submit"
-          disabled={isLoading || !input.trim()}
-          className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-white p-3 rounded-xl transition"
+      <div className="px-5 py-3 shrink-0">
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-end gap-2 rounded-full border border-border pl-5 pr-2 py-2"
         >
-          <Send size={20} />
-        </button>
-      </form>
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={handleTextareaInput}
+            onKeyDown={handleKeyDown}
+            placeholder="Say something..."
+            rows={1}
+            className="flex-1 bg-transparent text-text text-[15px] placeholder-text-muted focus:outline-none resize-none leading-normal py-1"
+            disabled={isLoading}
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !input.trim()}
+            className="bg-accent disabled:opacity-30 text-white p-2 rounded-full transition shrink-0"
+          >
+            <ArrowUp size={16} strokeWidth={2.5} />
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

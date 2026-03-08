@@ -1,20 +1,22 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { RotateCcw, Check, Circle } from "lucide-react";
+import { RotateCcw, ArrowLeft, ArrowRight } from "lucide-react";
 
 interface ImageAnnotatorProps {
   imageData: string;
-  onConfirm: (annotatedImage: string, circleRegion: { x: number; y: number; radius: number } | null) => void;
+  onConfirm: () => void;
   onBack: () => void;
 }
+
+interface Point { x: number; y: number; }
 
 export default function ImageAnnotator({ imageData, onConfirm, onBack }: ImageAnnotatorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
-  const [currentCircle, setCurrentCircle] = useState<{ x: number; y: number; radius: number } | null>(null);
+  const [freehandPoints, setFreehandPoints] = useState<Point[]>([]);
+  const [hasDrawn, setHasDrawn] = useState(false);
   const [imageObj, setImageObj] = useState<HTMLImageElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
@@ -26,171 +28,104 @@ export default function ImageAnnotator({ imageData, onConfirm, onBack }: ImageAn
       if (container) {
         const maxWidth = container.clientWidth;
         const scale = maxWidth / img.width;
-        setCanvasSize({
-          width: maxWidth,
-          height: img.height * scale,
-        });
+        setCanvasSize({ width: maxWidth, height: img.height * scale });
       }
     };
     img.src = imageData;
   }, [imageData]);
 
   const drawCanvas = useCallback(
-    (circle?: { x: number; y: number; radius: number } | null) => {
+    (points?: Point[]) => {
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d");
       if (!canvas || !ctx || !imageObj) return;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(imageObj, 0, 0, canvas.width, canvas.height);
-
-      const c = circle ?? currentCircle;
-      if (c) {
-        // Dim everything outside the circle
-        ctx.save();
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // Draw circle outline
-        ctx.strokeStyle = "#7c3aed";
+      const fp = points !== undefined ? points : freehandPoints;
+      if (fp && fp.length > 1) {
+        ctx.strokeStyle = "#7cb8a5";
         ctx.lineWidth = 3;
-        ctx.setLineDash([8, 4]);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
         ctx.beginPath();
-        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+        ctx.moveTo(fp[0].x, fp[0].y);
+        for (let i = 1; i < fp.length; i++) ctx.lineTo(fp[i].x, fp[i].y);
         ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Glow effect
-        ctx.shadowColor = "#7c3aed";
-        ctx.shadowBlur = 15;
-        ctx.strokeStyle = "rgba(124, 58, 237, 0.5)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
       }
     },
-    [imageObj, currentCircle]
+    [imageObj, freehandPoints]
   );
 
-  useEffect(() => {
-    drawCanvas();
-  }, [drawCanvas, canvasSize]);
+  useEffect(() => { drawCanvas(); }, [drawCanvas, canvasSize]);
 
-  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+  const getPos = (e: React.MouseEvent | React.TouchEvent): Point => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    if ("touches" in e) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
-      };
-    }
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ("touches" in e) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
   };
 
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    const pos = getPos(e);
-    setStartPoint(pos);
+    setFreehandPoints([getPos(e)]);
     setIsDrawing(true);
   };
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || !startPoint) return;
+    if (!isDrawing) return;
     e.preventDefault();
     const pos = getPos(e);
-    const dx = pos.x - startPoint.x;
-    const dy = pos.y - startPoint.y;
-    const radius = Math.sqrt(dx * dx + dy * dy);
-    const circle = { x: startPoint.x, y: startPoint.y, radius };
-    setCurrentCircle(circle);
-    drawCanvas(circle);
+    setFreehandPoints((prev) => { const next = [...prev, pos]; drawCanvas(next); return next; });
   };
 
   const handleEnd = () => {
+    if (freehandPoints.length > 1) setHasDrawn(true);
     setIsDrawing(false);
   };
 
-  const reset = () => {
-    setCurrentCircle(null);
-    setStartPoint(null);
-    drawCanvas(null);
-  };
-
-  const confirm = () => {
-    // Get the annotated image as data URL
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const annotatedImage = canvas.toDataURL("image/jpeg", 0.85);
-      onConfirm(annotatedImage, currentCircle);
-    }
-  };
-
-  const skipCircle = () => {
-    onConfirm(imageData, null);
+  const resetDrawing = () => {
+    setFreehandPoints([]); setHasDrawn(false);
+    drawCanvas([]);
   };
 
   return (
     <div className="w-full max-w-lg mx-auto" ref={containerRef}>
-      <div className="mb-3 flex items-center gap-2 text-text-muted text-sm">
-        <Circle size={16} className="text-primary" />
-        <span>Draw a circle around the person you want to approach</span>
+      <button onClick={onBack} className="flex items-center gap-1.5 text-[14px] text-text-muted mb-5 active:opacity-60">
+        <ArrowLeft size={16} /> Back
+      </button>
+
+      <div className="rounded-3xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[14px] text-text-muted">
+            Mark who caught your eye, or skip ahead.
+          </p>
+          {hasDrawn && (
+            <button onClick={resetDrawing} className="text-text-muted p-1.5 active:opacity-60">
+              <RotateCcw size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="rounded-2xl overflow-hidden">
+          <canvas
+            ref={canvasRef} width={canvasSize.width} height={canvasSize.height}
+            className="w-full drawing-cursor touch-none"
+            onMouseDown={handleStart} onMouseMove={handleMove} onMouseUp={handleEnd} onMouseLeave={handleEnd}
+            onTouchStart={handleStart} onTouchMove={handleMove} onTouchEnd={handleEnd}
+          />
+        </div>
       </div>
 
-      <div className="relative rounded-2xl overflow-hidden border border-border">
-        <canvas
-          ref={canvasRef}
-          width={canvasSize.width}
-          height={canvasSize.height}
-          className="w-full drawing-cursor touch-none"
-          onMouseDown={handleStart}
-          onMouseMove={handleMove}
-          onMouseUp={handleEnd}
-          onMouseLeave={handleEnd}
-          onTouchStart={handleStart}
-          onTouchMove={handleMove}
-          onTouchEnd={handleEnd}
-        />
-      </div>
-
-      <div className="mt-4 flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 bg-bg-card hover:bg-bg-card-hover text-white py-3 px-4 rounded-xl border border-border transition font-medium"
-        >
-          Retake
-        </button>
-        <button
-          onClick={reset}
-          className="bg-bg-card hover:bg-bg-card-hover text-white p-3 rounded-xl border border-border transition"
-        >
-          <RotateCcw size={20} />
-        </button>
-        {currentCircle ? (
-          <button
-            onClick={confirm}
-            className="flex-1 bg-primary hover:bg-primary-dark text-white py-3 px-4 rounded-xl transition font-semibold flex items-center justify-center gap-2"
-          >
-            <Check size={20} />
-            Analyze & Motivate
-          </button>
-        ) : (
-          <button
-            onClick={skipCircle}
-            className="flex-1 bg-accent hover:bg-accent/90 text-white py-3 px-4 rounded-xl transition font-semibold"
-          >
-            Skip - Just Motivate Me
-          </button>
-        )}
-      </div>
+      <button
+        onClick={onConfirm}
+        className="flex items-center justify-center gap-2 w-full bg-accent hover:bg-accent-dark text-white py-4 rounded-full mt-5 font-semibold text-[15px] active:scale-[0.98] transition-transform shadow-sm"
+      >
+        {hasDrawn ? "Continue" : "Skip marking"}
+        <ArrowRight size={17} />
+      </button>
     </div>
   );
 }
