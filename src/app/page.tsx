@@ -99,7 +99,7 @@ export default function Home() {
           <div className="flex-1">
             {/* Serif headline like Hinge */}
             <div className="mb-12 animate-slide-up">
-              <h1 className="font-serif text-[36px] font-semibold tracking-tight leading-[1.1] mb-3">
+              <h1 className="text-[34px] font-bold tracking-tight leading-[1.1] mb-3">
                 She caught<br />your eye.
               </h1>
               <p className="text-text-muted text-[16px] leading-relaxed font-light">

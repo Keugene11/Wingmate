@@ -16,7 +16,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-8 max-w-md mx-auto animate-fade-in">
       <div className="w-full text-center">
-        <h1 className="font-serif text-[32px] font-semibold tracking-tight mb-2">
+        <h1 className="text-[28px] font-bold tracking-tight mb-2">
           ApproachAI
         </h1>
         <p className="text-text-muted text-[15px] mb-12 font-light">

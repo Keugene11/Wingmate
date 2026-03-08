@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 @theme {
   --color-primary: #1a1a1a;
@@ -14,8 +13,7 @@
   --color-text-muted: #8a8785;
   --color-border: #e8e6e3;
   --color-nav: #1a1a1a;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, system-ui, sans-serif;
 }
 
 body {
@@ -24,6 +22,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
 ::-webkit-scrollbar {
@@ -34,32 +33,15 @@ body {
   cursor: crosshair;
 }
 
-/* Hinge-style spring animations */
+/* Animations */
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 .animate-slide-up {
@@ -70,11 +52,6 @@ body {
   animation: fade-in 0.4s ease-out both;
 }
 
-.animate-scale-in {
-  animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Staggered children animation */
 .stagger-children > * {
   animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -83,14 +60,11 @@ body {
 .stagger-children > *:nth-child(3) { animation-delay: 160ms; }
 .stagger-children > *:nth-child(4) { animation-delay: 240ms; }
 .stagger-children > *:nth-child(5) { animation-delay: 320ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
 
-/* Smooth message appearance */
 .message-enter {
   animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Button press animation */
 .press-scale {
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
