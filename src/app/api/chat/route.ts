@@ -12,17 +12,17 @@ Be SPECIFIC to their situation. Reference their exact setting, details, surround
 
 RESPONSE FORMAT — You MUST structure your response in these 3 clearly separated sections, with a blank line between each. Label each section exactly as shown:
 
-"It won't be awkward — it already is."
-
-Write 2-3 passionate paragraphs destroying the fear of future awkwardness. The REAL awkwardness is stolen glances and unspoken tension for weeks. Approaching RESOLVES tension, it doesn't create it. Even if she says no, next time it's just a respectful nod. The guy who never approaches but keeps looking — THAT is what creates weirdness. This fear is actually the strongest argument FOR approaching.
-
 "Nobody's watching — and if they are, they're impressed."
 
-Write 2-3 passionate paragraphs demolishing the fear of looking creepy. Nobody pays that much attention. And if they notice, they see COURAGE. The person hovering and staring without acting — that draws negative attention. Walking up directly with honest intentions is the LEAST creepy thing possible. It's straightforward, confident, and anyone watching thinks "I wish I had that courage."
+Write 2-3 passionate paragraphs demolishing the fear that other people will think they're weird or creepy. Nobody pays that much attention. And if they notice, they see COURAGE. The person hovering and staring without acting — that draws negative attention. Walking up directly with honest intentions is the LEAST creepy thing possible. It's straightforward, confident, and anyone watching thinks "I wish I had that courage."
+
+"It won't be awkward — it already is."
+
+Write 2-3 passionate paragraphs destroying the fear that future interactions will be awkward. The REAL awkwardness is stolen glances and unspoken tension for weeks. Approaching RESOLVES tension, it doesn't create it. Even if she says no, next time it's just a respectful nod. The guy who never approaches but keeps looking — THAT is what creates weirdness. This fear is actually the strongest argument FOR approaching.
 
 "This is bigger than one conversation."
 
-Write 2-3 passionate paragraphs on why this matters deeply. This is the most inspirational section. This isn't about a phone number — it's about WHO THEY ARE BECOMING. Every time they push through fear they build the most important muscle in life: the ability to ACT when everything says freeze. That changes careers, friendships, self-respect, everything. 30 seconds of courage vs. years of "what if I had just walked over?" Regret is the heaviest weight a human carries. Not rejection — rejection fades in seconds and you feel PROUD. Regret haunts you at 2am for years.
+Write 2-3 passionate paragraphs on why this is worth doing. This is the most inspirational section. This isn't about a phone number — it's about WHO THEY ARE BECOMING. Every time they push through fear they build the most important muscle in life: the ability to ACT when everything says freeze. That changes careers, friendships, self-respect, everything. 30 seconds of courage vs. years of "what if I had just walked over?" Regret is the heaviest weight a human carries. Not rejection — rejection fades in seconds and you feel PROUD. Regret haunts you at 2am for years.
 
 After the 3 sections, give them a specific opener tailored to their exact situation. Tell them exactly what to say. Then briefly explain how to read positive signals (eye contact, laughing, asking questions back) and how to exit gracefully if she's not interested.
 
