@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Camera, Upload, MessageCircle, ChevronRight, User } from "lucide-react";
+import { Camera, Upload, MessageCircle, ChevronRight, User, Sparkles } from "lucide-react";
 import Link from "next/link";
 import ImageAnnotator from "@/components/ImageAnnotator";
 import ChatCoach from "@/components/ChatCoach";
@@ -107,12 +107,21 @@ export default function Home() {
                   Your confidence coach for cold approaches.
                 </p>
               </div>
-              <Link
-                href="/profile"
-                className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center press shrink-0 mt-1"
-              >
-                <User size={16} strokeWidth={1.5} className="text-text-muted" />
-              </Link>
+              <div className="flex items-center gap-2 shrink-0 mt-1">
+                <Link
+                  href="/plans"
+                  className="h-9 px-3 rounded-full bg-bg-card border border-border flex items-center gap-1.5 press text-[13px] font-medium text-text-muted"
+                >
+                  <Sparkles size={14} strokeWidth={1.5} />
+                  Plans
+                </Link>
+                <Link
+                  href="/profile"
+                  className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center press"
+                >
+                  <User size={16} strokeWidth={1.5} className="text-text-muted" />
+                </Link>
+              </div>
             </div>
 
             <div className="space-y-2.5 stagger">
