@@ -67,12 +67,13 @@ export async function middleware(request: NextRequest) {
       );
       const { data: usage } = await admin
         .from("usage")
-        .select("free_sessions_used")
+        .select("free_sessions_used, free_messages_used")
         .eq("user_id", user.id)
         .single();
 
       const sessionsUsed = usage?.free_sessions_used ?? 0;
-      if (sessionsUsed >= 3) {
+      const messagesUsed = usage?.free_messages_used ?? 0;
+      if (sessionsUsed >= 3 || messagesUsed >= 10) {
         const url = request.nextUrl.clone();
         url.pathname = "/pricing";
         return NextResponse.redirect(url);

@@ -46,6 +46,8 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
   const [initialized, setInitialized] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
   const [sessionsRemaining, setSessionsRemaining] = useState<number | null>(null);
+  const [messagesRemaining, setMessagesRemaining] = useState<number | null>(null);
+  const isSubscribed = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -60,24 +62,34 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
 
   // Check usage and increment session count on mount
   useEffect(() => {
-    const saved = getSavedMessages();
-    // Only check/increment for new sessions (no saved messages)
-    if (saved && saved.length > 0) return;
-
     fetch("/api/usage")
       .then((res) => res.json())
       .then((data) => {
-        if (data.subscribed) return;
-        if (data.sessionsRemaining <= 0) {
+        if (data.subscribed) {
+          isSubscribed.current = true;
+          return;
+        }
+        if (data.limitReached) {
           setLimitReached(true);
           return;
         }
         setSessionsRemaining(data.sessionsRemaining);
-        // Increment usage for this new session
-        fetch("/api/usage", { method: "POST" })
+        setMessagesRemaining(data.messagesRemaining);
+
+        // Only increment session for new chats (no saved messages)
+        const saved = getSavedMessages();
+        if (saved && saved.length > 0) return;
+
+        fetch("/api/usage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "session" }),
+        })
           .then((res) => res.json())
           .then((d) => {
             if (d.sessionsRemaining !== undefined) setSessionsRemaining(d.sessionsRemaining);
+            if (d.messagesRemaining !== undefined) setMessagesRemaining(d.messagesRemaining);
+            if (d.limitReached) setLimitReached(true);
           })
           .catch(() => {});
       })
@@ -214,12 +226,30 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
   };
 
   const sendMessage = async (content: string) => {
-    if (!content.trim() || isLoading) return;
+    if (!content.trim() || isLoading || limitReached) return;
     const userMessage: Message = { role: "user", content: content.trim() };
     const updated = [...messages, userMessage];
     setMessages(updated);
     setInput("");
     if (inputRef.current) inputRef.current.style.height = "auto";
+
+    // Increment message usage for free users
+    if (!isSubscribed.current) {
+      try {
+        const res = await fetch("/api/usage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "message" }),
+        });
+        const data = await res.json();
+        if (data.messagesRemaining !== undefined) setMessagesRemaining(data.messagesRemaining);
+        if (data.limitReached) {
+          setLimitReached(true);
+          return;
+        }
+      } catch {}
+    }
+
     await streamResponse(updated);
   };
 
@@ -308,7 +338,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
       {limitReached ? (
         <div className="px-5 py-6 shrink-0 border-t border-border text-center animate-fade-in">
           <Lock size={20} strokeWidth={1.5} className="mx-auto text-text-muted mb-2" />
-          <p className="font-display font-bold text-[16px] mb-1">Free sessions used up</p>
+          <p className="font-display font-bold text-[16px] mb-1">Free trial used up</p>
           <p className="text-text-muted text-[13px] mb-4">
             Upgrade to keep your AI coach in your pocket.
           </p>
@@ -321,10 +351,10 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
         </div>
       ) : (
         <>
-          {/* Free session counter */}
-          {sessionsRemaining !== null && sessionsRemaining >= 0 && (
+          {/* Free usage counter */}
+          {messagesRemaining !== null && messagesRemaining >= 0 && (
             <div className="text-center py-1.5 text-[11px] text-text-muted border-t border-border">
-              {sessionsRemaining} free {sessionsRemaining === 1 ? "session" : "sessions"} remaining
+              {messagesRemaining} free {messagesRemaining === 1 ? "message" : "messages"} remaining
             </div>
           )}
           {/* Input */}
