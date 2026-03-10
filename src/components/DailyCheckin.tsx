@@ -56,6 +56,9 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [editDayApproaches, setEditDayApproaches] = useState(0);
   const [editDaySuccesses, setEditDaySuccesses] = useState(0);
+  const [todayApproaches, setTodayApproaches] = useState<number | null>(null);
+  const [todaySuccesses, setTodaySuccesses] = useState<number | null>(null);
+  const [savingToday, setSavingToday] = useState(false);
 
   useEffect(() => {
     fetch("/api/checkin")
@@ -200,10 +203,12 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
     setSubmitting(false);
   };
 
-  const quickUpdateToday = async (approaches: number, successes: number) => {
+  const saveToday = async () => {
+    if (todayApproaches === null) return;
     const today = new Date().toISOString().split("T")[0];
-    // Optimistic update
-    setData((prev) => prev ? { ...prev, approachesCount: approaches, successesCount: successes } : prev);
+    const approaches = todayApproaches;
+    const successes = todaySuccesses ?? 0;
+    setSavingToday(true);
     try {
       const res = await fetch("/api/checkin", {
         method: "PATCH",
@@ -224,7 +229,10 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
           history: result.history || prev.history,
         } : prev
       );
+      setTodayApproaches(null);
+      setTodaySuccesses(null);
     } catch {}
+    setSavingToday(false);
   };
 
   const startEditingDay = (date: string, approaches: number, successes: number) => {
@@ -642,40 +650,76 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
           )}
 
           {/* Today's count — always visible inline counters */}
-          {!editingTotals && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-[12px] text-text-muted mb-1">Approached today</p>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => quickUpdateToday(Math.max(0, data.approachesCount - 1), Math.min(data.successesCount, Math.max(0, data.approachesCount - 1)))}
-                      className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
-                    >−</button>
-                    <span className="font-display text-[24px] font-extrabold w-8 text-center">{data.approachesCount}</span>
-                    <button
-                      onClick={() => quickUpdateToday(data.approachesCount + 1, data.successesCount)}
-                      className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
-                    >+</button>
+          {!editingTotals && (() => {
+            const displayApproaches = todayApproaches ?? data.approachesCount;
+            const displaySuccesses = todaySuccesses ?? data.successesCount;
+            const hasChanges = todayApproaches !== null && (todayApproaches !== data.approachesCount || (todaySuccesses ?? 0) !== data.successesCount);
+            return (
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-[12px] text-text-muted mb-1">Approached today</p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          const curr = todayApproaches ?? data.approachesCount;
+                          const newVal = Math.max(0, curr - 1);
+                          setTodayApproaches(newVal);
+                          const currSucc = todaySuccesses ?? data.successesCount;
+                          if (currSucc > newVal) setTodaySuccesses(newVal);
+                        }}
+                        className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
+                      >−</button>
+                      <span className="font-display text-[24px] font-extrabold w-8 text-center">{displayApproaches}</span>
+                      <button
+                        onClick={() => {
+                          const curr = todayApproaches ?? data.approachesCount;
+                          setTodayApproaches(curr + 1);
+                        }}
+                        className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
+                      >+</button>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[12px] text-text-muted mb-1 text-right">Went well</p>
+                    <div className="flex items-center gap-3 justify-end">
+                      <button
+                        onClick={() => {
+                          const curr = todaySuccesses ?? data.successesCount;
+                          setTodaySuccesses(Math.max(0, curr - 1));
+                          if (todayApproaches === null) setTodayApproaches(data.approachesCount);
+                        }}
+                        className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
+                      >−</button>
+                      <span className="font-display text-[24px] font-extrabold w-8 text-center">{displaySuccesses}</span>
+                      <button
+                        onClick={() => {
+                          const currAppr = todayApproaches ?? data.approachesCount;
+                          const curr = todaySuccesses ?? data.successesCount;
+                          setTodaySuccesses(Math.min(currAppr, curr + 1));
+                          if (todayApproaches === null) setTodayApproaches(data.approachesCount);
+                        }}
+                        className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
+                      >+</button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-[12px] text-text-muted mb-1 text-right">Went well</p>
-                  <div className="flex items-center gap-3 justify-end">
+                {hasChanges && (
+                  <div className="flex gap-2 mt-3 animate-fade-in">
                     <button
-                      onClick={() => quickUpdateToday(data.approachesCount, Math.max(0, data.successesCount - 1))}
-                      className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
-                    >−</button>
-                    <span className="font-display text-[24px] font-extrabold w-8 text-center">{data.successesCount}</span>
+                      onClick={() => { setTodayApproaches(null); setTodaySuccesses(null); }}
+                      className="flex-1 py-2.5 rounded-xl bg-bg-card-hover border border-border text-[13px] font-medium press"
+                    >Cancel</button>
                     <button
-                      onClick={() => quickUpdateToday(data.approachesCount, Math.min(data.approachesCount, data.successesCount + 1))}
-                      className="w-8 h-8 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[15px] font-bold press"
-                    >+</button>
+                      onClick={saveToday}
+                      disabled={savingToday}
+                      className="flex-1 py-2.5 rounded-xl bg-[#1a1a1a] text-white text-[13px] font-medium press disabled:opacity-60"
+                    >{savingToday ? "..." : "Save"}</button>
                   </div>
-                </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Quick stats row */}
