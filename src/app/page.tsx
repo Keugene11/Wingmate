@@ -267,12 +267,13 @@ export default function Home() {
       {activeTab === "coach" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
           <div className="mb-10 animate-slide-up">
-            <h1 className="font-display text-[36px] font-extrabold tracking-tight leading-[1.1] mb-3">
-              She&apos;s right there.
+            <p className="text-[15px] text-text-muted mb-3">{greeting}</p>
+            <h1 className="text-[32px] font-extrabold tracking-tight leading-[1.15] mb-4">
+              Too nervous to<br />
+              <span className="italic text-orange-500">cold approach?</span>
             </h1>
-            <p className="text-[18px] leading-relaxed text-text-muted">
-              Nervous? Good. That means it matters.<br />
-              <span className="text-text font-medium">Let&apos;s get you ready.</span>
+            <p className="text-[17px] leading-relaxed text-text-muted">
+              Talk to your AI wingman first. Get out of your head, build your confidence, and go say hi.
             </p>
           </div>
 
