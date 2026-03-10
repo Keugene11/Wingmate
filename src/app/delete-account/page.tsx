@@ -21,6 +21,7 @@ export default function DeleteAccountPage() {
     await supabase.from("votes").delete().eq("user_id", user.id);
     await supabase.from("posts").delete().eq("user_id", user.id);
     await supabase.from("checkins").delete().eq("user_id", user.id);
+    await supabase.from("profiles").delete().eq("id", user.id);
     await supabase.from("usage").delete().eq("user_id", user.id);
     await supabase.from("subscriptions").delete().eq("user_id", user.id);
 
