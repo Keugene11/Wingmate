@@ -99,27 +99,25 @@ export default function PlansPage() {
         )}
       </div>
 
-      {!isActive && (
-        <div className="mb-8 space-y-4 animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <div className="bg-bg-card border border-border rounded-xl px-5 py-4">
-            <p className="text-[15px] leading-relaxed">
-              If you&apos;re feeling too awkward to even <span className="font-semibold text-primary">snap the pic</span>, how are you going to walk up and talk to them? Taking the photo is your first step — it breaks through that initial wall of fear.
-            </p>
-          </div>
-
-          <div className="bg-bg-card border border-border rounded-xl px-5 py-4">
-            <p className="text-[15px] leading-relaxed">
-              Think about how incredible it would be to actually <span className="font-semibold text-primary">approach and connect</span> with that person. That one memorable experience is worth infinitely more than $15.
-            </p>
-          </div>
-
-          <div className="bg-bg-card border border-border rounded-xl px-5 py-4">
-            <p className="text-[15px] leading-relaxed">
-              Cold approaching your crush and overcoming your nerves to talk to them is one of the <span className="font-semibold text-primary">most fulfilling experiences</span> of your life — something you&apos;ll remember forever. Don&apos;t let hesitation hold you back.
-            </p>
-          </div>
+      <div className="mb-8 space-y-4 animate-fade-in" style={{ animationDelay: "100ms" }}>
+        <div className="bg-bg-card border border-border rounded-xl px-5 py-4">
+          <p className="text-[15px] leading-relaxed">
+            If you&apos;re feeling too awkward to even <span className="font-semibold text-primary">snap the pic</span>, how are you going to walk up and talk to them? Taking the photo is your first step — it breaks through that initial wall of fear.
+          </p>
         </div>
-      )}
+
+        <div className="bg-bg-card border border-border rounded-xl px-5 py-4">
+          <p className="text-[15px] leading-relaxed">
+            Think about how incredible it would be to actually <span className="font-semibold text-primary">approach and connect</span> with that person. That one memorable experience is worth infinitely more than $15.
+          </p>
+        </div>
+
+        <div className="bg-bg-card border border-border rounded-xl px-5 py-4">
+          <p className="text-[15px] leading-relaxed">
+            Cold approaching your crush and overcoming your nerves to talk to them is one of the <span className="font-semibold text-primary">most fulfilling experiences</span> of your life — something you&apos;ll remember forever. Don&apos;t let hesitation hold you back.
+          </p>
+        </div>
+      </div>
 
       <div className="space-y-3 stagger">
         {/* Yearly */}
