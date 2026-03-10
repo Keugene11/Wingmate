@@ -217,7 +217,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
       setMessages([
         {
           role: "assistant",
-          content: "What's going on? Tell me where you are, who caught your eye, and what's running through your head right now.",
+          content: "You see someone, don't you? Tell me — where are you, what do they look like, and what's stopping you from walking over right now?",
         },
       ]);
       setInitialized(true);
@@ -379,7 +379,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
                 value={input}
                 onChange={handleTextareaInput}
                 onKeyDown={handleKeyDown}
-                placeholder="Message..."
+                placeholder="Tell me what you see..."
                 rows={1}
                 className="flex-1 bg-transparent text-text text-[15px] placeholder-text-muted focus:outline-none resize-none leading-normal py-1"
                 disabled={isLoading}

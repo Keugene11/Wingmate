@@ -277,7 +277,7 @@ export default function Home() {
               {greeting}
             </h1>
             <p className="text-text-muted text-[15px] leading-relaxed">
-              Ready to make a move?
+              See someone? Let&apos;s get you over there.
             </p>
           </div>
 
@@ -333,8 +333,8 @@ export default function Home() {
                   <MessageCircle size={20} strokeWidth={1.5} className="text-text-muted" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[16px]">Talk through it</p>
-                  <p className="text-[12px] text-text-muted mt-0.5">Nervous, overthinking, or need a pep talk? Chat with your AI coach about anything on your mind.</p>
+                  <p className="font-medium text-[16px]">I see someone</p>
+                  <p className="text-[12px] text-text-muted mt-0.5">You see someone you want to talk to right now? Tell your coach the situation and get hyped up with an exact game plan.</p>
                 </div>
                 <ChevronRight size={16} className="text-border shrink-0" />
               </div>
