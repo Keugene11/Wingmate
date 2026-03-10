@@ -804,24 +804,34 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
                   ) : (
                     <button
                       onClick={() => startEditingDay(entry.date, entry.approaches, entry.successes)}
-                      className="w-full flex items-start gap-3 bg-bg-card border border-border rounded-xl px-4 py-3 text-left press"
+                      className="w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-left press"
                     >
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                        entry.talked ? "bg-green-500 text-white" : "bg-orange-100 text-orange-600"
-                      }`}>
-                        {entry.talked ? <Check size={13} strokeWidth={2.5} /> : <X size={13} strokeWidth={2.5} />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-[13px] font-medium">
-                            {entry.approaches > 0
-                              ? `${entry.approaches} approached · ${entry.successes} went well`
-                              : entry.talked ? "Talked to someone" : "Didn\u2019t approach"}
-                          </span>
-                          <span className="text-[12px] text-text-muted shrink-0 ml-2">{formatHistoryDate(entry.date)}</span>
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                            entry.talked ? "bg-green-500 text-white" : "bg-orange-100 text-orange-600"
+                          }`}>
+                            {entry.talked ? <Check size={13} strokeWidth={2.5} /> : <X size={13} strokeWidth={2.5} />}
+                          </div>
+                          <span className="text-[14px] font-semibold">{formatHistoryDate(entry.date)}</span>
                         </div>
-                        {entry.note && <p className="text-[13px] text-text-muted leading-relaxed">{entry.note}</p>}
+                        <Pencil size={13} strokeWidth={1.5} className="text-text-muted" />
                       </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 bg-bg-card-hover rounded-lg px-3 py-2 text-center">
+                          <span className="font-display text-[20px] font-bold block">{entry.approaches}</span>
+                          <span className="text-[11px] text-text-muted">approached</span>
+                        </div>
+                        <div className="flex-1 bg-bg-card-hover rounded-lg px-3 py-2 text-center">
+                          <span className="font-display text-[20px] font-bold text-green-600 block">{entry.successes}</span>
+                          <span className="text-[11px] text-text-muted">went well</span>
+                        </div>
+                        <div className="flex-1 bg-bg-card-hover rounded-lg px-3 py-2 text-center">
+                          <span className="font-display text-[20px] font-bold text-red-400 block">{Math.max(0, entry.approaches - entry.successes)}</span>
+                          <span className="text-[11px] text-text-muted">rejected</span>
+                        </div>
+                      </div>
+                      {entry.note && <p className="text-[13px] text-text-muted leading-relaxed mt-2.5">{entry.note}</p>}
                     </button>
                   )}
                 </div>
