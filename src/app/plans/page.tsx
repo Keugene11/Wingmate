@@ -20,16 +20,15 @@ const COMPARISON = [
   { feature: "Dating profile reviews", free: false, pro: true },
   { feature: "Custom approach plans", free: false, pro: true },
   { feature: "Daily check-ins", free: true, pro: true },
-  { feature: "Streaks, XP & levels", free: true, pro: true },
+  { feature: "Streaks & check-ins", free: true, pro: true },
   { feature: "Approach tracking", free: true, pro: true },
-  { feature: "Weekly leagues", free: true, pro: true },
   { feature: "Community feed", free: true, pro: true },
 ];
 
 const FAQ = [
   {
     q: "Can I try it for free?",
-    a: "You're already using it! Streaks, leagues, community — all free forever. Upgrade for unlimited AI coaching and photo analysis.",
+    a: "You're already using it! Streaks, approach tracking, community — all free forever. Upgrade for unlimited AI coaching and photo analysis.",
   },
   {
     q: "How is this different from ChatGPT?",
@@ -150,7 +149,7 @@ export default function PlansPage() {
 
         <h2 className="font-display text-[18px] font-bold tracking-tight mb-4">Your features</h2>
         <div className="space-y-3">
-          {["Unlimited AI sessions", "Photo analysis", "Custom openers", "Text coaching", "Profile reviews", "Approach plans", "Check-ins & streaks", "XP & levels", "Weekly leagues", "Community feed"].map((f) => (
+          {["Unlimited AI sessions", "Photo analysis", "Custom openers", "Text coaching", "Profile reviews", "Approach plans", "Check-ins & streaks", "Community feed"].map((f) => (
             <div key={f} className="flex items-center gap-3">
               <Check size={15} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
               <span className="text-[14px]">{f}</span>
@@ -228,7 +227,7 @@ export default function PlansPage() {
           </div>
           <div className="space-y-2.5 mt-auto">
             <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">Includes</p>
-            {["3 AI sessions/day", "Check-ins & streaks", "Approach stats", "Community feed", "Weekly leagues"].map((f) => (
+            {["3 AI sessions/day", "Check-ins & streaks", "Approach stats", "Community feed"].map((f) => (
               <div key={f} className="flex items-center gap-2">
                 <Check size={13} strokeWidth={2.5} className="text-text-muted shrink-0" />
                 <span className="text-[12px] leading-snug">{f}</span>

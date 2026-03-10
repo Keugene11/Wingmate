@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase-browser";
 import ImageAnnotator from "@/components/ImageAnnotator";
 import ChatCoach from "@/components/ChatCoach";
 import DailyCheckin from "@/components/DailyCheckin";
-import Leaderboard from "@/components/Leaderboard";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
 
@@ -261,11 +260,6 @@ export default function Home() {
             onCheckedIn={() => setCheckedInToday(true)}
           />
 
-          {/* Weekly League */}
-          <div className="mt-8">
-            <h2 className="font-display text-[18px] font-bold tracking-tight mb-3">Weekly League</h2>
-            <Leaderboard />
-          </div>
         </div>
       )}
 

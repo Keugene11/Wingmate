@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flame, Check, X, MessageCircle, Trophy, TrendingUp, Calendar, Shield, Zap, Target, ThumbsUp, ThumbsDown, UserX } from "lucide-react";
-import { getLevelInfo, getFlameLevel } from "@/lib/gamification";
+import { Flame, Check, X, MessageCircle, Trophy, TrendingUp, Calendar, Shield, Target, ThumbsUp, ThumbsDown, UserX } from "lucide-react";
+import { getFlameLevel } from "@/lib/gamification";
 
 interface CheckinData {
   checkedInToday: boolean;
@@ -22,20 +22,8 @@ interface CheckinData {
   successRate: number;
   last7: { date: string; talked: boolean | null }[];
   history: { date: string; talked: boolean; note: string | null }[];
-  xp: number;
   streakFreezes: number;
 }
-
-const MOTIVATION = [
-  "Every conversation is a rep. You're getting stronger.",
-  "Confidence isn't born — it's built. One day at a time.",
-  "The hardest part is showing up. You're already here.",
-  "Yesterday's courage is today's comfort zone.",
-  "You miss 100% of the conversations you don't start.",
-  "Small talk today, deep connection tomorrow.",
-  "Fear shrinks every time you face it.",
-  "The person you'll be in a month is watching.",
-];
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -56,7 +44,6 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
   const [noteInput, setNoteInput] = useState("");
   const [showNoteField, setShowNoteField] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
-  const [xpGain, setXpGain] = useState(0);
   const [approachStep, setApproachStep] = useState<"count" | "success" | null>(null);
   const [approachCount, setApproachCount] = useState(1);
   const [successCount, setSuccessCount] = useState(0);
@@ -111,7 +98,6 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
             totalFailures: result.totalFailures,
             totalDidntApproach: result.totalDidntApproach,
             successRate: result.successRate,
-            xp: result.xp,
             last7: prev.last7.map((d, i) =>
               i === prev.last7.length - 1 ? { ...d, talked } : d
             ),
@@ -120,7 +106,6 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
     );
     setJustCheckedIn(true);
     setShowNoteField(true);
-    setXpGain(result.xpEarned || 0);
     setSubmitting(false);
     onCheckedIn?.();
   };
@@ -153,38 +138,10 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
     );
   }
 
-  const level = getLevelInfo(data.xp);
   const flame = getFlameLevel(data.streak);
 
   return (
       <div className="space-y-4">
-        {/* XP / Level bar */}
-        <div className="bg-bg-card border border-border rounded-2xl px-5 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Zap size={14} strokeWidth={2} className="text-orange-500" />
-              <span className="text-[13px] font-semibold">Lvl {level.current.level}</span>
-              <span className="text-[12px] text-text-muted">{level.current.title}</span>
-            </div>
-            <span className="text-[12px] text-text-muted font-medium">
-              {data.xp} XP {xpGain > 0 && justCheckedIn && (
-                <span className="text-green-500 animate-fade-in">+{xpGain}</span>
-              )}
-            </span>
-          </div>
-          <div className="w-full h-2 bg-bg-card-hover rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-700"
-              style={{ width: `${level.progress * 100}%` }}
-            />
-          </div>
-          {level.next && (
-            <p className="text-[11px] text-text-muted mt-1.5">
-              {level.next.xpRequired - data.xp} XP to Level {level.next.level} — {level.next.title}
-            </p>
-          )}
-        </div>
-
         {/* Main check-in card */}
         <div className={`bg-bg-card border border-border rounded-2xl px-5 py-5 ${justCheckedIn ? "animate-fade-in" : ""}`}>
           {!data.checkedInToday ? (
@@ -428,13 +385,6 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
             </div>
             <p className="text-[11px] text-text-muted">Days skipped</p>
           </div>
-        </div>
-
-        {/* Motivation */}
-        <div className="bg-bg-card border border-border rounded-xl px-4 py-3">
-          <p className="text-[14px] leading-relaxed text-center italic text-text-muted">
-            &ldquo;{MOTIVATION[Math.floor(data.totalCheckins % MOTIVATION.length)]}&rdquo;
-          </p>
         </div>
 
         {/* History */}

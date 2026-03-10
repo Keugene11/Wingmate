@@ -13,16 +13,15 @@ const COMPARISON = [
   { feature: "Dating profile reviews", free: false, pro: true },
   { feature: "Custom approach plans", free: false, pro: true },
   { feature: "Daily check-ins", free: true, pro: true },
-  { feature: "Streaks, XP & levels", free: true, pro: true },
+  { feature: "Streaks & check-ins", free: true, pro: true },
   { feature: "Approach tracking", free: true, pro: true },
-  { feature: "Weekly leagues", free: true, pro: true },
   { feature: "Community feed", free: true, pro: true },
 ];
 
 const FAQ = [
   {
     q: "Can I try it for free?",
-    a: "Yes. Streaks, leagues, community — all free forever. You also get 3 AI coaching sessions per day. Upgrade only when you want unlimited access.",
+    a: "Yes. Streaks, approach tracking, community — all free forever. You also get 3 AI coaching sessions per day. Upgrade only when you want unlimited access.",
   },
   {
     q: "How is this different from ChatGPT?",
@@ -131,7 +130,7 @@ export default function PricingPage() {
           </Link>
           <div className="space-y-2.5 mt-auto">
             <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">Includes</p>
-            {["3 AI sessions/day", "Check-ins & streaks", "Approach stats", "Community feed", "Weekly leagues"].map((f) => (
+            {["3 AI sessions/day", "Check-ins & streaks", "Approach stats", "Community feed"].map((f) => (
               <div key={f} className="flex items-center gap-2">
                 <Check size={13} strokeWidth={2.5} className="text-text-muted shrink-0" />
                 <span className="text-[12px] leading-snug">{f}</span>
