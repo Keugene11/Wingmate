@@ -106,7 +106,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: messagesToSend,
-            mode: checkinMode ? `checkin-${checkinMode}` : fromPhoto ? "photo-approach" : "general",
+            mode: checkinMode ? `checkin-${checkinMode}` : "general",
           }),
         });
         if (!response.ok) throw new Error("Failed");
@@ -114,7 +114,24 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
         if (!reader) throw new Error("No reader");
         const decoder = new TextDecoder();
         let content = "";
+        let rafId: number | null = null;
+        let needsUpdate = false;
+
         setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+        const flushUpdate = () => {
+          rafId = null;
+          if (needsUpdate) {
+            needsUpdate = false;
+            const snapshot = content;
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role: "assistant", content: snapshot };
+              return updated;
+            });
+          }
+        };
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -127,15 +144,22 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
               const parsed = JSON.parse(data);
               if (parsed.content) {
                 content += parsed.content;
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  updated[updated.length - 1] = { role: "assistant", content };
-                  return updated;
-                });
+                needsUpdate = true;
+                if (!rafId) {
+                  rafId = requestAnimationFrame(flushUpdate);
+                }
               }
             } catch {}
           }
         }
+
+        // Final flush
+        if (rafId) cancelAnimationFrame(rafId);
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { role: "assistant", content };
+          return updated;
+        });
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -147,7 +171,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
       }
       setIsLoading(false);
     },
-    [fromPhoto, checkinMode]
+    [checkinMode]
   );
 
   useEffect(() => {
