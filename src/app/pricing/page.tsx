@@ -39,7 +39,7 @@ export default function PricingPage() {
         <button
           onClick={() => handleCheckout("yearly")}
           disabled={!!loading}
-          className="w-full bg-primary text-white rounded-xl px-5 py-5 text-left press relative overflow-hidden disabled:opacity-60"
+          className="w-full bg-white text-black rounded-xl px-5 py-5 text-left press relative overflow-hidden disabled:opacity-60"
         >
           <div className="absolute top-3 right-4 bg-white/20 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full">
             SAVE 33%
@@ -85,7 +85,7 @@ export default function PricingPage() {
           "Real-time confidence building",
         ].map((feature) => (
           <div key={feature} className="flex items-center gap-2.5">
-            <Check size={16} strokeWidth={2.5} className="text-primary shrink-0" />
+            <Check size={16} strokeWidth={2.5} className="text-white shrink-0" />
             <span className="text-[14px]">{feature}</span>
           </div>
         ))}

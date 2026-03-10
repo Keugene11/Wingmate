@@ -301,7 +301,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
         {messages.map((msg, i) =>
           msg.role === "user" ? (
             <div key={i} className="flex justify-end msg-in">
-              <div className="max-w-[80%] bg-primary text-white rounded-[18px] rounded-br-[4px] px-4 py-2.5">
+              <div className="max-w-[80%] bg-white text-black rounded-[18px] rounded-br-[4px] px-4 py-2.5">
                 <p className="text-[15px] leading-[1.5] whitespace-pre-wrap">{msg.content}</p>
               </div>
             </div>
@@ -344,7 +344,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
           </p>
           <button
             onClick={() => router.push("/pricing")}
-            className="w-full bg-primary text-white py-3 rounded-xl font-medium text-[14px] press"
+            className="w-full bg-white text-black py-3 rounded-xl font-medium text-[14px] press"
           >
             Unlock ApproachAI
           </button>
@@ -376,7 +376,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="bg-primary disabled:opacity-15 text-white p-2 rounded-full press shrink-0 transition-opacity"
+                className="bg-white disabled:opacity-20 text-black p-2 rounded-full press shrink-0 transition-opacity"
               >
                 <ArrowUp size={15} strokeWidth={2.5} />
               </button>
