@@ -10,6 +10,7 @@ import ConversationList from "@/components/ConversationList";
 import DailyCheckin from "@/components/DailyCheckin";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
+import StatsView from "@/components/StatsView";
 
 function getGreeting(name?: string): string {
   const hour = new Date().getHours();
@@ -238,6 +239,21 @@ export default function Home() {
             onCheckedIn={() => setCheckedInToday(true)}
           />
 
+        </div>
+      )}
+
+      {/* ===== STATS TAB ===== */}
+      {activeTab === "stats" && (
+        <div className="px-5 pt-14 pb-10 animate-fade-in">
+          <div className="mb-6">
+            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-2">
+              Stats
+            </h1>
+            <p className="text-text-muted text-[15px] leading-relaxed">
+              Your approach history at a glance
+            </p>
+          </div>
+          <StatsView />
         </div>
       )}
 

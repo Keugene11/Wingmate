@@ -1,10 +1,10 @@
 "use client";
 
-import { Flame, MessageCircle, Users, User } from "lucide-react";
+import { Flame, MessageCircle, Users, User, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type Tab = "checkin" | "coach" | "community";
+export type Tab = "checkin" | "coach" | "stats" | "community";
 
 interface BottomNavProps {
   active?: Tab;
@@ -14,6 +14,7 @@ interface BottomNavProps {
 const tabs: { id: Tab; label: string; icon: typeof Flame }[] = [
   { id: "checkin", label: "Check-in", icon: Flame },
   { id: "coach", label: "Wingman", icon: MessageCircle },
+  { id: "stats", label: "Stats", icon: BarChart3 },
   { id: "community", label: "Community", icon: Users },
 ];
 
