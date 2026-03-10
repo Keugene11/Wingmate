@@ -273,116 +273,111 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
 
 
 
+  const todayCountersSection = (() => {
+    const dispOpp = todayOpportunities ?? data.opportunitiesCount;
+    const dispAppr = todayApproaches ?? data.approachesCount;
+    const dispSucc = todaySuccesses ?? data.successesCount;
+    const hasChanges = todayOpportunities !== null || todayApproaches !== null || todaySuccesses !== null;
+    const isDirty = hasChanges && (dispOpp !== data.opportunitiesCount || dispAppr !== data.approachesCount || dispSucc !== data.successesCount);
+
+    const initIfNeeded = () => {
+      if (todayOpportunities === null) setTodayOpportunities(data.opportunitiesCount);
+      if (todayApproaches === null) setTodayApproaches(data.approachesCount);
+      if (todaySuccesses === null) setTodaySuccesses(data.successesCount);
+    };
+
+    const counters = [
+      {
+        label: "Seen", color: "text-purple-500", value: dispOpp,
+        onDec: () => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); },
+        onInc: () => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); },
+      },
+      {
+        label: "Approached", color: "text-blue-500", value: dispAppr,
+        onDec: () => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); },
+        onInc: () => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); },
+      },
+      {
+        label: "Went well", color: "text-green-500", value: dispSucc,
+        onDec: () => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); },
+        onInc: () => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); },
+      },
+    ];
+
+    return (
+      <div>
+        <div className="grid grid-cols-3 gap-2">
+          {counters.map(({ label, color, value, onDec, onInc }) => (
+            <div key={label} className="flex flex-col items-center">
+              <span className={`text-[12px] font-semibold ${color} mb-2`}>{label}</span>
+              <button onClick={onInc}
+                className="w-full h-12 rounded-xl bg-bg-card border border-border flex items-center justify-center text-[20px] font-bold press active:bg-bg-card-hover mb-1.5">+</button>
+              <span className="font-display text-[44px] font-extrabold leading-none my-1">{value}</span>
+              <button onClick={onDec}
+                className="w-full h-12 rounded-xl bg-bg-card border border-border flex items-center justify-center text-[20px] font-bold press active:bg-bg-card-hover mt-1.5">−</button>
+            </div>
+          ))}
+        </div>
+        {isDirty && (
+          <div className="flex gap-2 mt-4 animate-fade-in">
+            <button onClick={() => { setTodayOpportunities(null); setTodayApproaches(null); setTodaySuccesses(null); }}
+              className="flex-1 py-3 rounded-xl bg-bg-card border border-border text-[14px] font-medium press">Cancel</button>
+            <button onClick={saveToday} disabled={savingToday}
+              className="flex-1 py-3 rounded-xl bg-[#1a1a1a] text-white text-[14px] font-semibold press disabled:opacity-60">
+              {savingToday ? "..." : "Save"}</button>
+          </div>
+        )}
+      </div>
+    );
+  })();
+
   const approachStatsSection = (
-    <>
-      <div className="bg-bg-card border border-border rounded-2xl px-5 py-4">
-        <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">Approach stats</h3>
+    <div className="bg-bg-card border border-border rounded-2xl px-5 py-4">
+      <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">All-time stats</h3>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
-              <span className="font-display text-[22px] font-bold">{data.totalOpportunities}</span>
-            </div>
-            <p className="text-[11px] text-text-muted">Opportunities</p>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
+            <span className="font-display text-[22px] font-bold">{data.totalOpportunities}</span>
           </div>
-          <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Target size={14} strokeWidth={1.5} className="text-blue-500" />
-              <span className="font-display text-[22px] font-bold">{data.totalApproaches}</span>
-            </div>
-            <p className="text-[11px] text-text-muted">Approaches</p>
-          </div>
-          <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
-              <span className="font-display text-[22px] font-bold">{data.totalSuccesses}</span>
-            </div>
-            <p className="text-[11px] text-text-muted">Went well</p>
-          </div>
+          <p className="text-[11px] text-text-muted">Opportunities</p>
         </div>
-
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
-            <span className="font-display text-[18px] font-bold text-blue-500">{data.approachConversionRate}%</span>
-            <p className="text-[10px] text-text-muted">Approach rate</p>
+        <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Target size={14} strokeWidth={1.5} className="text-blue-500" />
+            <span className="font-display text-[22px] font-bold">{data.totalApproaches}</span>
           </div>
-          <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
-            <span className="font-display text-[18px] font-bold text-green-500">{data.successRate}%</span>
-            <p className="text-[10px] text-text-muted">Success rate</p>
-          </div>
+          <p className="text-[11px] text-text-muted">Approaches</p>
         </div>
-
+        <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
+            <span className="font-display text-[22px] font-bold">{data.totalSuccesses}</span>
+          </div>
+          <p className="text-[11px] text-text-muted">Went well</p>
+        </div>
       </div>
 
-      {/* Today's update counters — prominent dark card */}
-      {(() => {
-        const dispOpp = todayOpportunities ?? data.opportunitiesCount;
-        const dispAppr = todayApproaches ?? data.approachesCount;
-        const dispSucc = todaySuccesses ?? data.successesCount;
-        const hasChanges = todayOpportunities !== null || todayApproaches !== null || todaySuccesses !== null;
-        const isDirty = hasChanges && (dispOpp !== data.opportunitiesCount || dispAppr !== data.approachesCount || dispSucc !== data.successesCount);
-
-        const initIfNeeded = () => {
-          if (todayOpportunities === null) setTodayOpportunities(data.opportunitiesCount);
-          if (todayApproaches === null) setTodayApproaches(data.approachesCount);
-          if (todaySuccesses === null) setTodaySuccesses(data.successesCount);
-        };
-
-        return (
-          <div className="bg-[#1a1a1a] text-white rounded-2xl px-5 py-5 mt-4">
-            <h3 className="font-display text-[16px] font-bold mb-1">Update today&apos;s stats</h3>
-            <p className="text-white/40 text-[12px] mb-4">Tap +/− to adjust your numbers</p>
-            <div className="space-y-4">
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Girls you saw</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); }}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{dispOpp}</span>
-                  <button onClick={() => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); }}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Girls you approached</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); }}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{dispAppr}</span>
-                  <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); }}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Went well</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); }}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{dispSucc}</span>
-                  <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); }}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-            </div>
-            {isDirty && (
-              <div className="flex gap-2 mt-4 animate-fade-in">
-                <button onClick={() => { setTodayOpportunities(null); setTodayApproaches(null); setTodaySuccesses(null); }}
-                  className="flex-1 py-3 rounded-xl bg-white/10 text-white/70 text-[14px] font-medium press">Cancel</button>
-                <button onClick={saveToday} disabled={savingToday}
-                  className="flex-1 py-3 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold press disabled:opacity-60">
-                  {savingToday ? "..." : "Save"}</button>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-    </>
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
+          <span className="font-display text-[18px] font-bold text-blue-500">{data.approachConversionRate}%</span>
+          <p className="text-[10px] text-text-muted">Approach rate</p>
+        </div>
+        <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
+          <span className="font-display text-[18px] font-bold text-green-500">{data.successRate}%</span>
+          <p className="text-[10px] text-text-muted">Success rate</p>
+        </div>
+      </div>
+    </div>
   );
 
   return (
     <div className="space-y-4">
-      {/* Show approach stats first when already checked in */}
+      {/* Today's counters — always at the very top when checked in */}
+      {data.checkedInToday && todayCountersSection}
+
+      {/* All-time approach stats */}
       {data.checkedInToday && approachStatsSection}
 
       {/* Main check-in card */}
