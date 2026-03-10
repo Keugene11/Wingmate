@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Camera, Upload, MessageCircle, ChevronRight, User, Sparkles, Eye, Zap, Heart } from "lucide-react";
+import { Camera, Upload, MessageCircle, ChevronRight, User, Sparkles } from "lucide-react";
 import Link from "next/link";
 import ImageAnnotator from "@/components/ImageAnnotator";
 import ChatCoach from "@/components/ChatCoach";
@@ -99,7 +99,7 @@ export default function Home() {
         <div className="px-5 pt-14 pb-8 flex flex-col min-h-screen animate-fade-in">
           <div className="flex-1">
             {/* Header */}
-            <div className="mb-6 animate-slide-up flex items-start justify-between">
+            <div className="mb-8 animate-slide-up flex items-start justify-between">
               <div>
                 <h1 className="font-display text-[30px] font-extrabold tracking-tight leading-none">
                   ApproachAI
@@ -124,23 +124,33 @@ export default function Home() {
 
             {/* Hero */}
             <div className="mb-8 animate-slide-up" style={{ animationDelay: "50ms" }}>
-              <p className="font-display text-[22px] font-bold tracking-tight leading-snug mb-2">
-                See someone you like?<br />
-                <span className="text-text-muted">We&apos;ll help you approach them.</span>
+              <p className="font-display text-[24px] font-extrabold tracking-tight leading-tight mb-3">
+                Stop overthinking.<br />
+                Go talk to them.
               </p>
-              <p className="text-text-muted text-[14px] leading-relaxed">
-                Snap a photo of the situation, and your AI coach will give you a personalized game plan to make your move.
+              <p className="text-text-muted text-[15px] leading-relaxed">
+                You already know you want to. Snap a photo of the situation and your AI wingman will tell you exactly how to approach — what to say, how to read the vibe, and how to make it happen.
+              </p>
+            </div>
+
+            {/* Motivational nudge */}
+            <div className="mb-8 bg-bg-card border border-border rounded-xl px-5 py-4 animate-slide-up" style={{ animationDelay: "100ms" }}>
+              <p className="text-[14px] leading-relaxed text-text-muted">
+                That person across the room? You&apos;ll never see them again. The <span className="text-text font-medium">worst thing that happens</span> is a 10-second conversation that doesn&apos;t go anywhere. The best thing? You meet someone amazing. <span className="text-text font-medium">Take the shot.</span>
               </p>
             </div>
 
             {/* Primary CTA — Take a photo */}
-            <div className="mb-3 animate-slide-up" style={{ animationDelay: "100ms" }}>
-              <label className="flex flex-col items-center gap-2 bg-primary text-white rounded-2xl px-5 py-6 cursor-pointer press">
-                <Camera size={28} strokeWidth={1.5} />
-                <div className="text-center">
-                  <p className="font-display font-bold text-[17px] leading-tight">Take a photo</p>
-                  <p className="text-white/60 text-[13px] mt-1">Snap the scene — your coach takes it from there</p>
+            <div className="mb-3 animate-slide-up" style={{ animationDelay: "150ms" }}>
+              <label className="flex items-center gap-4 bg-primary text-white rounded-2xl px-5 py-5 cursor-pointer press">
+                <div className="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                  <Camera size={24} strokeWidth={1.5} />
                 </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold text-[17px] leading-tight">Snap the scene</p>
+                  <p className="text-white/60 text-[13px] mt-1">Take a photo and get your game plan in seconds</p>
+                </div>
+                <ChevronRight size={18} className="text-white/40 shrink-0" />
                 <input
                   type="file"
                   accept="image/*"
@@ -152,12 +162,12 @@ export default function Home() {
             </div>
 
             {/* Secondary actions */}
-            <div className="space-y-2.5 mb-10 stagger" style={{ "--stagger-base": "150ms" } as React.CSSProperties}>
+            <div className="space-y-2.5 mb-10 stagger">
               <label className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl px-4 py-3.5 cursor-pointer press">
                 <Upload size={20} strokeWidth={1.5} className="text-text-muted shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[15px] leading-tight">Upload a photo</p>
-                  <p className="text-text-muted text-[13px] mt-0.5">From your gallery or files</p>
+                  <p className="font-medium text-[15px] leading-tight">Upload from gallery</p>
+                  <p className="text-text-muted text-[13px] mt-0.5">Already have a photo? Use that</p>
                 </div>
                 <ChevronRight size={16} className="text-border shrink-0" />
                 <input
@@ -175,42 +185,42 @@ export default function Home() {
                 <MessageCircle size={20} strokeWidth={1.5} className="text-text-muted shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[15px] leading-tight">Just talk to me</p>
-                  <p className="text-text-muted text-[13px] mt-0.5">Get coached through any situation</p>
+                  <p className="text-text-muted text-[13px] mt-0.5">No photo — just describe the situation</p>
                 </div>
                 <ChevronRight size={16} className="text-border shrink-0" />
               </button>
             </div>
 
-            {/* How it works */}
-            <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>
-              <p className="text-[12px] font-semibold text-text-muted uppercase tracking-wide mb-3">
-                How it works
+            {/* Real talk */}
+            <div className="space-y-3 animate-fade-in" style={{ animationDelay: "300ms" }}>
+              <p className="text-[12px] font-semibold text-text-muted uppercase tracking-wide">
+                Real talk
               </p>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-bg-card border border-border flex items-center justify-center mx-auto mb-2">
-                    <Eye size={18} strokeWidth={1.5} className="text-text-muted" />
-                  </div>
-                  <p className="text-[12px] font-medium leading-tight">Spot someone<br/>you like</p>
+              <div className="space-y-2.5">
+                <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
+                  <p className="text-[13px] leading-relaxed">
+                    <span className="font-semibold">You regret the ones you don&apos;t approach.</span>{" "}
+                    <span className="text-text-muted">Not the ones where it didn&apos;t work out. The fear fades in 5 seconds — the regret lasts way longer.</span>
+                  </p>
                 </div>
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-bg-card border border-border flex items-center justify-center mx-auto mb-2">
-                    <Zap size={18} strokeWidth={1.5} className="text-text-muted" />
-                  </div>
-                  <p className="text-[12px] font-medium leading-tight">Get your<br/>game plan</p>
+                <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
+                  <p className="text-[13px] leading-relaxed">
+                    <span className="font-semibold">Every approach makes you better.</span>{" "}
+                    <span className="text-text-muted">Even the awkward ones. Each one builds the confidence muscle that most people never develop.</span>
+                  </p>
                 </div>
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-bg-card border border-border flex items-center justify-center mx-auto mb-2">
-                    <Heart size={18} strokeWidth={1.5} className="text-text-muted" />
-                  </div>
-                  <p className="text-[12px] font-medium leading-tight">Make your<br/>move</p>
+                <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
+                  <p className="text-[13px] leading-relaxed">
+                    <span className="font-semibold">This isn&apos;t about pickup lines.</span>{" "}
+                    <span className="text-text-muted">It&apos;s about reading the moment, being genuine, and having the guts to introduce yourself. We help with all three.</span>
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <p className="text-center text-[11px] text-text-muted mt-12 animate-fade-in" style={{ animationDelay: "400ms" }}>
-            Your photos never leave your device.
+            Your photos stay on your device. Always.
           </p>
         </div>
       )}
