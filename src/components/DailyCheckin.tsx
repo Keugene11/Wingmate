@@ -273,6 +273,8 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
 
 
 
+  const todayDate = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
   const todayCountersSection = (() => {
     const dispOpp = todayOpportunities ?? data.opportunitiesCount;
     const dispAppr = todayApproaches ?? data.approachesCount;
@@ -378,6 +380,30 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
 
   return (
     <div className="space-y-4">
+      {/* Page header — different message depending on state */}
+      <div className="mb-2 animate-slide-up">
+        <p className="text-text-muted text-[13px] font-medium uppercase tracking-wide mb-1">{todayDate}</p>
+        {!data.checkedInToday ? (
+          <>
+            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">
+              Log today&apos;s approaches
+            </h1>
+            <p className="text-text-muted text-[14px] leading-relaxed">
+              Track how many girls you saw, approached, and how many went well. Build the habit — check in every day.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">
+              {data.streak > 0 ? `${data.streak}-day streak` : "Logged for today"}
+            </h1>
+            <p className="text-text-muted text-[14px] leading-relaxed">
+              Keep updating your numbers throughout the day. Every approach counts.
+            </p>
+          </>
+        )}
+      </div>
+
       {/* Today's counters — always at the very top when checked in */}
       {data.checkedInToday && todayCountersSection}
 
@@ -385,9 +411,8 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
       {data.checkedInToday && approachStatsSection}
 
       {/* Main check-in card */}
-      <div className={`rounded-2xl px-5 py-6 ${justCheckedIn ? "animate-fade-in" : ""} ${!data.checkedInToday ? "bg-[#1a1a1a] text-white" : "bg-bg-card border border-border"}`}>
-        {!data.checkedInToday ? (
-          <>
+      {!data.checkedInToday && (
+      <div className={`rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white`}>
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="font-display text-[18px] font-bold">Enter today&apos;s stats</h2>
@@ -444,73 +469,12 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
                 {submitting ? "..." : "Save"}
               </button>
             </div>
-          </>
-        ) : editing ? (
-          <div className="text-center animate-fade-in">
-            <h2 className="font-display text-[18px] font-bold mb-1">Edit today&apos;s check-in</h2>
-            <p className="text-text-muted text-[13px] mb-5">Update your counts</p>
+      </div>
+      )}
 
-            {[
-              { label: "Opportunities", value: editOpportunities, set: setEditOpportunities, min: 0 },
-              { label: "Approached", value: editApproaches, set: setEditApproaches, min: 0, max: editOpportunities },
-              { label: "Went well", value: editSuccesses, set: setEditSuccesses, min: 0, max: editApproaches },
-            ].map(({ label, value, set, min, max }) => (
-              <div key={label} className="mb-4">
-                <p className="text-[13px] font-medium mb-2">{label}</p>
-                <div className="flex items-center justify-center gap-5">
-                  <button onClick={() => set(Math.max(min, value - 1))}
-                    className="w-11 h-11 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[20px] font-bold press">−</button>
-                  <span className="font-display text-[40px] font-extrabold leading-none w-16 text-center">{value}</span>
-                  <button onClick={() => set(max !== undefined ? Math.min(max, value + 1) : value + 1)}
-                    className="w-11 h-11 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[20px] font-bold press">+</button>
-                </div>
-              </div>
-            ))}
-
-            <div className="flex gap-2">
-              <button onClick={() => setEditing(false)}
-                className="flex-1 py-3.5 rounded-xl bg-bg-card-hover border border-border text-[15px] font-medium press">Cancel</button>
-              <button onClick={saveEdit} disabled={submitting}
-                className="flex-1 py-3.5 rounded-xl bg-[#1a1a1a] text-white text-[15px] font-medium press disabled:opacity-60">
-                {submitting ? "..." : "Save"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="relative">
-              <button onClick={startEditing}
-                className="absolute top-0 right-0 p-2 press text-text-muted hover:text-text transition-colors" title="Edit today's stats">
-                <Pencil size={16} strokeWidth={1.5} />
-              </button>
-
-              <div className="flex items-center gap-3 mb-5">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${flame.bgColor} ${justCheckedIn ? "streak-pop" : ""}`}>
-                  <Flame size={flame.size - 4} strokeWidth={1.5} className={flame.color} />
-                </div>
-                <div>
-                  <p className="font-display text-[20px] font-extrabold leading-none">{data.streak} day streak</p>
-                  <p className="text-text-muted text-[12px] mt-0.5">Logged for today</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-                  <span className="font-display text-[28px] font-extrabold text-purple-600 block leading-none">{data.opportunitiesCount}</span>
-                  <span className="text-[11px] text-text-muted mt-1 block">seen</span>
-                </div>
-                <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-                  <span className="font-display text-[28px] font-extrabold text-blue-600 block leading-none">{data.approachesCount}</span>
-                  <span className="text-[11px] text-text-muted mt-1 block">approached</span>
-                </div>
-                <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-                  <span className="font-display text-[28px] font-extrabold text-green-600 block leading-none">{data.successesCount}</span>
-                  <span className="text-[11px] text-text-muted mt-1 block">went well</span>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+      {/* 7-day history + talk button */}
+      {data.checkedInToday && (
+      <div className="bg-bg-card border border-border rounded-2xl px-5 py-5">
 
         {/* 7-day dots */}
         <div className="flex justify-between px-1">
@@ -570,6 +534,7 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
           </button>
         )}
       </div>
+      )}
 
       {/* Show approach stats after main card when NOT checked in */}
       {!data.checkedInToday && approachStatsSection}

@@ -236,18 +236,6 @@ export default function Home() {
       {/* ===== CHECK-IN TAB ===== */}
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          <div className="mb-5 animate-slide-up">
-            <p className="text-text-muted text-[13px] font-medium uppercase tracking-wide mb-1">
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
-            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">
-              Today&apos;s Stats
-            </h1>
-            <p className="text-text-muted text-[14px] leading-relaxed">
-              Log how many girls you saw, approached, and how many went well. Do this every day.
-            </p>
-          </div>
-
           <DailyCheckin
             onTalkAboutIt={(talked) => {
               setCheckinTalked(talked);
@@ -255,7 +243,6 @@ export default function Home() {
             }}
             onCheckedIn={() => setCheckedInToday(true)}
           />
-
         </div>
       )}
 
