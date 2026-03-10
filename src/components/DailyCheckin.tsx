@@ -312,60 +312,70 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
           </div>
         </div>
 
-        {/* Today's inline counters */}
-        {(() => {
-          const dispOpp = todayOpportunities ?? data.opportunitiesCount;
-          const dispAppr = todayApproaches ?? data.approachesCount;
-          const dispSucc = todaySuccesses ?? data.successesCount;
-          const hasChanges = todayOpportunities !== null || todayApproaches !== null || todaySuccesses !== null;
-          const isDirty = hasChanges && (dispOpp !== data.opportunitiesCount || dispAppr !== data.approachesCount || dispSucc !== data.successesCount);
-
-          const mkCounter = (label: string, value: number, onDec: () => void, onInc: () => void) => (
-            <div className="flex-1 text-center">
-              <p className="text-[11px] text-text-muted mb-1">{label}</p>
-              <div className="flex items-center justify-center gap-2">
-                <button onClick={onDec} className="w-7 h-7 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[14px] font-bold press">−</button>
-                <span className="font-display text-[22px] font-extrabold w-7 text-center">{value}</span>
-                <button onClick={onInc} className="w-7 h-7 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[14px] font-bold press">+</button>
-              </div>
-            </div>
-          );
-
-          const initIfNeeded = () => {
-            if (todayOpportunities === null) setTodayOpportunities(data.opportunitiesCount);
-            if (todayApproaches === null) setTodayApproaches(data.approachesCount);
-            if (todaySuccesses === null) setTodaySuccesses(data.successesCount);
-          };
-
-          return (
-            <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center gap-1">
-                {mkCounter("Seen", dispOpp,
-                  () => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); },
-                  () => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); }
-                )}
-                {mkCounter("Approached", dispAppr,
-                  () => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); },
-                  () => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); }
-                )}
-                {mkCounter("Went well", dispSucc,
-                  () => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); },
-                  () => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); }
-                )}
-              </div>
-              {isDirty && (
-                <div className="flex gap-2 mt-3 animate-fade-in">
-                  <button onClick={() => { setTodayOpportunities(null); setTodayApproaches(null); setTodaySuccesses(null); }}
-                    className="flex-1 py-2.5 rounded-xl bg-bg-card-hover border border-border text-[13px] font-medium press">Cancel</button>
-                  <button onClick={saveToday} disabled={savingToday}
-                    className="flex-1 py-2.5 rounded-xl bg-[#1a1a1a] text-white text-[13px] font-medium press disabled:opacity-60">
-                    {savingToday ? "..." : "Save"}</button>
-                </div>
-              )}
-            </div>
-          );
-        })()}
       </div>
+
+      {/* Today's update counters — prominent dark card */}
+      {(() => {
+        const dispOpp = todayOpportunities ?? data.opportunitiesCount;
+        const dispAppr = todayApproaches ?? data.approachesCount;
+        const dispSucc = todaySuccesses ?? data.successesCount;
+        const hasChanges = todayOpportunities !== null || todayApproaches !== null || todaySuccesses !== null;
+        const isDirty = hasChanges && (dispOpp !== data.opportunitiesCount || dispAppr !== data.approachesCount || dispSucc !== data.successesCount);
+
+        const initIfNeeded = () => {
+          if (todayOpportunities === null) setTodayOpportunities(data.opportunitiesCount);
+          if (todayApproaches === null) setTodayApproaches(data.approachesCount);
+          if (todaySuccesses === null) setTodaySuccesses(data.successesCount);
+        };
+
+        return (
+          <div className="bg-[#1a1a1a] text-white rounded-2xl px-5 py-5 mt-4">
+            <h3 className="font-display text-[16px] font-bold mb-1">Update today&apos;s stats</h3>
+            <p className="text-white/40 text-[12px] mb-4">Tap +/− to adjust your numbers</p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[13px] text-white/50 mb-2">Girls you saw</p>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
+                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{dispOpp}</span>
+                  <button onClick={() => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
+                </div>
+              </div>
+              <div>
+                <p className="text-[13px] text-white/50 mb-2">Girls you approached</p>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
+                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{dispAppr}</span>
+                  <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
+                </div>
+              </div>
+              <div>
+                <p className="text-[13px] text-white/50 mb-2">Went well</p>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
+                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{dispSucc}</span>
+                  <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
+                </div>
+              </div>
+            </div>
+            {isDirty && (
+              <div className="flex gap-2 mt-4 animate-fade-in">
+                <button onClick={() => { setTodayOpportunities(null); setTodayApproaches(null); setTodaySuccesses(null); }}
+                  className="flex-1 py-3 rounded-xl bg-white/10 text-white/70 text-[14px] font-medium press">Cancel</button>
+                <button onClick={saveToday} disabled={savingToday}
+                  className="flex-1 py-3 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold press disabled:opacity-60">
+                  {savingToday ? "..." : "Save"}</button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
   );
 
   return (
