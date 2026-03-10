@@ -37,6 +37,7 @@ jobs:
 
       - name: Copy icon into Android resources
         run: |
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
           cp ../public/icons/icon-512.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
       - name: Build release AAB and APK
