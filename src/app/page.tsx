@@ -267,17 +267,14 @@ export default function Home() {
       {activeTab === "coach" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
           <div className="mb-10 animate-slide-up">
-            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-2">
-              {greeting}
+            <h1 className="font-display text-[36px] font-extrabold tracking-tight leading-[1.1] mb-3">
+              She&apos;s right there.
             </h1>
-            <p className="text-text-muted text-[15px] leading-relaxed">
-              Your AI wingman is ready.
+            <p className="text-[18px] leading-relaxed text-text-muted">
+              Nervous? Good. That means it matters.<br />
+              <span className="text-text font-medium">Let&apos;s get you ready.</span>
             </p>
           </div>
-
-          <p className="text-[15px] text-text-muted mb-6 leading-relaxed">
-            You see someone you like.<br />Pick how you want help:
-          </p>
 
           <div className="space-y-3 stagger">
             {/* Take photo */}
@@ -286,8 +283,8 @@ export default function Home() {
                 <Camera size={20} strokeWidth={1.5} />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-[15px] leading-tight">Snap a photo</p>
-                <p className="text-[12px] text-white/40 mt-0.5">Get advice tailored to the scene</p>
+                <p className="font-semibold text-[15px] leading-tight">Snap the situation</p>
+                <p className="text-[12px] text-white/40 mt-0.5">I&apos;ll tell you exactly what to say</p>
               </div>
               <ChevronRight size={16} className="text-white/20 shrink-0" />
               <input
@@ -306,7 +303,7 @@ export default function Home() {
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-[15px] leading-tight">Upload a screenshot</p>
-                <p className="text-[12px] text-text-muted mt-0.5">From a dating app or social media</p>
+                <p className="text-[12px] text-text-muted mt-0.5">Dating app or DM — I&apos;ll help you reply</p>
               </div>
               <ChevronRight size={16} className="text-border shrink-0" />
               <input
@@ -326,8 +323,8 @@ export default function Home() {
                 <MessageCircle size={20} strokeWidth={1.5} className="text-text-muted" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-[15px] leading-tight">I need a push</p>
-                <p className="text-[12px] text-text-muted mt-0.5">Get hyped up to go talk to them</p>
+                <p className="font-semibold text-[15px] leading-tight">Talk me into it</p>
+                <p className="text-[12px] text-text-muted mt-0.5">Overcome your nerves right now</p>
               </div>
               <ChevronRight size={16} className="text-border shrink-0" />
             </button>
