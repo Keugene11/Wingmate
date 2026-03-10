@@ -72,6 +72,16 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Set up Ruby
+        if: env.HAS_PLAY_KEY == 'true'
+        env:
+          HAS_PLAY_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: android-twa
+
       - name: Publish to Google Play via Fastlane
         if: env.HAS_PLAY_KEY == 'true'
         env:
@@ -80,7 +90,5 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > play-store-key.json
           export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE="$(pwd)/play-store-key.json"
-          gem install bundler
-          bundle install --jobs 4 --retry 3
           bundle exec fastlane internal
           rm -f play-store-key.json
