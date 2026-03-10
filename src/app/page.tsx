@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Camera, Upload, MessageCircle, ChevronRight, Plus, Flame } from "lucide-react";
+import { Plus, Flame } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
-import ImageAnnotator from "@/components/ImageAnnotator";
+
 import ChatCoach from "@/components/ChatCoach";
 import DailyCheckin from "@/components/DailyCheckin";
 import BottomNav, { type Tab } from "@/components/BottomNav";
@@ -20,7 +20,7 @@ function getGreeting(name?: string): string {
   return `Good night${suffix}`;
 }
 
-type AppState = "tabs" | "annotate" | "chat" | "checkin-chat";
+type AppState = "tabs" | "chat" | "checkin-chat";
 
 function getSessionState(): { state: AppState; fromPhoto: boolean; tab: Tab } {
   if (typeof window === "undefined") return { state: "tabs", fromPhoto: false, tab: "coach" };
@@ -36,8 +36,6 @@ const PAGE_SIZE = 20;
 export default function Home() {
   const [state, setState] = useState<AppState>("tabs");
   const [activeTab, setActiveTab] = useState<Tab>("coach");
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [cameFromPhoto, setCameFromPhoto] = useState(false);
   const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [greeting, setGreeting] = useState("");
@@ -58,11 +56,6 @@ export default function Home() {
     const saved = getSessionState();
     if (saved.state === "chat") {
       setState("chat");
-      setCameFromPhoto(saved.fromPhoto);
-      try {
-        const img = sessionStorage.getItem("approachai-image");
-        if (img) setCapturedImage(img);
-      } catch {}
     }
     if (saved.tab) setActiveTab(saved.tab);
     setHydrated(true);
@@ -135,21 +128,20 @@ export default function Home() {
   };
 
   const updateState = useCallback(
-    (newState: AppState, fromPhoto?: boolean) => {
+    (newState: AppState) => {
       setState(newState);
-      if (fromPhoto !== undefined) setCameFromPhoto(fromPhoto);
       try {
         sessionStorage.setItem(
           "approachai-state",
           JSON.stringify({
             state: newState,
-            fromPhoto: fromPhoto ?? cameFromPhoto,
+            fromPhoto: false,
             tab: activeTab,
           })
         );
       } catch {}
     },
-    [cameFromPhoto, activeTab]
+    [activeTab]
   );
 
   const handleTabChange = (tab: Tab) => {
@@ -162,69 +154,18 @@ export default function Home() {
     } catch {}
   };
 
-  const compressImage = (dataUrl: string, maxWidth = 800): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const scale = Math.min(1, maxWidth / img.width);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.7));
-      };
-      img.src = dataUrl;
-    });
-  };
-
-  const handleCapture = async (imageData: string) => {
-    setCapturedImage(imageData);
-    setState("annotate");
-    const compressed = await compressImage(imageData);
-    try { sessionStorage.setItem("approachai-image", compressed); } catch {}
-  };
-
   const reset = () => {
-    setCapturedImage(null);
-    try { sessionStorage.removeItem("approachai-image"); } catch {}
-    setCameFromPhoto(false);
     setCheckinTalked(null);
-    updateState("tabs", false);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => handleCapture(reader.result as string);
-    reader.readAsDataURL(file);
+    updateState("tabs");
   };
 
   if (!hydrated) return null;
 
   // Full-screen states (no tab bar)
-  if (state === "annotate" && capturedImage) {
-    return (
-      <main className="min-h-screen max-w-md mx-auto">
-        <div className="px-5 pt-6 pb-8 animate-fade-in">
-          <ImageAnnotator
-            imageData={capturedImage}
-            onConfirm={() => updateState("chat", true)}
-            onBack={() => {
-              setCapturedImage(null);
-              setState("tabs");
-            }}
-          />
-        </div>
-      </main>
-    );
-  }
-
   if (state === "chat") {
     return (
       <main className="min-h-screen max-w-md mx-auto">
-        <ChatCoach onBack={reset} fromPhoto={cameFromPhoto} imageData={capturedImage} />
+        <ChatCoach onBack={reset} />
       </main>
     );
   }
@@ -255,7 +196,7 @@ export default function Home() {
           <DailyCheckin
             onTalkAboutIt={(talked) => {
               setCheckinTalked(talked);
-              updateState("checkin-chat", false);
+              updateState("checkin-chat");
             }}
             onCheckedIn={() => setCheckedInToday(true)}
           />
@@ -277,63 +218,12 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="space-y-3 stagger">
-            {/* Take photo */}
-            <label className="flex items-center gap-4 w-full bg-[#1a1a1a] text-white rounded-2xl px-5 py-5 cursor-pointer press">
-              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                <Camera size={20} strokeWidth={1.5} />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-[15px] leading-tight">Snap the situation</p>
-                <p className="text-[12px] text-white/40 mt-0.5">I&apos;ll tell you exactly what to say</p>
-              </div>
-              <ChevronRight size={16} className="text-white/20 shrink-0" />
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </label>
-
-            {/* Upload */}
-            <label className="flex items-center gap-4 w-full bg-bg-card border border-border rounded-2xl px-5 py-5 cursor-pointer press">
-              <div className="w-10 h-10 rounded-full bg-bg-input flex items-center justify-center shrink-0">
-                <Upload size={20} strokeWidth={1.5} className="text-text-muted" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-[15px] leading-tight">Upload from gallery</p>
-                <p className="text-[12px] text-text-muted mt-0.5">Already took a photo of the scene</p>
-              </div>
-              <ChevronRight size={16} className="text-border shrink-0" />
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </label>
-
-            {/* Chat */}
-            <button
-              onClick={() => updateState("chat", false)}
-              className="flex items-center gap-4 w-full bg-bg-card border border-border rounded-2xl px-5 py-5 text-left press"
-            >
-              <div className="w-10 h-10 rounded-full bg-bg-input flex items-center justify-center shrink-0">
-                <MessageCircle size={20} strokeWidth={1.5} className="text-text-muted" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-[15px] leading-tight">Talk me into it</p>
-                <p className="text-[12px] text-text-muted mt-0.5">Overcome your nerves right now</p>
-              </div>
-              <ChevronRight size={16} className="text-border shrink-0" />
-            </button>
-          </div>
-
-          <p className="text-center text-[12px] text-text-muted mt-12">
-            Your photos never leave your device.
-          </p>
+          <button
+            onClick={() => updateState("chat")}
+            className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
+          >
+            Talk to Wingman
+          </button>
         </div>
       )}
 
