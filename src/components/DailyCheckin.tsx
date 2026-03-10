@@ -175,9 +175,11 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
         body: JSON.stringify({ date: today, opportunities, approaches, successes }),
       });
       const result = await res.json();
+      const talked = approaches > 0;
       setData((prev) =>
         prev ? {
           ...prev,
+          talked,
           opportunitiesCount: opportunities,
           approachesCount: approaches,
           successesCount: successes,
@@ -188,6 +190,9 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
           totalDidntApproach: result.totalDidntApproach,
           successRate: result.successRate,
           approachConversionRate: result.approachConversionRate,
+          totalTalked: result.totalTalked ?? prev.totalTalked,
+          approachRate: result.approachRate ?? prev.approachRate,
+          last7: prev.last7.map((d, i) => i === prev.last7.length - 1 ? { ...d, talked, approaches } : d),
           history: result.history || prev.history,
         } : prev
       );

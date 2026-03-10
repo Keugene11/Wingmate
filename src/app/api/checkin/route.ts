@@ -343,6 +343,8 @@ export async function PATCH(req: Request) {
       totalDidntApproach: stats.totalDidntApproach,
       successRate: stats.successRate,
       approachConversionRate: stats.approachConversionRate,
+      totalTalked: stats.totalTalked,
+      approachRate: stats.approachRate,
       history: stats.history,
     });
   }
