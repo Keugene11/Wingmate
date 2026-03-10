@@ -148,14 +148,16 @@ export default function PricingPage() {
           <p className="text-white/40 text-[12px] mb-4 leading-snug">
             Unlimited everything
           </p>
-          <div className="flex items-baseline gap-0.5 mb-1">
+          <div className="flex items-baseline gap-1.5 mb-1">
+            {billing === "yearly" && (
+              <span className="text-white/30 text-[18px] font-bold line-through">$15</span>
+            )}
             <span className="font-display text-[32px] font-extrabold leading-none">${price}</span>
             <span className="text-white/40 text-[14px] font-medium">/mo</span>
           </div>
-          {billing === "yearly" && (
-            <p className="text-white/30 text-[11px] mb-3">$120/yr</p>
-          )}
-          {billing === "monthly" && <div className="mb-3" />}
+          <p className="text-white/30 text-[11px] mb-3">
+            {billing === "yearly" ? "$120 billed yearly" : "Cancel anytime"}
+          </p>
           <button
             onClick={() => handleCheckout(billing)}
             disabled={!!loading}
