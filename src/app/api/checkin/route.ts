@@ -68,7 +68,7 @@ function computeConsecutiveApproaches(checkins: { talked: boolean }[]): number {
 async function getFullStats(supabase: any, userId: string) {
   const { data: allCheckins } = await supabase
     .from("checkins")
-    .select("checked_in_at, talked, note")
+    .select("checked_in_at, talked, note, approaches_count, successes_count")
     .eq("user_id", userId)
     .order("checked_in_at", { ascending: false });
 
@@ -81,6 +81,13 @@ async function getFullStats(supabase: any, userId: string) {
   const approachRate = totalCheckins > 0 ? Math.round((totalTalked / totalCheckins) * 100) : 0;
   const notesWritten = checkins.filter((c: any) => c.note).length;
   const consecutiveApproaches = computeConsecutiveApproaches(checkins);
+
+  // Approach outcome stats
+  const totalApproaches = checkins.reduce((sum: number, c: any) => sum + (c.approaches_count || 0), 0);
+  const totalSuccesses = checkins.reduce((sum: number, c: any) => sum + (c.successes_count || 0), 0);
+  const totalFailures = totalApproaches - totalSuccesses;
+  const totalDidntApproach = checkins.filter((c: any) => !c.talked).length;
+  const successRate = totalApproaches > 0 ? Math.round((totalSuccesses / totalApproaches) * 100) : 0;
 
   // last 7 days
   const last7: { date: string; talked: boolean | null }[] = [];
@@ -110,6 +117,7 @@ async function getFullStats(supabase: any, userId: string) {
     checkins, dates, streak, bestStreak, totalCheckins, totalTalked,
     approachRate, notesWritten, consecutiveApproaches, last7,
     last7AllCheckedIn, weekendApproaches, history,
+    totalApproaches, totalSuccesses, totalFailures, totalDidntApproach, successRate,
   };
 }
 
@@ -137,11 +145,18 @@ export async function GET() {
     checkedInToday: !!todayCheckin,
     talked: todayCheckin?.talked ?? null,
     note: todayCheckin?.note ?? null,
+    approachesCount: todayCheckin?.approaches_count ?? 0,
+    successesCount: todayCheckin?.successes_count ?? 0,
     streak: stats.streak,
     bestStreak: stats.bestStreak,
     totalCheckins: stats.totalCheckins,
     totalTalked: stats.totalTalked,
     approachRate: stats.approachRate,
+    totalApproaches: stats.totalApproaches,
+    totalSuccesses: stats.totalSuccesses,
+    totalFailures: stats.totalFailures,
+    totalDidntApproach: stats.totalDidntApproach,
+    successRate: stats.successRate,
     last7: stats.last7,
     history: stats.history,
     xp: profile?.xp ?? 0,
@@ -156,7 +171,7 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { talked, note } = await req.json();
+  const { talked, note, approachesCount, successesCount } = await req.json();
   const today = new Date().toISOString().split("T")[0];
 
   // Check if this is a new check-in or update
@@ -165,7 +180,14 @@ export async function POST(req: Request) {
   const isNew = !existing;
 
   const { error } = await supabase.from("checkins").upsert(
-    { user_id: user.id, talked, note: note || null, checked_in_at: today },
+    {
+      user_id: user.id,
+      talked,
+      note: note || null,
+      checked_in_at: today,
+      approaches_count: approachesCount || (talked ? 1 : 0),
+      successes_count: successesCount || 0,
+    },
     { onConflict: "user_id,checked_in_at" }
   );
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -268,6 +290,11 @@ export async function POST(req: Request) {
     totalCheckins: stats.totalCheckins,
     totalTalked: stats.totalTalked,
     approachRate: stats.approachRate,
+    totalApproaches: stats.totalApproaches,
+    totalSuccesses: stats.totalSuccesses,
+    totalFailures: stats.totalFailures,
+    totalDidntApproach: stats.totalDidntApproach,
+    successRate: stats.successRate,
     xp: currentXp,
     xpEarned,
     newBadges,
