@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Check, Minus, CreditCard, ChevronDown } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 
@@ -11,19 +11,6 @@ type Subscription = {
   current_period_end: string;
   cancel_at_period_end: boolean;
 } | null;
-
-const COMPARISON = [
-  { feature: "AI coaching sessions", free: "3 / day", pro: "Unlimited" },
-  { feature: "Photo situation analysis", free: false, pro: true },
-  { feature: "Personalized openers", free: false, pro: true },
-  { feature: "Text & DM coaching", free: false, pro: true },
-  { feature: "Dating profile reviews", free: false, pro: true },
-  { feature: "Custom approach plans", free: false, pro: true },
-  { feature: "Daily check-ins", free: true, pro: true },
-  { feature: "Streaks & check-ins", free: true, pro: true },
-  { feature: "Approach tracking", free: true, pro: true },
-  { feature: "Community feed", free: true, pro: true },
-];
 
 const FAQ = [
   {
@@ -256,56 +243,6 @@ export default function PlansPage() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Feature comparison */}
-      <div className="mb-16">
-        <h2 className="font-display text-[22px] font-bold tracking-tight mb-6">
-          Compare plans
-        </h2>
-
-        <div className="rounded-2xl border border-border overflow-hidden">
-          <div className="grid grid-cols-[1fr,80px,80px] bg-bg-input/50">
-            <div className="px-5 py-3.5">
-              <span className="text-[12px] font-semibold text-text-muted uppercase tracking-wide">Feature</span>
-            </div>
-            <div className="px-2 py-3.5 text-center">
-              <span className="text-[12px] font-semibold text-text-muted uppercase tracking-wide">Starter</span>
-            </div>
-            <div className="px-2 py-3.5 text-center">
-              <span className="text-[12px] font-bold text-text uppercase tracking-wide">Pro</span>
-            </div>
-          </div>
-
-          {COMPARISON.map((row, i) => (
-            <div
-              key={row.feature}
-              className={`grid grid-cols-[1fr,80px,80px] ${
-                i < COMPARISON.length - 1 ? "border-b border-border/50" : ""
-              }`}
-            >
-              <div className="px-5 py-3.5 flex items-center">
-                <span className="text-[13px]">{row.feature}</span>
-              </div>
-              <div className="px-2 py-3.5 flex items-center justify-center">
-                {row.free === true ? (
-                  <Check size={16} strokeWidth={2.5} className="text-text-muted" />
-                ) : row.free === false ? (
-                  <Minus size={16} strokeWidth={2} className="text-border" />
-                ) : (
-                  <span className="text-[11px] text-text-muted font-medium">{row.free}</span>
-                )}
-              </div>
-              <div className="px-2 py-3.5 flex items-center justify-center">
-                {row.pro === true ? (
-                  <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a]" />
-                ) : (
-                  <span className="text-[11px] font-semibold">{row.pro}</span>
-                )}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
