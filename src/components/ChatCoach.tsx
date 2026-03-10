@@ -13,6 +13,7 @@ interface ChatCoachProps {
   onBack: () => void;
   fromPhoto?: boolean;
   imageData?: string | null;
+  checkinMode?: "talked" | "didnt-talk";
 }
 
 const STORAGE_KEY = "approachai-messages";
@@ -38,7 +39,7 @@ export function clearSavedMessages() {
   } catch {}
 }
 
-export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachProps) {
+export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }: ChatCoachProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -105,7 +106,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: messagesToSend,
-            mode: fromPhoto ? "photo-approach" : "general",
+            mode: checkinMode ? `checkin-${checkinMode}` : fromPhoto ? "photo-approach" : "general",
           }),
         });
         if (!response.ok) throw new Error("Failed");
@@ -194,7 +195,17 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
       return;
     }
 
-    if (fromPhoto) {
+    if (checkinMode) {
+      const trigger: Message = {
+        role: "user",
+        content: checkinMode === "talked"
+          ? "I talked to someone new today! I want to tell you about it."
+          : "I didn't talk to anyone new today. I want to talk about what held me back.",
+      };
+      setMessages([trigger]);
+      setInitialized(true);
+      streamResponse([trigger]);
+    } else if (fromPhoto) {
       const trigger: Message = {
         role: "user",
         content: "I just spotted someone I want to approach. I'm in the moment right now. Give me the motivation, the game plan, and help me crush my fears about this. I need to move NOW.",
@@ -211,7 +222,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
       ]);
       setInitialized(true);
     }
-  }, [initialized, fromPhoto, imageData, streamResponse]);
+  }, [initialized, fromPhoto, imageData, checkinMode, streamResponse]);
 
   useEffect(() => {
     if (!userScrolledUp.current) {

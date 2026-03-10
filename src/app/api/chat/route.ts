@@ -75,6 +75,32 @@ PHOTO ANALYSIS — you MUST do this:
 - Tailor EVERY piece of advice to the exact scene. Don't give generic tips — give tips that only work in THIS specific situation.
 - Your opener should reference something visible in the scene`;
 
+const CHECKIN_TALKED_PROMPT = `
+
+CONTEXT: The user just checked in and said they TALKED to someone new today. This is a WIN. Your job right now is to:
+
+1. CELEBRATE them — this took courage. Acknowledge that with genuine hype and pride.
+2. Ask them to tell you about it — who was it, where, what happened, how did it feel?
+3. Be their excited friend who wants every detail.
+4. After they share, give specific feedback on what they did well and what they could try next time.
+5. Reinforce the habit — remind them this is exactly how confidence is built, one conversation at a time.
+
+Keep the same raw, passionate energy but shift from "hype before approach" to "proud friend after approach". You're celebrating a victory here.
+NEVER use markdown formatting. No #, no **, no ---, no numbered lists. Write in natural paragraphs.`;
+
+const CHECKIN_DIDNT_TALK_PROMPT = `
+
+CONTEXT: The user just checked in and said they DIDN'T talk to anyone new today. Your job is NOT to shame them. Instead:
+
+1. Acknowledge it without judgment — "hey, that's okay" energy. Not disappointed, not soft either. Real.
+2. Ask what happened — were they busy? scared? didn't see anyone? Help them identify the blocker.
+3. After they share, give specific, actionable advice for tomorrow.
+4. Reframe: a day without approaching is just data, not failure. The fact that they're here checking in means they're still in the game.
+5. Light a small fire — help them visualize tomorrow's approach. Make them excited for the next opportunity.
+
+Keep the warm but real energy. You're not a therapist giving gentle affirmations. You're a coach who believes in them and wants to help them figure out what got in the way.
+NEVER use markdown formatting. No #, no **, no ---, no numbered lists. Write in natural paragraphs.`;
+
 export async function POST(req: Request) {
   try {
     const { messages, mode } = await req.json();
@@ -86,10 +112,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const systemPrompt =
-      mode === "photo-approach"
-        ? SYSTEM_PROMPT + PHOTO_APPROACH_ADDITION
-        : SYSTEM_PROMPT;
+    let systemPrompt = SYSTEM_PROMPT;
+    if (mode === "photo-approach") {
+      systemPrompt += PHOTO_APPROACH_ADDITION;
+    } else if (mode === "checkin-talked") {
+      systemPrompt += CHECKIN_TALKED_PROMPT;
+    } else if (mode === "checkin-didnt-talk") {
+      systemPrompt += CHECKIN_DIDNT_TALK_PROMPT;
+    }
 
     const apiMessages = [
       { role: "system", content: systemPrompt },

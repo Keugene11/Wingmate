@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import ImageAnnotator from "@/components/ImageAnnotator";
 import ChatCoach from "@/components/ChatCoach";
+import DailyCheckin from "@/components/DailyCheckin";
 
 function getGreeting(name?: string): string {
   const hour = new Date().getHours();
@@ -33,7 +34,7 @@ function getGreeting(name?: string): string {
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
 
-type AppState = "home" | "annotate" | "chat";
+type AppState = "home" | "annotate" | "chat" | "checkin-chat";
 
 function getSessionState(): { state: AppState; fromPhoto: boolean } {
   if (typeof window === "undefined") return { state: "home", fromPhoto: false };
@@ -48,6 +49,7 @@ export default function Home() {
   const [state, setState] = useState<AppState>("home");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameFromPhoto, setCameFromPhoto] = useState(false);
+  const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [firstName, setFirstName] = useState<string | undefined>();
   const [displayedGreeting, setDisplayedGreeting] = useState("");
@@ -188,6 +190,16 @@ export default function Home() {
               </p>
             </div>
 
+            {/* Daily Check-in */}
+            <div className="mb-6">
+              <DailyCheckin
+                onTalkAboutIt={(talked) => {
+                  setCheckinTalked(talked);
+                  updateState("checkin-chat", false);
+                }}
+              />
+            </div>
+
             {/* Actions */}
             <div className="space-y-3 stagger">
               {/* Primary — Take photo */}
@@ -250,6 +262,10 @@ export default function Home() {
 
       {state === "chat" && (
         <ChatCoach onBack={reset} fromPhoto={cameFromPhoto} imageData={capturedImage} />
+      )}
+
+      {state === "checkin-chat" && (
+        <ChatCoach onBack={reset} checkinMode={checkinTalked !== null ? (checkinTalked ? "talked" : "didnt-talk") : undefined} />
       )}
     </main>
   );
