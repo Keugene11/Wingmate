@@ -55,8 +55,13 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
   const [savingToday, setSavingToday] = useState(false);
 
 
+  const getLocalDate = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  };
+
   useEffect(() => {
-    fetch("/api/checkin")
+    fetch(`/api/checkin?today=${getLocalDate()}`)
       .then((res) => res.json())
       .then(setData)
       .catch(() => {});
@@ -68,7 +73,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
     const res = await fetch("/api/checkin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ talked, opportunitiesCount: opportunities, approachesCount: approaches, successesCount: successes }),
+      body: JSON.stringify({ talked, opportunitiesCount: opportunities, approachesCount: approaches, successesCount: successes, clientDate: getLocalDate() }),
     });
     const result = await res.json();
 
@@ -148,7 +153,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
 
   const saveToday = async () => {
     if (todayOpportunities === null && todayApproaches === null && todaySuccesses === null) return;
-    const today = new Date().toISOString().split("T")[0];
+    const today = getLocalDate();
     const opportunities = todayOpportunities ?? data?.opportunitiesCount ?? 0;
     const approaches = todayApproaches ?? data?.approachesCount ?? 0;
     const successes = todaySuccesses ?? data?.successesCount ?? 0;

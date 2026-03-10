@@ -23,9 +23,9 @@ async function getSupabase() {
   );
 }
 
-function computeStreak(dates: string[]): number {
+function computeStreak(dates: string[], clientToday?: string): number {
   if (dates.length === 0) return 0;
-  const today = new Date();
+  const today = clientToday ? new Date(clientToday + "T12:00:00") : new Date();
   today.setHours(0, 0, 0, 0);
   const first = new Date(dates[0] + "T00:00:00");
   const diffFirst = Math.floor((today.getTime() - first.getTime()) / 86400000);
@@ -65,7 +65,7 @@ function computeConsecutiveApproaches(checkins: { talked: boolean }[]): number {
   return count;
 }
 
-async function getFullStats(supabase: any, userId: string) {
+async function getFullStats(supabase: any, userId: string, clientToday?: string) {
   const { data: allCheckins } = await supabase
     .from("checkins")
     .select("checked_in_at, talked, note, opportunities_count, approaches_count, successes_count")
@@ -74,7 +74,7 @@ async function getFullStats(supabase: any, userId: string) {
 
   const checkins = allCheckins || [];
   const dates = checkins.map((c: any) => c.checked_in_at);
-  const streak = computeStreak(dates);
+  const streak = computeStreak(dates, clientToday);
   const bestStreak = Math.max(computeBestStreak(dates), streak);
   const totalCheckins = checkins.length;
   const totalTalked = checkins.filter((c: any) => c.talked).length;
@@ -93,10 +93,11 @@ async function getFullStats(supabase: any, userId: string) {
 
   // last 7 days
   const last7: { date: string; talked: boolean | null; approaches: number }[] = [];
+  const baseDate = clientToday ? new Date(clientToday + "T12:00:00") : new Date();
   for (let i = 6; i >= 0; i--) {
-    const d = new Date();
+    const d = new Date(baseDate);
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split("T")[0];
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     const checkin = checkins.find((c: any) => c.checked_in_at === dateStr);
     last7.push({ date: dateStr, talked: checkin ? checkin.talked : null, approaches: checkin?.approaches_count || 0 });
   }
@@ -128,16 +129,17 @@ async function getFullStats(supabase: any, userId: string) {
 }
 
 // GET
-export async function GET() {
+export async function GET(req: Request) {
   const supabase = await getSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const today = new Date().toISOString().split("T")[0];
+  const url = new URL(req.url);
+  const today = url.searchParams.get("today") || new Date().toISOString().split("T")[0];
   const { data: todayCheckin } = await supabase
     .from("checkins").select("*").eq("user_id", user.id).eq("checked_in_at", today).single();
 
-  const stats = await getFullStats(supabase, user.id);
+  const stats = await getFullStats(supabase, user.id, today);
 
   // Get profile for XP and freezes
   const { data: profile } = await supabase
@@ -180,8 +182,8 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { talked, note, opportunitiesCount, approachesCount, successesCount } = await req.json();
-  const today = new Date().toISOString().split("T")[0];
+  const { talked, note, opportunitiesCount, approachesCount, successesCount, clientDate } = await req.json();
+  const today = clientDate || new Date().toISOString().split("T")[0];
 
   // Check if this is a new check-in or update
   const { data: existing } = await supabase
@@ -202,7 +204,7 @@ export async function POST(req: Request) {
   );
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const stats = await getFullStats(supabase, user.id);
+  const stats = await getFullStats(supabase, user.id, today);
 
   // Get profile (single query with all needed fields)
   let { data: profile } = await supabase
@@ -334,7 +336,7 @@ export async function PATCH(req: Request) {
       });
     }
 
-    const stats = await getFullStats(supabase, user.id);
+    const stats = await getFullStats(supabase, user.id, date);
     return NextResponse.json({
       totalOpportunities: stats.totalOpportunities,
       totalApproaches: stats.totalApproaches,

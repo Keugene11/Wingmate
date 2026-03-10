@@ -74,7 +74,9 @@ export default function Home() {
       if (data.user) setUserId(data.user.id);
     });
 
-    fetch("/api/checkin")
+    const now = new Date();
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    fetch(`/api/checkin?today=${localDate}`)
       .then((res) => res.json())
       .then((d) => { if (!d.error) setCheckedInToday(d.checkedInToday); })
       .catch(() => {});
