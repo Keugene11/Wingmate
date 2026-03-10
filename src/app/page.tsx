@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase-browser";
 import ImageAnnotator from "@/components/ImageAnnotator";
 import ChatCoach from "@/components/ChatCoach";
 import DailyCheckin from "@/components/DailyCheckin";
+import Leaderboard from "@/components/Leaderboard";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
 
@@ -259,6 +260,12 @@ export default function Home() {
             }}
             onCheckedIn={() => setCheckedInToday(true)}
           />
+
+          {/* Weekly League */}
+          <div className="mt-8">
+            <h2 className="font-display text-[18px] font-bold tracking-tight mb-3">Weekly League</h2>
+            <Leaderboard />
+          </div>
         </div>
       )}
 
@@ -276,10 +283,17 @@ export default function Home() {
 
           <div className="space-y-3 stagger">
             {/* Take photo */}
-            <label className="flex items-center gap-4 w-full bg-[#1a1a1a] text-white rounded-2xl px-5 py-4.5 cursor-pointer press">
-              <Camera size={22} strokeWidth={1.5} className="shrink-0" />
-              <p className="font-medium text-[16px]">Take a photo</p>
-              <ChevronRight size={16} className="ml-auto text-white/30 shrink-0" />
+            <label className="w-full bg-[#1a1a1a] text-white rounded-2xl px-5 py-5 cursor-pointer press block">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <Camera size={20} strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-[16px]">Snap & get advice</p>
+                  <p className="text-[12px] text-white/50 mt-0.5">See someone? Take a quick photo of the situation and get real-time coaching on how to approach.</p>
+                </div>
+                <ChevronRight size={16} className="text-white/30 shrink-0" />
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -290,10 +304,17 @@ export default function Home() {
             </label>
 
             {/* Upload */}
-            <label className="flex items-center gap-4 w-full bg-bg-card border border-border rounded-2xl px-5 py-4.5 cursor-pointer press">
-              <Upload size={22} strokeWidth={1.5} className="text-text-muted shrink-0" />
-              <p className="font-medium text-[16px]">Upload a photo</p>
-              <ChevronRight size={16} className="ml-auto text-border shrink-0" />
+            <label className="w-full bg-bg-card border border-border rounded-2xl px-5 py-5 cursor-pointer press block">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-bg-input flex items-center justify-center shrink-0">
+                  <Upload size={20} strokeWidth={1.5} className="text-text-muted" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-[16px]">Review a moment</p>
+                  <p className="text-[12px] text-text-muted mt-0.5">Upload a photo from earlier — a dating profile, a text convo, or a situation you want to break down.</p>
+                </div>
+                <ChevronRight size={16} className="text-border shrink-0" />
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -305,11 +326,18 @@ export default function Home() {
             {/* Chat */}
             <button
               onClick={() => updateState("chat", false)}
-              className="flex items-center gap-4 w-full bg-bg-card border border-border rounded-2xl px-5 py-4.5 text-left press"
+              className="w-full bg-bg-card border border-border rounded-2xl px-5 py-5 text-left press"
             >
-              <MessageCircle size={22} strokeWidth={1.5} className="text-text-muted shrink-0" />
-              <p className="font-medium text-[16px]">Just talk to me</p>
-              <ChevronRight size={16} className="ml-auto text-border shrink-0" />
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-bg-input flex items-center justify-center shrink-0">
+                  <MessageCircle size={20} strokeWidth={1.5} className="text-text-muted" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-[16px]">Talk through it</p>
+                  <p className="text-[12px] text-text-muted mt-0.5">Nervous, overthinking, or need a pep talk? Chat with your AI coach about anything on your mind.</p>
+                </div>
+                <ChevronRight size={16} className="text-border shrink-0" />
+              </div>
             </button>
           </div>
 

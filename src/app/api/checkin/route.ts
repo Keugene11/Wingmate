@@ -192,12 +192,25 @@ export async function POST(req: Request) {
     // Award streak freeze every 7 days
     const newFreezes = stats.streak > 0 && stats.streak % 7 === 0 ? 1 : 0;
 
+    // Also increment weekly_xp for leaderboard
+    const { data: leagueProfile } = await supabase
+      .from("profiles")
+      .select("league_opted_in, weekly_xp")
+      .eq("id", user.id)
+      .single();
+
+    const updateData: Record<string, any> = {
+      xp: (profile.xp || 0) + xpEarned,
+      streak_freezes: Math.min((profile.streak_freezes || 0) + newFreezes, 3),
+    };
+
+    if (leagueProfile?.league_opted_in) {
+      updateData.weekly_xp = (leagueProfile.weekly_xp || 0) + xpEarned;
+    }
+
     await supabase
       .from("profiles")
-      .update({
-        xp: (profile.xp || 0) + xpEarned,
-        streak_freezes: Math.min((profile.streak_freezes || 0) + newFreezes, 3),
-      })
+      .update(updateData)
       .eq("id", user.id);
   }
 
@@ -223,16 +236,31 @@ export async function POST(req: Request) {
   });
 
   const newBadges: string[] = [];
+  let badgeXp = 0;
   for (const badgeId of shouldHave) {
     if (!existingBadgeIds.has(badgeId)) {
       await supabase.from("user_badges").insert({ user_id: user.id, badge_id: badgeId });
       newBadges.push(badgeId);
-      // Award XP for new badge
-      if (isNew) {
-        xpEarned += XP_REWARDS.badge;
-        await supabase.from("profiles").update({ xp: (profile.xp || 0) + xpEarned }).eq("id", user.id);
-      }
+      badgeXp += XP_REWARDS.badge;
     }
+  }
+
+  if (badgeXp > 0) {
+    xpEarned += badgeXp;
+    // Update total XP and weekly_xp for badges
+    const { data: latestProfile } = await supabase
+      .from("profiles")
+      .select("xp, weekly_xp, league_opted_in")
+      .eq("id", user.id)
+      .single();
+
+    const badgeUpdate: Record<string, any> = {
+      xp: (latestProfile?.xp || 0) + badgeXp,
+    };
+    if (latestProfile?.league_opted_in) {
+      badgeUpdate.weekly_xp = (latestProfile.weekly_xp || 0) + badgeXp;
+    }
+    await supabase.from("profiles").update(badgeUpdate).eq("id", user.id);
   }
 
   return NextResponse.json({
