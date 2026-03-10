@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flame, Check, X, MessageCircle, Trophy, TrendingUp, Calendar, Shield, Eye, Target, ThumbsUp, UserX, Pencil } from "lucide-react";
+import { Flame, MessageCircle, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX, Pencil } from "lucide-react";
 import { getFlameLevel } from "@/lib/gamification";
 
 interface CheckinData {
@@ -30,16 +30,6 @@ interface CheckinData {
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
-function formatHistoryDate(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diff = Math.floor((today.getTime() - date.getTime()) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
 export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: { greeting?: string; onTalkAboutIt: (talked: boolean) => void; onCheckedIn?: () => void }) {
   const [data, setData] = useState<CheckinData | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -64,11 +54,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
   const [todaySuccesses, setTodaySuccesses] = useState<number | null>(null);
   const [savingToday, setSavingToday] = useState(false);
 
-  // Edit past day
-  const [editingDay, setEditingDay] = useState<string | null>(null);
-  const [editDayOpportunities, setEditDayOpportunities] = useState(0);
-  const [editDayApproaches, setEditDayApproaches] = useState(0);
-  const [editDaySuccesses, setEditDaySuccesses] = useState(0);
 
   useEffect(() => {
     fetch("/api/checkin")
@@ -203,47 +188,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
     setSavingToday(false);
   };
 
-  const startEditingDay = (entry: { date: string; opportunities: number; approaches: number; successes: number }) => {
-    setEditDayOpportunities(entry.opportunities);
-    setEditDayApproaches(entry.approaches);
-    setEditDaySuccesses(entry.successes);
-    setEditingDay(entry.date);
-  };
-
-  const saveDay = async () => {
-    if (!editingDay) return;
-    setSubmitting(true);
-    const res = await fetch("/api/checkin", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        date: editingDay,
-        opportunities: editDayOpportunities,
-        approaches: editDayApproaches,
-        successes: editDaySuccesses,
-      }),
-    });
-    const result = await res.json();
-    setData((prev) =>
-      prev ? {
-        ...prev,
-        totalOpportunities: result.totalOpportunities,
-        totalApproaches: result.totalApproaches,
-        totalSuccesses: result.totalSuccesses,
-        totalFailures: result.totalFailures,
-        totalDidntApproach: result.totalDidntApproach,
-        successRate: result.successRate,
-        approachConversionRate: result.approachConversionRate,
-        history: result.history || prev.history.map((h) =>
-          h.date === editingDay
-            ? { ...h, opportunities: editDayOpportunities, approaches: editDayApproaches, successes: editDaySuccesses, talked: editDayApproaches > 0 }
-            : h
-        ),
-      } : prev
-    );
-    setEditingDay(null);
-    setSubmitting(false);
-  };
 
   const saveNote = async () => {
     if (!noteInput.trim()) return;
@@ -552,79 +496,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
           <p className="text-[11px] text-text-muted">Days skipped</p>
         </div>
       </div>
-
-      {/* History */}
-      {data.history.length > 0 && (
-        <div>
-          <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3 px-1">Recent activity</h3>
-          <div className="space-y-2">
-            {data.history.map((entry) => (
-              <div key={entry.date}>
-                {editingDay === entry.date ? (
-                  <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-xl px-4 py-4 animate-fade-in">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[13px] font-semibold">{formatHistoryDate(entry.date)}</span>
-                    </div>
-                    {[
-                      { label: "Opportunities", value: editDayOpportunities, set: setEditDayOpportunities, min: 0 },
-                      { label: "Approached", value: editDayApproaches, set: setEditDayApproaches, min: 0, max: editDayOpportunities },
-                      { label: "Went well", value: editDaySuccesses, set: setEditDaySuccesses, min: 0, max: editDayApproaches },
-                    ].map(({ label, value, set, min, max }) => (
-                      <div key={label} className="mb-3">
-                        <p className="text-[12px] text-text-muted mb-1.5 text-center">{label}</p>
-                        <div className="flex items-center justify-center gap-4">
-                          <button onClick={() => set(Math.max(min, value - 1))}
-                            className="w-9 h-9 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[16px] font-bold press">−</button>
-                          <span className="font-display text-[28px] font-extrabold leading-none w-10 text-center">{value}</span>
-                          <button onClick={() => set(max !== undefined ? Math.min(max, value + 1) : value + 1)}
-                            className="w-9 h-9 rounded-full bg-bg-card-hover border border-border flex items-center justify-center text-[16px] font-bold press">+</button>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="flex gap-2 mt-1">
-                      <button onClick={() => setEditingDay(null)}
-                        className="flex-1 py-2.5 rounded-xl bg-bg-card-hover border border-border text-[13px] font-medium press">Cancel</button>
-                      <button onClick={saveDay} disabled={submitting}
-                        className="flex-1 py-2.5 rounded-xl bg-[#1a1a1a] text-white text-[13px] font-medium press disabled:opacity-60">
-                        {submitting ? "..." : "Save"}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <button onClick={() => startEditingDay(entry)}
-                    className="w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-left press">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                          entry.talked ? "bg-green-500 text-white" : "bg-orange-100 text-orange-600"
-                        }`}>
-                          {entry.talked ? <Check size={13} strokeWidth={2.5} /> : <X size={13} strokeWidth={2.5} />}
-                        </div>
-                        <span className="text-[14px] font-semibold">{formatHistoryDate(entry.date)}</span>
-                      </div>
-                      <Pencil size={13} strokeWidth={1.5} className="text-text-muted" />
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[20px] font-bold text-purple-600 block">{entry.opportunities}</span>
-                        <span className="text-[10px] text-text-muted">seen</span>
-                      </div>
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[20px] font-bold block">{entry.approaches}</span>
-                        <span className="text-[10px] text-text-muted">approached</span>
-                      </div>
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[20px] font-bold text-green-600 block">{entry.successes}</span>
-                        <span className="text-[10px] text-text-muted">went well</span>
-                      </div>
-                    </div>
-                    {entry.note && <p className="text-[13px] text-text-muted leading-relaxed mt-2.5">{entry.note}</p>}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Streak at risk */}
       {data.streak > 0 && !data.checkedInToday && (
