@@ -38,7 +38,7 @@ export default function NewPostPage() {
       return;
     }
 
-    router.push("/community");
+    router.push("/");
   };
 
   return (
@@ -46,7 +46,7 @@ export default function NewPostPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/community" className="p-1 -ml-1 press">
+          <Link href="/" className="p-1 -ml-1 press">
             <ArrowLeft size={20} strokeWidth={1.5} />
           </Link>
           <h1 className="font-display text-[20px] font-bold tracking-tight">New post</h1>
