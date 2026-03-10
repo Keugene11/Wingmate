@@ -11,35 +11,12 @@ interface Message {
 
 interface ChatCoachProps {
   onBack: () => void;
-  fromPhoto?: boolean;
-  imageData?: string | null;
   checkinMode?: "talked" | "didnt-talk";
+  conversationId?: string | null;
+  onConversationCreated?: (id: string) => void;
 }
 
-const STORAGE_KEY = "approachai-messages";
-
-function getSavedMessages(): Message[] | null {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch {}
-  return null;
-}
-
-function saveMessages(messages: Message[]) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  } catch {}
-}
-
-export function clearSavedMessages() {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem("approachai-state");
-  } catch {}
-}
-
-export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }: ChatCoachProps) {
+export default function ChatCoach({ onBack, checkinMode, conversationId, onConversationCreated }: ChatCoachProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -48,20 +25,45 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
   const [limitReached, setLimitReached] = useState(false);
   const [sessionsRemaining, setSessionsRemaining] = useState<number | null>(null);
   const [messagesRemaining, setMessagesRemaining] = useState<number | null>(null);
+  const [viewingHistory, setViewingHistory] = useState(false);
   const isSubscribed = useRef(false);
+  const convoIdRef = useRef<string | null>(conversationId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const userScrolledUp = useRef(false);
 
-  useEffect(() => {
-    if (initialized && messages.length > 0) {
-      const toSave = messages.filter((m) => m.content.length > 0);
-      if (toSave.length > 0) saveMessages(toSave);
-    }
-  }, [messages, initialized]);
+  // Save messages to database
+  const saveMessages = useCallback(async (convoId: string, msgs: Message[]) => {
+    try {
+      await fetch(`/api/conversations/${convoId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: msgs }),
+      });
+    } catch {}
+  }, []);
 
-  // Check usage and increment session count on mount
+  // Create a new conversation
+  const ensureConversation = useCallback(async (mode?: string): Promise<string | null> => {
+    if (convoIdRef.current) return convoIdRef.current;
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: mode || "general" }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        convoIdRef.current = data.id;
+        onConversationCreated?.(data.id);
+        return data.id;
+      }
+    } catch {}
+    return null;
+  }, [onConversationCreated]);
+
+  // Check usage on mount
   useEffect(() => {
     fetch("/api/usage")
       .then((res) => res.json())
@@ -77,9 +79,8 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
         setSessionsRemaining(data.sessionsRemaining);
         setMessagesRemaining(data.messagesRemaining);
 
-        // Only increment session for new chats (no saved messages)
-        const saved = getSavedMessages();
-        if (saved && saved.length > 0) return;
+        // Only increment session for new chats
+        if (conversationId) return;
 
         fetch("/api/usage", {
           method: "POST",
@@ -95,11 +96,12 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
           .catch(() => {});
       })
       .catch(() => {});
-  }, []);
+  }, [conversationId]);
 
   const streamResponse = useCallback(
-    async (messagesToSend: Message[]) => {
+    async (messagesToSend: Message[], convoId: string | null) => {
       setIsLoading(true);
+      let assistantContent = "";
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
@@ -113,7 +115,6 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
         const reader = response.body?.getReader();
         if (!reader) throw new Error("No reader");
         const decoder = new TextDecoder();
-        let content = "";
         let rafId: number | null = null;
         let needsUpdate = false;
 
@@ -123,7 +124,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
           rafId = null;
           if (needsUpdate) {
             needsUpdate = false;
-            const snapshot = content;
+            const snapshot = assistantContent;
             setMessages((prev) => {
               const updated = [...prev];
               updated[updated.length - 1] = { role: "assistant", content: snapshot };
@@ -143,7 +144,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
             try {
               const parsed = JSON.parse(data);
               if (parsed.content) {
-                content += parsed.content;
+                assistantContent += parsed.content;
                 needsUpdate = true;
                 if (!rafId) {
                   rafId = requestAnimationFrame(flushUpdate);
@@ -153,72 +154,54 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
           }
         }
 
-        // Final flush
         if (rafId) cancelAnimationFrame(rafId);
         setMessages((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = { role: "assistant", content };
+          updated[updated.length - 1] = { role: "assistant", content: assistantContent };
           return updated;
         });
       } catch {
+        assistantContent = "Something went wrong on my end. But you already know what to do — walk over and say hi.";
         setMessages((prev) => [
           ...prev,
-          {
-            role: "assistant",
-            content: "Something went wrong on my end. But you already know what to do — walk over and say hi.",
-          },
+          { role: "assistant", content: assistantContent },
         ]);
       }
       setIsLoading(false);
+
+      // Save the last user message + assistant response to DB
+      if (convoId && assistantContent) {
+        const lastUserMsg = messagesToSend[messagesToSend.length - 1];
+        saveMessages(convoId, [
+          lastUserMsg,
+          { role: "assistant", content: assistantContent },
+        ]);
+      }
     },
-    [checkinMode]
+    [checkinMode, saveMessages]
   );
 
+  // Initialize: load existing conversation or start new
   useEffect(() => {
     if (initialized) return;
 
-    // Try to get image from prop or sessionStorage
-    let photo = imageData;
-    if (!photo && fromPhoto) {
-      try { photo = sessionStorage.getItem("approachai-image"); } catch {}
-    }
-
-    // If we have a photo, always analyze it fresh — don't restore old messages
-    if (fromPhoto && photo) {
+    // Loading an existing conversation
+    if (conversationId) {
       setInitialized(true);
-      const analyzeAndStart = async () => {
-        let sceneDescription = "";
-        try {
-          const res = await fetch("/api/analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ imageData: photo }),
-          });
-          const data = await res.json();
-          sceneDescription = data.analysis || "";
-        } catch (e) {
-          console.error("[ChatCoach] analyze failed:", e);
-        }
-        const apiContent = sceneDescription
-          ? `I just spotted someone I want to approach. I'm in the moment right now.\n\nHere is EXACTLY what the scene looks like:\n${sceneDescription}\n\nYou MUST reference these specific details in your response — the setting, what they're doing, what's around them. Your opener MUST be tailored to this exact scene. Do NOT give generic advice. Give me the motivation, a game plan for THIS specific moment, and help me crush my fears. I need to move NOW.`
-          : "I just spotted someone I want to approach. I'm in the moment right now. Give me the motivation, the game plan, and help me crush my fears about this. I need to move NOW.";
-        // Show a clean message to user, send full context to API
-        const displayMsg: Message = { role: "user", content: "I just spotted someone. Help me approach." };
-        const apiMsg: Message = { role: "user", content: apiContent };
-        setMessages([displayMsg]);
-        streamResponse([apiMsg]);
-      };
-      analyzeAndStart();
+      setViewingHistory(true);
+      fetch(`/api/conversations/${conversationId}/messages`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.messages?.length > 0) {
+            setMessages(data.messages);
+          }
+          setViewingHistory(false);
+        })
+        .catch(() => setViewingHistory(false));
       return;
     }
 
-    const saved = getSavedMessages();
-    if (saved && saved.length > 0) {
-      setMessages(saved);
-      setInitialized(true);
-      return;
-    }
-
+    // New conversation
     if (checkinMode) {
       const trigger: Message = {
         role: "user",
@@ -228,25 +211,25 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
       };
       setMessages([trigger]);
       setInitialized(true);
-      streamResponse([trigger]);
-    } else if (fromPhoto) {
-      const trigger: Message = {
-        role: "user",
-        content: "I just spotted someone I want to approach. I'm in the moment right now. Give me the motivation, the game plan, and help me crush my fears about this. I need to move NOW.",
-      };
-      setMessages([trigger]);
-      setInitialized(true);
-      streamResponse([trigger]);
+
+      const mode = `checkin-${checkinMode}`;
+      ensureConversation(mode).then((id) => {
+        if (id) saveMessages(id, [trigger]);
+        streamResponse([trigger], id);
+      });
     } else {
-      setMessages([
-        {
-          role: "assistant",
-          content: "Too scared to go up to her? That's normal — every guy feels that. Tell me what's going on. Where are you, what's she doing, and what's holding you back right now?",
-        },
-      ]);
+      const initialMsg: Message = {
+        role: "assistant",
+        content: "Too scared to go up to her? That's normal — every guy feels that. Tell me what's going on. Where are you, what's she doing, and what's holding you back right now?",
+      };
+      setMessages([initialMsg]);
       setInitialized(true);
+
+      ensureConversation("general").then((id) => {
+        if (id) saveMessages(id, [initialMsg]);
+      });
     }
-  }, [initialized, fromPhoto, imageData, checkinMode, streamResponse]);
+  }, [initialized, conversationId, checkinMode, streamResponse, ensureConversation, saveMessages]);
 
   useEffect(() => {
     if (!userScrolledUp.current) {
@@ -268,7 +251,6 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
     setInput("");
     if (inputRef.current) inputRef.current.style.height = "auto";
 
-    // Increment message usage for free users
     if (!isSubscribed.current) {
       try {
         const res = await fetch("/api/usage", {
@@ -285,7 +267,8 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
       } catch {}
     }
 
-    await streamResponse(updated);
+    const convoId = await ensureConversation();
+    await streamResponse(updated, convoId);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -300,11 +283,6 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
     }
   };
 
-  const handleBack = () => {
-    clearSavedMessages();
-    onBack();
-  };
-
   const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const el = e.target;
@@ -316,7 +294,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
     <div className="flex flex-col h-screen max-w-md mx-auto bg-bg animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 bg-bg/80 backdrop-blur-lg sticky top-0 z-10">
-        <button onClick={handleBack} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors">
+        <button onClick={onBack} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors">
           <ArrowLeft size={18} strokeWidth={2} />
         </button>
         <div className="flex-1 text-center">
@@ -334,40 +312,48 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 pt-3"
       >
-        {messages.map((msg, i) =>
-          msg.role === "user" ? (
-            <div key={i} className="flex justify-end msg-in">
-              <div className="max-w-[82%] bg-[#1a1a1a] text-white rounded-2xl rounded-br-sm px-4 py-3 shadow-sm">
-                <p className="text-[15px] leading-[1.55] whitespace-pre-wrap">{msg.content}</p>
-              </div>
-            </div>
-          ) : (
-            <div key={i} className="msg-in">
-              <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-4 py-3.5 shadow-sm max-w-[92%]">
-                {msg.content.split("\n").map((line, j) => {
-                  const trimmed = line.trim();
-                  const isTitle =
-                    trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length > 5 && trimmed.length < 80;
-                  return isTitle ? (
-                    <p key={j} className="text-[15px] font-bold leading-[1.6] mt-4 mb-1 text-orange-500 first:mt-0">{trimmed.slice(1, -1)}</p>
-                  ) : trimmed === "" ? (
-                    <div key={j} className="h-2" />
-                  ) : (
-                    <p key={j} className="text-[14.5px] leading-[1.7] text-text/90">{line}</p>
-                  );
-                })}
-              </div>
-            </div>
-          )
-        )}
-        {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-          <div className="animate-fade-in py-2 pl-1">
-            <div className="flex gap-1">
-              <div className="w-2 h-2 rounded-full bg-orange-400/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-2 h-2 rounded-full bg-orange-400/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-2 h-2 rounded-full bg-orange-400/60 animate-bounce" style={{ animationDelay: "300ms" }} />
-            </div>
+        {viewingHistory ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : (
+          <>
+            {messages.map((msg, i) =>
+              msg.role === "user" ? (
+                <div key={i} className="flex justify-end msg-in">
+                  <div className="max-w-[82%] bg-[#1a1a1a] text-white rounded-2xl rounded-br-sm px-4 py-3 shadow-sm">
+                    <p className="text-[15px] leading-[1.55] whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </div>
+              ) : (
+                <div key={i} className="msg-in">
+                  <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-4 py-3.5 shadow-sm max-w-[92%]">
+                    {msg.content.split("\n").map((line, j) => {
+                      const trimmed = line.trim();
+                      const isTitle =
+                        trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length > 5 && trimmed.length < 80;
+                      return isTitle ? (
+                        <p key={j} className="text-[15px] font-bold leading-[1.6] mt-4 mb-1 text-orange-500 first:mt-0">{trimmed.slice(1, -1)}</p>
+                      ) : trimmed === "" ? (
+                        <div key={j} className="h-2" />
+                      ) : (
+                        <p key={j} className="text-[14.5px] leading-[1.7] text-text/90">{line}</p>
+                      );
+                    })}
+                  </div>
+                </div>
+              )
+            )}
+            {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+              <div className="animate-fade-in py-2 pl-1">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-orange-400/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-orange-400/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-orange-400/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -389,13 +375,11 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
         </div>
       ) : (
         <div className="shrink-0 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-          {/* Free usage counter */}
           {messagesRemaining !== null && messagesRemaining >= 0 && (
             <div className="text-center py-1.5 text-[11px] text-text-muted">
               {messagesRemaining} free {messagesRemaining === 1 ? "message" : "messages"} left
             </div>
           )}
-          {/* Input */}
           <div className="px-4 py-2">
             <form
               onSubmit={handleSubmit}

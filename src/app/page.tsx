@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 
 import ChatCoach from "@/components/ChatCoach";
+import ConversationList from "@/components/ConversationList";
 import DailyCheckin from "@/components/DailyCheckin";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
@@ -20,7 +21,7 @@ function getGreeting(name?: string): string {
   return `Good night${suffix}`;
 }
 
-type AppState = "tabs" | "chat" | "checkin-chat";
+type AppState = "tabs" | "conversations" | "chat" | "checkin-chat";
 
 function getSessionState(): { state: AppState; fromPhoto: boolean; tab: Tab } {
   if (typeof window === "undefined") return { state: "tabs", fromPhoto: false, tab: "coach" };
@@ -37,6 +38,7 @@ export default function Home() {
   const [state, setState] = useState<AppState>("tabs");
   const [activeTab, setActiveTab] = useState<Tab>("coach");
   const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [checkedInToday, setCheckedInToday] = useState<boolean | null>(null);
@@ -54,8 +56,8 @@ export default function Home() {
 
   useEffect(() => {
     const saved = getSessionState();
-    if (saved.state === "chat") {
-      setState("chat");
+    if (saved.state === "chat" || saved.state === "conversations") {
+      setState(saved.state);
     }
     if (saved.tab) setActiveTab(saved.tab);
     setHydrated(true);
@@ -146,7 +148,7 @@ export default function Home() {
 
   const handleTabChange = (tab: Tab) => {
     if (tab === "coach") {
-      updateState("chat");
+      updateState("conversations");
       return;
     }
     setActiveTab(tab);
@@ -160,16 +162,42 @@ export default function Home() {
 
   const reset = () => {
     setCheckinTalked(null);
+    setActiveConversationId(null);
     updateState("tabs");
   };
 
   if (!hydrated) return null;
 
   // Full-screen states (no tab bar)
+  if (state === "conversations") {
+    return (
+      <main className="min-h-screen max-w-md mx-auto">
+        <ConversationList
+          onBack={() => updateState("tabs")}
+          onSelectConversation={(id) => {
+            setActiveConversationId(id);
+            updateState("chat");
+          }}
+          onNewChat={() => {
+            setActiveConversationId(null);
+            updateState("chat");
+          }}
+        />
+      </main>
+    );
+  }
+
   if (state === "chat") {
     return (
       <main className="min-h-screen max-w-md mx-auto">
-        <ChatCoach onBack={reset} />
+        <ChatCoach
+          onBack={() => {
+            setActiveConversationId(null);
+            updateState("conversations");
+          }}
+          conversationId={activeConversationId}
+          onConversationCreated={(id) => setActiveConversationId(id)}
+        />
       </main>
     );
   }
@@ -177,7 +205,11 @@ export default function Home() {
   if (state === "checkin-chat") {
     return (
       <main className="min-h-screen max-w-md mx-auto">
-        <ChatCoach onBack={reset} checkinMode={checkinTalked !== null ? (checkinTalked ? "talked" : "didnt-talk") : undefined} />
+        <ChatCoach
+          onBack={reset}
+          checkinMode={checkinTalked !== null ? (checkinTalked ? "talked" : "didnt-talk") : undefined}
+          onConversationCreated={(id) => setActiveConversationId(id)}
+        />
       </main>
     );
   }
