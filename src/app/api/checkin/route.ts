@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { XP_REWARDS, computeEarnedBadges } from "@/lib/gamification";
 
-async function getSupabase() {
+// Auth client — uses anon key + user cookies to identify the user
+async function getAuthSupabase() {
   const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +22,14 @@ async function getSupabase() {
         },
       },
     }
+  );
+}
+
+// Admin client — bypasses RLS for reads/writes
+function getSupabase() {
+  return createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
 
@@ -130,9 +140,10 @@ async function getFullStats(supabase: any, userId: string, clientToday?: string)
 
 // GET
 export async function GET(req: Request) {
-  const supabase = await getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
+  const authClient = await getAuthSupabase();
+  const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const supabase = getSupabase();
 
   const url = new URL(req.url);
   const today = url.searchParams.get("today") || new Date().toISOString().split("T")[0];
@@ -178,9 +189,10 @@ export async function GET(req: Request) {
 
 // POST
 export async function POST(req: Request) {
-  const supabase = await getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
+  const authClient = await getAuthSupabase();
+  const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const supabase = getSupabase();
 
   const { talked, note, opportunitiesCount, approachesCount, successesCount, clientDate } = await req.json();
   const today = clientDate || new Date().toISOString().split("T")[0];
@@ -316,9 +328,10 @@ export async function POST(req: Request) {
 
 // PATCH — edit stats for a specific day, or adjust totals
 export async function PATCH(req: Request) {
-  const supabase = await getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
+  const authClient = await getAuthSupabase();
+  const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const supabase = getSupabase();
 
   const body = await req.json();
 
