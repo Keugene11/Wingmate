@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Target, ThumbsUp, ThumbsDown, TrendingUp, Flame, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Target, ThumbsUp, TrendingUp, Flame, Calendar } from "lucide-react";
 
 interface CheckinEntry {
   date: string;
   talked: boolean;
+  opportunities: number;
   approaches: number;
   successes: number;
 }
@@ -37,14 +38,12 @@ export default function StatsView() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Map for quick lookup
   const checkinMap = useMemo(() => {
     const map: Record<string, CheckinEntry> = {};
     checkins.forEach((c) => { map[c.date] = c; });
     return map;
   }, [checkins]);
 
-  // Current month calendar grid
   const calendarDays = useMemo(() => {
     const { year, month } = viewMonth;
     const firstDay = new Date(year, month, 1).getDay();
@@ -53,7 +52,6 @@ export default function StatsView() {
 
     const days: { date: string | null; day: number; entry: CheckinEntry | null; isToday: boolean; isFuture: boolean }[] = [];
 
-    // Empty cells before first day
     for (let i = 0; i < firstDay; i++) {
       days.push({ date: null, day: 0, entry: null, isToday: false, isFuture: false });
     }
@@ -72,33 +70,27 @@ export default function StatsView() {
     return days;
   }, [viewMonth, checkinMap]);
 
-  // Monthly stats
+  const computeStats = (entries: CheckinEntry[]) => {
+    const opportunities = entries.reduce((s, c) => s + c.opportunities, 0);
+    const approaches = entries.reduce((s, c) => s + c.approaches, 0);
+    const successes = entries.reduce((s, c) => s + c.successes, 0);
+    const daysActive = entries.length;
+    const daysApproached = entries.filter((c) => c.talked).length;
+    const approachRate = opportunities > 0 ? Math.round((approaches / opportunities) * 100) : 0;
+    const successRate = approaches > 0 ? Math.round((successes / approaches) * 100) : 0;
+    return { opportunities, approaches, successes, daysActive, daysApproached, approachRate, successRate };
+  };
+
   const monthStats = useMemo(() => {
     const { year, month } = viewMonth;
     const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
-    const monthCheckins = checkins.filter((c) => c.date.startsWith(prefix));
-    const approaches = monthCheckins.reduce((s, c) => s + c.approaches, 0);
-    const successes = monthCheckins.reduce((s, c) => s + c.successes, 0);
-    const daysActive = monthCheckins.length;
-    const daysApproached = monthCheckins.filter((c) => c.talked).length;
-    return {
-      approaches,
-      successes,
-      rejections: approaches - successes,
-      successRate: approaches > 0 ? Math.round((successes / approaches) * 100) : 0,
-      daysActive,
-      daysApproached,
-    };
+    return computeStats(checkins.filter((c) => c.date.startsWith(prefix)));
   }, [viewMonth, checkins]);
 
-  // All-time stats
   const allTimeStats = useMemo(() => {
-    const approaches = checkins.reduce((s, c) => s + c.approaches, 0);
-    const successes = checkins.reduce((s, c) => s + c.successes, 0);
-    const daysActive = checkins.length;
-    const daysApproached = checkins.filter((c) => c.talked).length;
+    const base = computeStats(checkins);
 
-    // Compute streak
+    // Streak
     let streak = 0;
     if (checkins.length > 0) {
       const today = new Date();
@@ -116,7 +108,6 @@ export default function StatsView() {
       }
     }
 
-    // Best streak
     let bestStreak = 0;
     if (checkins.length > 0) {
       const sorted = [...checkins].reverse();
@@ -132,11 +123,12 @@ export default function StatsView() {
       }
     }
 
-    // Monthly breakdown for chart
-    const monthlyMap: Record<string, { approaches: number; successes: number }> = {};
+    // Monthly breakdown
+    const monthlyMap: Record<string, { opportunities: number; approaches: number; successes: number }> = {};
     checkins.forEach((c) => {
-      const key = c.date.slice(0, 7); // YYYY-MM
-      if (!monthlyMap[key]) monthlyMap[key] = { approaches: 0, successes: 0 };
+      const key = c.date.slice(0, 7);
+      if (!monthlyMap[key]) monthlyMap[key] = { opportunities: 0, approaches: 0, successes: 0 };
+      monthlyMap[key].opportunities += c.opportunities;
       monthlyMap[key].approaches += c.approaches;
       monthlyMap[key].successes += c.successes;
     });
@@ -146,20 +138,9 @@ export default function StatsView() {
         month,
         label: MONTH_NAMES[parseInt(month.split("-")[1]) - 1] + " " + month.split("-")[0],
         ...data,
-        rejections: data.approaches - data.successes,
       }));
 
-    return {
-      approaches,
-      successes,
-      rejections: approaches - successes,
-      successRate: approaches > 0 ? Math.round((successes / approaches) * 100) : 0,
-      daysActive,
-      daysApproached,
-      streak,
-      bestStreak: Math.max(bestStreak, streak),
-      monthlyBreakdown,
-    };
+    return { ...base, streak, bestStreak: Math.max(bestStreak, streak), monthlyBreakdown };
   }, [checkins]);
 
   const navigateMonth = (dir: -1 | 1) => {
@@ -178,8 +159,8 @@ export default function StatsView() {
     return (
       <div className="space-y-4">
         <div className="bg-bg-card border border-border rounded-2xl h-80 animate-pulse" />
-        <div className="grid grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="bg-bg-card border border-border rounded-xl h-20 animate-pulse" />)}
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3].map((i) => <div key={i} className="bg-bg-card border border-border rounded-xl h-20 animate-pulse" />)}
         </div>
       </div>
     );
@@ -204,7 +185,7 @@ export default function StatsView() {
         ))}
       </div>
 
-      {/* Month navigation (only in month mode) */}
+      {/* Month navigation */}
       {mode === "month" && (
         <div className="flex items-center justify-between px-1">
           <button onClick={() => navigateMonth(-1)} className="p-2 press rounded-full hover:bg-bg-card-hover transition-colors">
@@ -223,22 +204,18 @@ export default function StatsView() {
         </div>
       )}
 
-      {/* Calendar grid (month mode) */}
+      {/* Calendar grid */}
       {mode === "month" && (
         <div className="bg-bg-card border border-border rounded-2xl px-3 py-4">
-          {/* Day headers */}
           <div className="grid grid-cols-7 mb-2">
             {DAY_HEADERS.map((d, i) => (
               <div key={i} className="text-center text-[11px] font-medium text-text-muted py-1">{d}</div>
             ))}
           </div>
 
-          {/* Calendar cells */}
           <div className="grid grid-cols-7 gap-y-1">
             {calendarDays.map((cell, i) => {
-              if (!cell.date) {
-                return <div key={`empty-${i}`} className="aspect-square" />;
-              }
+              if (!cell.date) return <div key={`empty-${i}`} className="aspect-square" />;
               const hasEntry = !!cell.entry;
               const approached = cell.entry?.talked === true;
               const didntApproach = cell.entry?.talked === false;
@@ -266,7 +243,7 @@ export default function StatsView() {
                   </div>
                   {hasEntry && cell.entry!.approaches > 0 && (
                     <span className="text-[9px] font-bold text-text-muted mt-0.5 leading-none">
-                      {cell.entry!.approaches}
+                      {cell.entry!.approaches}/{cell.entry!.opportunities}
                     </span>
                   )}
                 </div>
@@ -274,7 +251,6 @@ export default function StatsView() {
             })}
           </div>
 
-          {/* Legend */}
           <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-border">
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full bg-green-500" />
@@ -292,40 +268,47 @@ export default function StatsView() {
         </div>
       )}
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
+      {/* Main 3 stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
+            <span className="font-display text-[22px] font-bold">{stats.opportunities}</span>
+          </div>
+          <p className="text-[11px] text-text-muted">Opportunities</p>
+        </div>
+        <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
             <Target size={14} strokeWidth={1.5} className="text-blue-500" />
             <span className="font-display text-[22px] font-bold">{stats.approaches}</span>
           </div>
           <p className="text-[11px] text-text-muted">Approaches</p>
         </div>
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
+        <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
             <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
             <span className="font-display text-[22px] font-bold">{stats.successes}</span>
           </div>
-          <p className="text-[11px] text-text-muted">Succeeded</p>
+          <p className="text-[11px] text-text-muted">Went well</p>
         </div>
+      </div>
+
+      {/* Rates + activity */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <ThumbsDown size={14} strokeWidth={1.5} className="text-red-400" />
-            <span className="font-display text-[22px] font-bold">{stats.rejections}</span>
+            <TrendingUp size={14} strokeWidth={1.5} className="text-blue-500" />
+            <span className="font-display text-[22px] font-bold">{stats.approachRate}%</span>
           </div>
-          <p className="text-[11px] text-text-muted">Didn&apos;t work out</p>
+          <p className="text-[11px] text-text-muted">Approach rate</p>
         </div>
         <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <TrendingUp size={14} strokeWidth={1.5} className="text-orange-500" />
+            <TrendingUp size={14} strokeWidth={1.5} className="text-green-500" />
             <span className="font-display text-[22px] font-bold">{stats.successRate}%</span>
           </div>
           <p className="text-[11px] text-text-muted">Success rate</p>
         </div>
-      </div>
-
-      {/* Extra stats row */}
-      <div className="grid grid-cols-2 gap-3">
         <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Calendar size={14} strokeWidth={1.5} className="text-text-muted" />
@@ -342,7 +325,7 @@ export default function StatsView() {
         </div>
       </div>
 
-      {/* All-time only: streak + monthly breakdown */}
+      {/* All-time extras */}
       {mode === "all-time" && (
         <>
           <div className="grid grid-cols-2 gap-3">
@@ -362,7 +345,6 @@ export default function StatsView() {
             </div>
           </div>
 
-          {/* Monthly breakdown */}
           {allTimeStats.monthlyBreakdown.length > 0 && (
             <div>
               <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3 px-1">
@@ -374,16 +356,16 @@ export default function StatsView() {
                     <p className="text-[14px] font-semibold mb-2.5">{m.label}</p>
                     <div className="flex gap-2">
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[18px] font-bold block">{m.approaches}</span>
+                        <span className="font-display text-[18px] font-bold text-purple-600 block">{m.opportunities}</span>
+                        <span className="text-[10px] text-text-muted">seen</span>
+                      </div>
+                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
+                        <span className="font-display text-[18px] font-bold text-blue-600 block">{m.approaches}</span>
                         <span className="text-[10px] text-text-muted">approached</span>
                       </div>
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
                         <span className="font-display text-[18px] font-bold text-green-600 block">{m.successes}</span>
                         <span className="text-[10px] text-text-muted">went well</span>
-                      </div>
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[18px] font-bold text-red-400 block">{m.rejections}</span>
-                        <span className="text-[10px] text-text-muted">rejected</span>
                       </div>
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
                         <span className="font-display text-[18px] font-bold text-orange-500 block">

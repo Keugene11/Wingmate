@@ -29,13 +29,14 @@ export async function GET() {
 
   const { data: allCheckins } = await supabase
     .from("checkins")
-    .select("checked_in_at, talked, approaches_count, successes_count")
+    .select("checked_in_at, talked, opportunities_count, approaches_count, successes_count")
     .eq("user_id", user.id)
     .order("checked_in_at", { ascending: false });
 
   const checkins = (allCheckins || []).map((c: any) => ({
     date: c.checked_in_at,
     talked: c.talked,
+    opportunities: c.opportunities_count || 0,
     approaches: c.approaches_count || 0,
     successes: c.successes_count || 0,
   }));

@@ -68,7 +68,7 @@ function computeConsecutiveApproaches(checkins: { talked: boolean }[]): number {
 async function getFullStats(supabase: any, userId: string) {
   const { data: allCheckins } = await supabase
     .from("checkins")
-    .select("checked_in_at, talked, note, approaches_count, successes_count")
+    .select("checked_in_at, talked, note, opportunities_count, approaches_count, successes_count")
     .eq("user_id", userId)
     .order("checked_in_at", { ascending: false });
 
@@ -83,11 +83,13 @@ async function getFullStats(supabase: any, userId: string) {
   const consecutiveApproaches = computeConsecutiveApproaches(checkins);
 
   // Approach outcome stats
+  const totalOpportunities = checkins.reduce((sum: number, c: any) => sum + (c.opportunities_count || 0), 0);
   const totalApproaches = checkins.reduce((sum: number, c: any) => sum + (c.approaches_count || 0), 0);
   const totalSuccesses = checkins.reduce((sum: number, c: any) => sum + (c.successes_count || 0), 0);
   const totalFailures = totalApproaches - totalSuccesses;
   const totalDidntApproach = checkins.filter((c: any) => !c.talked).length;
   const successRate = totalApproaches > 0 ? Math.round((totalSuccesses / totalApproaches) * 100) : 0;
+  const approachConversionRate = totalOpportunities > 0 ? Math.round((totalApproaches / totalOpportunities) * 100) : 0;
 
   // last 7 days
   const last7: { date: string; talked: boolean | null }[] = [];
@@ -111,6 +113,7 @@ async function getFullStats(supabase: any, userId: string) {
     date: c.checked_in_at,
     talked: c.talked,
     note: c.note,
+    opportunities: c.opportunities_count || 0,
     approaches: c.approaches_count || 0,
     successes: c.successes_count || 0,
   }));
@@ -119,7 +122,8 @@ async function getFullStats(supabase: any, userId: string) {
     checkins, dates, streak, bestStreak, totalCheckins, totalTalked,
     approachRate, notesWritten, consecutiveApproaches, last7,
     last7AllCheckedIn, weekendApproaches, history,
-    totalApproaches, totalSuccesses, totalFailures, totalDidntApproach, successRate,
+    totalOpportunities, totalApproaches, totalSuccesses, totalFailures,
+    totalDidntApproach, successRate, approachConversionRate,
   };
 }
 
@@ -147,6 +151,7 @@ export async function GET() {
     checkedInToday: !!todayCheckin,
     talked: todayCheckin?.talked ?? null,
     note: todayCheckin?.note ?? null,
+    opportunitiesCount: todayCheckin?.opportunities_count ?? 0,
     approachesCount: todayCheckin?.approaches_count ?? 0,
     successesCount: todayCheckin?.successes_count ?? 0,
     streak: stats.streak,
@@ -154,11 +159,13 @@ export async function GET() {
     totalCheckins: stats.totalCheckins,
     totalTalked: stats.totalTalked,
     approachRate: stats.approachRate,
+    totalOpportunities: stats.totalOpportunities,
     totalApproaches: stats.totalApproaches,
     totalSuccesses: stats.totalSuccesses,
     totalFailures: stats.totalFailures,
     totalDidntApproach: stats.totalDidntApproach,
     successRate: stats.successRate,
+    approachConversionRate: stats.approachConversionRate,
     last7: stats.last7,
     history: stats.history,
     xp: profile?.xp ?? 0,
@@ -173,7 +180,7 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { talked, note, approachesCount, successesCount } = await req.json();
+  const { talked, note, opportunitiesCount, approachesCount, successesCount } = await req.json();
   const today = new Date().toISOString().split("T")[0];
 
   // Check if this is a new check-in or update
@@ -187,6 +194,7 @@ export async function POST(req: Request) {
       talked,
       note: note || null,
       checked_in_at: today,
+      opportunities_count: opportunitiesCount || 0,
       approaches_count: approachesCount || (talked ? 1 : 0),
       successes_count: successesCount || 0,
     },
@@ -292,11 +300,13 @@ export async function POST(req: Request) {
     totalCheckins: stats.totalCheckins,
     totalTalked: stats.totalTalked,
     approachRate: stats.approachRate,
+    totalOpportunities: stats.totalOpportunities,
     totalApproaches: stats.totalApproaches,
     totalSuccesses: stats.totalSuccesses,
     totalFailures: stats.totalFailures,
     totalDidntApproach: stats.totalDidntApproach,
     successRate: stats.successRate,
+    approachConversionRate: stats.approachConversionRate,
     xp: currentXp,
     xpEarned,
     newBadges,
@@ -314,8 +324,9 @@ export async function PATCH(req: Request) {
 
   // Mode 1: edit a specific day's stats
   if (body.date !== undefined) {
-    const { date, approaches, successes } = body;
-    const appr = Math.max(0, approaches ?? 0);
+    const { date, opportunities, approaches, successes } = body;
+    const opps = Math.max(0, opportunities ?? 0);
+    const appr = Math.max(0, Math.min(opps, approaches ?? 0));
     const succ = Math.max(0, Math.min(appr, successes ?? 0));
 
     const { data: existing } = await supabase
@@ -323,6 +334,7 @@ export async function PATCH(req: Request) {
 
     if (existing) {
       await supabase.from("checkins").update({
+        opportunities_count: opps,
         approaches_count: appr,
         successes_count: succ,
         talked: appr > 0,
@@ -332,6 +344,7 @@ export async function PATCH(req: Request) {
         user_id: user.id,
         checked_in_at: date,
         talked: appr > 0,
+        opportunities_count: opps,
         approaches_count: appr,
         successes_count: succ,
       });
@@ -339,64 +352,16 @@ export async function PATCH(req: Request) {
 
     const stats = await getFullStats(supabase, user.id);
     return NextResponse.json({
+      totalOpportunities: stats.totalOpportunities,
       totalApproaches: stats.totalApproaches,
       totalSuccesses: stats.totalSuccesses,
       totalFailures: stats.totalFailures,
       totalDidntApproach: stats.totalDidntApproach,
       successRate: stats.successRate,
+      approachConversionRate: stats.approachConversionRate,
       history: stats.history,
     });
   }
 
-  // Mode 2: adjust totals by modifying today's check-in
-  const { totalApproaches, totalSuccesses } = body;
-  if (totalApproaches === undefined || totalSuccesses === undefined) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
-
-  const today = new Date().toISOString().split("T")[0];
-
-  const { data: allCheckins } = await supabase
-    .from("checkins")
-    .select("checked_in_at, approaches_count, successes_count")
-    .eq("user_id", user.id);
-
-  const checkins = allCheckins || [];
-  const todayCheckin = checkins.find((c: any) => c.checked_in_at === today);
-  const otherTotal = checkins
-    .filter((c: any) => c.checked_in_at !== today)
-    .reduce((sum: number, c: any) => sum + (c.approaches_count || 0), 0);
-  const otherSuccesses = checkins
-    .filter((c: any) => c.checked_in_at !== today)
-    .reduce((sum: number, c: any) => sum + (c.successes_count || 0), 0);
-
-  const newTodayApproaches = Math.max(0, totalApproaches - otherTotal);
-  const newTodaySuccesses = Math.max(0, Math.min(newTodayApproaches, totalSuccesses - otherSuccesses));
-
-  if (todayCheckin) {
-    await supabase.from("checkins").update({
-      approaches_count: newTodayApproaches,
-      successes_count: newTodaySuccesses,
-      talked: newTodayApproaches > 0,
-    }).eq("user_id", user.id).eq("checked_in_at", today);
-  } else {
-    await supabase.from("checkins").insert({
-      user_id: user.id,
-      checked_in_at: today,
-      talked: newTodayApproaches > 0,
-      approaches_count: newTodayApproaches,
-      successes_count: newTodaySuccesses,
-    });
-  }
-
-  const stats = await getFullStats(supabase, user.id);
-  return NextResponse.json({
-    totalApproaches: stats.totalApproaches,
-    totalSuccesses: stats.totalSuccesses,
-    totalFailures: stats.totalFailures,
-    totalDidntApproach: stats.totalDidntApproach,
-    successRate: stats.successRate,
-    approachesCount: newTodayApproaches,
-    successesCount: newTodaySuccesses,
-  });
+  return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 }
