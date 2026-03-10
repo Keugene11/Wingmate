@@ -34,8 +34,8 @@ async function main() {
     "com.wingmate.twa",
     "com.wingmate.app",
     "com.wingmate",
-    "com.approachai.twa",
-    "com.approachai.app",
+    "com.wingmate.twa",
+    "com.wingmate.app",
     "com.voicenote.pro",
   ];
 

@@ -6,22 +6,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const COMPARISON = [
-  { feature: "AI coaching sessions", free: "3 / day", pro: "Unlimited" },
+  { feature: "AI coaching sessions", free: "1 session, 5 msgs", pro: "Unlimited" },
   { feature: "Photo situation analysis", free: false, pro: true },
   { feature: "Personalized openers", free: false, pro: true },
   { feature: "Text & DM coaching", free: false, pro: true },
   { feature: "Dating profile reviews", free: false, pro: true },
   { feature: "Custom approach plans", free: false, pro: true },
+  { feature: "Community feed", free: false, pro: true },
   { feature: "Daily check-ins", free: true, pro: true },
-  { feature: "Streaks & check-ins", free: true, pro: true },
+  { feature: "Streaks & stats", free: true, pro: true },
   { feature: "Approach tracking", free: true, pro: true },
-  { feature: "Community feed", free: true, pro: true },
 ];
 
 const FAQ = [
   {
     q: "Can I try it for free?",
-    a: "Yes. Streaks, approach tracking, community — all free forever. You also get 3 AI coaching sessions per day. Upgrade only when you want unlimited access.",
+    a: "Yes. Daily check-ins, approach tracking, and stats are free forever. You get 1 AI coaching session with 5 messages to try it out. Upgrade for unlimited coaching and community access.",
   },
   {
     q: "How is this different from ChatGPT?",

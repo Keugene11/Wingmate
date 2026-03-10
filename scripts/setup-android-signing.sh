@@ -8,12 +8,12 @@
 #   KEYSTORE_BASE64    — the base64 output
 #   KEYSTORE_PASSWORD  — the password you enter
 #   KEY_PASSWORD       — the key password you enter
-#   KEY_ALIAS          — "approachai" (or whatever you choose)
+#   KEY_ALIAS          — "wingmate" (or whatever you choose)
 
 set -e
 
-KEYSTORE_FILE="approachai-release.jks"
-KEY_ALIAS="approachai"
+KEYSTORE_FILE="wingmate-release.jks"
+KEY_ALIAS="wingmate"
 
 echo "=== Android Signing Key Generator ==="
 echo ""
@@ -38,7 +38,7 @@ keytool -genkeypair \
   -alias "$KEY_ALIAS" \
   -storepass "$STORE_PASS" \
   -keypass "$KEY_PASS" \
-  -dname "CN=ApproachAI, O=ApproachAI, L=Unknown, ST=Unknown, C=US"
+  -dname "CN=Wingmate, O=Wingmate, L=Unknown, ST=Unknown, C=US"
 
 echo ""
 echo "=== Keystore created: $KEYSTORE_FILE ==="
@@ -59,7 +59,7 @@ echo ""
 echo "And these GitHub variables:"
 echo ""
 echo "  APP_HOST             = your-app.vercel.app"
-echo "  ANDROID_PACKAGE_ID   = com.approachai.twa"
+echo "  ANDROID_PACKAGE_ID   = com.wingmate.twa"
 echo ""
 echo "Optional (for auto-publish to Play Store):"
 echo "  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON = (service account JSON from Google Play Console)"

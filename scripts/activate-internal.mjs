@@ -49,50 +49,35 @@ async function main() {
   const token = await getToken();
   console.log("Authenticated.\n");
 
-  // Create edit
   const edit = await api(token, "POST", "edits", "{}");
   console.log(`Edit ID: ${edit.id}`);
 
   // Get current internal track
-  console.log("\nFetching internal track...");
   const track = await api(token, "GET", `edits/${edit.id}/tracks/internal`);
-  console.log("Internal track:", JSON.stringify(track, null, 2));
+  console.log("Current internal track:", JSON.stringify(track, null, 2));
 
-  if (!track.releases || track.releases.length === 0) {
-    console.log("No releases found on internal track.");
-    return;
-  }
-
-  // Get the latest version code from internal
+  // Activate the draft release (change status to completed)
   const latestRelease = track.releases[0];
-  const versionCodes = latestRelease.versionCodes;
-  console.log(`\nLatest version codes: ${versionCodes}`);
+  console.log(`\nActivating version ${latestRelease.versionCodes}...`);
 
-  // Promote to production
-  console.log("\nPromoting to production...");
-  const prodTrack = {
-    track: "production",
+  const updatedTrack = {
+    track: "internal",
     releases: [{
-      versionCodes: versionCodes,
+      versionCodes: latestRelease.versionCodes,
       status: "completed",
       releaseNotes: [{
         language: "en-US",
-        text: "Initial release of Wingmate - your AI cold approach confidence coach."
+        text: "Initial release of Wingmate - AI cold approach confidence coach."
       }]
     }]
   };
 
-  await api(token, "PUT", `edits/${edit.id}/tracks/production`, JSON.stringify(prodTrack));
-  console.log("  Set production track!");
+  await api(token, "PUT", `edits/${edit.id}/tracks/internal`, JSON.stringify(updatedTrack));
+  console.log("  Internal track activated!");
 
-  // Commit
-  console.log("\nCommitting edit...");
   const commit = await api(token, "POST", `edits/${edit.id}:commit`);
   console.log(`  Committed! Edit: ${commit.id}`);
-
-  console.log("\n=== APP PROMOTED TO PRODUCTION ===");
-  console.log("The app will go through Google's review process.");
-  console.log("This typically takes a few hours to a few days.");
+  console.log("\n=== Internal testing release is now ACTIVE ===");
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

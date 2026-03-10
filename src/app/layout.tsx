@@ -3,7 +3,7 @@ import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: "Wingmate - Your Cold Approach Wingman",
+  title: "Wingmate",
   description: "AI-powered confidence coach for cold approaches. Get motivated, get a game plan, and go talk to her.",
   manifest: "/manifest.json",
   appleWebApp: {

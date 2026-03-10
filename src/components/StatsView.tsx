@@ -220,32 +220,30 @@ export default function StatsView() {
               const approached = cell.entry?.talked === true;
               const didntApproach = cell.entry?.talked === false;
 
+              const approachCount = cell.entry?.approaches ?? 0;
+
               return (
                 <div key={cell.date} className="flex flex-col items-center justify-center aspect-square relative">
+                  <span className="text-[9px] text-text-muted leading-none mb-0.5">{cell.day}</span>
                   <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-medium transition-all ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-[15px] font-bold transition-all ${
                       cell.isToday
                         ? approached
                           ? "bg-green-500 text-white ring-2 ring-green-300"
                           : didntApproach
                           ? "bg-orange-100 text-orange-600 ring-2 ring-orange-300"
-                          : "ring-2 ring-text-muted/30 text-text"
+                          : "ring-2 ring-text-muted/30 text-text-muted"
                         : approached
                         ? "bg-green-500 text-white"
                         : didntApproach
                         ? "bg-orange-100 text-orange-600"
                         : cell.isFuture
-                        ? "text-text-muted/30"
-                        : "text-text-muted"
+                        ? "text-text-muted/20"
+                        : "text-text-muted/40"
                     }`}
                   >
-                    {cell.day}
+                    {hasEntry ? approachCount : ""}
                   </div>
-                  {hasEntry && cell.entry!.approaches > 0 && (
-                    <span className="text-[9px] font-bold text-text-muted mt-0.5 leading-none">
-                      {cell.entry!.approaches}/{cell.entry!.opportunities}
-                    </span>
-                  )}
                 </div>
               );
             })}

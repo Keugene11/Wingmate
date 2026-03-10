@@ -196,9 +196,10 @@ export default function ProfilePage() {
         ) : (
           <button
             onClick={() => setEditingUsername(true)}
-            className="font-display text-[20px] font-bold tracking-tight press"
+            className="font-display text-[20px] font-bold tracking-tight press flex items-center gap-1.5"
           >
-            {profile?.username || "Set username"}
+            {profile?.username || "Set nickname"}
+            <span className="text-text-muted text-[12px] font-normal">edit</span>
           </button>
         )}
         <p className="text-text-muted text-[13px] mt-1">{email}</p>

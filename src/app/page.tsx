@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Flame } from "lucide-react";
+import { Plus, Flame, Lock } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 
 import ChatCoach from "@/components/ChatCoach";
@@ -27,7 +28,7 @@ type AppState = "tabs" | "conversations" | "chat" | "checkin-chat";
 function getSessionState(): { state: AppState; fromPhoto: boolean; tab: Tab } {
   if (typeof window === "undefined") return { state: "tabs", fromPhoto: false, tab: "coach" };
   try {
-    const saved = sessionStorage.getItem("approachai-state");
+    const saved = sessionStorage.getItem("wingmate-state");
     if (saved) return JSON.parse(saved);
   } catch {}
   return { state: "tabs", fromPhoto: false, tab: "coach" };
@@ -36,6 +37,7 @@ function getSessionState(): { state: AppState; fromPhoto: boolean; tab: Tab } {
 const PAGE_SIZE = 20;
 
 export default function Home() {
+  const router = useRouter();
   const [state, setState] = useState<AppState>("tabs");
   const [activeTab, setActiveTab] = useState<Tab>("coach");
   const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
@@ -43,6 +45,7 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [checkedInToday, setCheckedInToday] = useState<boolean | null>(null);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
 
   // Community state
   const [posts, setPosts] = useState<any[]>([]);
@@ -75,6 +78,11 @@ export default function Home() {
       .then((res) => res.json())
       .then((d) => { if (!d.error) setCheckedInToday(d.checkedInToday); })
       .catch(() => {});
+
+    fetch("/api/stripe/status")
+      .then((res) => res.json())
+      .then((d) => setIsPro(d.subscribed === true))
+      .catch(() => setIsPro(false));
   }, []);
 
   // Load community posts when tab switches to community
@@ -135,7 +143,7 @@ export default function Home() {
       setState(newState);
       try {
         sessionStorage.setItem(
-          "approachai-state",
+          "wingmate-state",
           JSON.stringify({
             state: newState,
             fromPhoto: false,
@@ -160,7 +168,7 @@ export default function Home() {
     }
     try {
       sessionStorage.setItem(
-        "approachai-state",
+        "wingmate-state",
         JSON.stringify({ state: tab === "coach" ? "chat" : "tabs", fromPhoto: false, tab })
       );
     } catch {}
@@ -233,7 +241,7 @@ export default function Home() {
               {greeting}
             </h1>
             <p className="text-text-muted text-[15px] leading-relaxed">
-              Track your daily progress
+              Log your approaches every day to track your progress
             </p>
           </div>
 
@@ -266,33 +274,36 @@ export default function Home() {
       {/* ===== COMMUNITY TAB ===== */}
       {activeTab === "community" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          {/* Gate: must check in first (null = loading) */}
-          {checkedInToday === null && (
+          <div className="mb-6">
+            <h1 className="font-display text-[28px] font-bold tracking-tight">Community</h1>
+          </div>
+
+          {isPro === null && (
             <div className="flex items-center justify-center py-20">
               <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-          {checkedInToday === false && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mb-4">
-                <Flame size={28} strokeWidth={1.5} className="text-orange-500" />
+
+          {isPro === false && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 rounded-full bg-bg-card border border-border flex items-center justify-center mb-4">
+                <Lock size={24} strokeWidth={1.5} className="text-text-muted" />
               </div>
-              <h2 className="font-display text-[20px] font-bold mb-2">Check in first</h2>
+              <h2 className="font-display text-[20px] font-bold mb-2">Pro feature</h2>
               <p className="text-text-muted text-[14px] leading-relaxed mb-6 max-w-[260px]">
-                Complete your daily check-in to unlock the community feed.
+                Connect with other guys on the same journey. Share stories, tips, and wins.
               </p>
               <button
-                onClick={() => handleTabChange("checkin")}
+                onClick={() => router.push("/plans")}
                 className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
               >
-                Go to check-in
+                Unlock with Pro
               </button>
             </div>
           )}
 
-          {checkedInToday === true && (<div>
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="font-display text-[28px] font-bold tracking-tight">Community</h1>
+          {isPro === true && (<div>
+          <div className="flex items-center justify-end mb-4 -mt-2">
             <Link
               href="/community/new"
               className="h-9 px-3.5 rounded-full bg-[#1a1a1a] text-white flex items-center gap-1.5 press text-[13px] font-medium"

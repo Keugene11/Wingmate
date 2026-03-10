@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { createSign } from "crypto";
 
 const SA_PATH = "c:/Users/Daniel/Downloads/voicenote-pro-484818-6d6db67c7fdb.json";
-const PACKAGE = "com.approachai.twa";
+const PACKAGE = "com.wingmate.twa";
 
 const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
 
@@ -56,7 +56,7 @@ async function main() {
   // First, set app details (category, contact info)
   const details = {
     contactEmail: "support@wingmate.app",
-    contactWebsite: "https://approachai-mu.vercel.app",
+    contactWebsite: "https://wingmate.vercel.app",
     defaultLanguage: "en-US",
   };
 

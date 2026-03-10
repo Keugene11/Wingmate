@@ -1,4 +1,4 @@
-# ApproachAI
+# Wingmate
 
 AI-powered confidence coach for cold approaches. Snap a photo, get scene analysis, and receive real-time coaching to help you make your move.
 
@@ -77,7 +77,7 @@ After adding your Stripe key, create products and prices by calling:
 curl -X POST http://localhost:3000/api/stripe/setup
 ```
 
-This creates an "ApproachAI Pro" product with monthly ($15) and yearly ($120) prices.
+This creates a "Wingmate Pro" product with monthly ($15) and yearly ($120) prices.
 
 ### 5. Stripe webhook
 

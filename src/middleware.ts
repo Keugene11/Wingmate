@@ -51,8 +51,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // For logged-in users on the home page, check subscription or free usage
-  if (user && pathname === "/") {
+  // Community pages require Pro subscription
+  if (user && pathname.startsWith("/community")) {
     const { data: subscription } = await supabase
       .from("subscriptions")
       .select("status")
@@ -61,25 +61,9 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (!subscription) {
-      // Check if user still has free sessions
-      const { createClient: createAdmin } = await import("@supabase/supabase-js");
-      const admin = createAdmin(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-      const { data: usage } = await admin
-        .from("usage")
-        .select("free_sessions_used, free_messages_used")
-        .eq("user_id", user.id)
-        .single();
-
-      const sessionsUsed = usage?.free_sessions_used ?? 0;
-      const messagesUsed = usage?.free_messages_used ?? 0;
-      if (sessionsUsed >= 3 || messagesUsed >= 10) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/pricing";
-        return NextResponse.redirect(url);
-      }
+      const url = request.nextUrl.clone();
+      url.pathname = "/plans";
+      return NextResponse.redirect(url);
     }
   }
 

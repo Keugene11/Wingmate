@@ -66,6 +66,8 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     return null;
   }, [onConversationCreated]);
 
+  const sessionCounted = useRef(!!conversationId);
+
   // Check usage on mount
   useEffect(() => {
     fetch("/api/usage")
@@ -81,22 +83,6 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         }
         setSessionsRemaining(data.sessionsRemaining);
         setMessagesRemaining(data.messagesRemaining);
-
-        // Only increment session for new chats
-        if (conversationId) return;
-
-        fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "session" }),
-        })
-          .then((res) => res.json())
-          .then((d) => {
-            if (d.sessionsRemaining !== undefined) setSessionsRemaining(d.sessionsRemaining);
-            if (d.messagesRemaining !== undefined) setMessagesRemaining(d.messagesRemaining);
-            if (d.limitReached) setLimitReached(true);
-          })
-          .catch(() => {});
       })
       .catch(() => {});
   }, [conversationId]);
@@ -227,10 +213,6 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
       };
       setMessages([initialMsg]);
       setInitialized(true);
-
-      ensureConversation("general").then((id) => {
-        if (id) saveMessages(id, [initialMsg]);
-      });
     }
   }, [initialized, conversationId, checkinMode, streamResponse, ensureConversation, saveMessages]);
 
@@ -255,6 +237,22 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     if (inputRef.current) inputRef.current.style.height = "auto";
 
     if (!isSubscribed.current) {
+      // Count session on first message (not on mount)
+      if (!sessionCounted.current) {
+        sessionCounted.current = true;
+        try {
+          const sRes = await fetch("/api/usage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "session" }),
+          });
+          const sData = await sRes.json();
+          if (sData.sessionsRemaining !== undefined) setSessionsRemaining(sData.sessionsRemaining);
+          if (sData.messagesRemaining !== undefined) setMessagesRemaining(sData.messagesRemaining);
+          if (sData.limitReached) { setLimitReached(true); return; }
+        } catch {}
+      }
+
       try {
         const res = await fetch("/api/usage", {
           method: "POST",
@@ -270,7 +268,12 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
       } catch {}
     }
 
+    const isFirstMessage = !convoIdRef.current;
     const convoId = await ensureConversation();
+    // On first message, save the initial greeting + user message so history is complete
+    if (isFirstMessage && convoId && messages.length > 0) {
+      saveMessages(convoId, messages);
+    }
     await streamResponse(updated, convoId);
   };
 

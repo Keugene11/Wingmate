@@ -15,7 +15,7 @@ type Subscription = {
 const FAQ = [
   {
     q: "Can I try it for free?",
-    a: "You're already using it! Streaks, approach tracking, community — all free forever. Upgrade for unlimited AI coaching and photo analysis.",
+    a: "You're already using it! Daily check-ins, approach tracking, and stats are free forever. You get 1 AI coaching session with 5 messages to try it out. Upgrade for unlimited coaching and community access.",
   },
   {
     q: "How is this different from ChatGPT?",

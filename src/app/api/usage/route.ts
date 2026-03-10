@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
-const FREE_SESSION_LIMIT = 3;
-const FREE_MESSAGE_LIMIT = 10;
+const FREE_SESSION_LIMIT = 1;
+const FREE_MESSAGE_LIMIT = 5;
 
 function getAdminClient() {
   return createSupabaseAdmin(

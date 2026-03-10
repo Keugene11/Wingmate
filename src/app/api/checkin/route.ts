@@ -92,13 +92,13 @@ async function getFullStats(supabase: any, userId: string) {
   const approachConversionRate = totalOpportunities > 0 ? Math.round((totalApproaches / totalOpportunities) * 100) : 0;
 
   // last 7 days
-  const last7: { date: string; talked: boolean | null }[] = [];
+  const last7: { date: string; talked: boolean | null; approaches: number }[] = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split("T")[0];
     const checkin = checkins.find((c: any) => c.checked_in_at === dateStr);
-    last7.push({ date: dateStr, talked: checkin ? checkin.talked : null });
+    last7.push({ date: dateStr, talked: checkin ? checkin.talked : null, approaches: checkin?.approaches_count || 0 });
   }
 
   const last7AllCheckedIn = last7.every((d) => d.talked !== null);
@@ -207,18 +207,17 @@ export async function POST(req: Request) {
   // Get profile (single query with all needed fields)
   let { data: profile } = await supabase
     .from("profiles")
-    .select("xp, streak_freezes, league_opted_in, weekly_xp")
+    .select("xp, streak_freezes")
     .eq("id", user.id)
     .single();
 
   if (!profile) {
     await supabase.from("profiles").upsert({ id: user.id, username: "", xp: 0, streak_freezes: 0 });
-    profile = { xp: 0, streak_freezes: 0, league_opted_in: false, weekly_xp: 0 };
+    profile = { xp: 0, streak_freezes: 0 };
   }
 
   let currentXp = profile.xp || 0;
   let currentFreezes = profile.streak_freezes || 0;
-  let currentWeeklyXp = profile.weekly_xp || 0;
 
   // Calculate XP earned (only for new check-ins)
   let xpEarned = 0;
@@ -234,19 +233,9 @@ export async function POST(req: Request) {
     currentXp += xpEarned;
     currentFreezes = Math.min(currentFreezes + newFreezes, 3);
 
-    const updateData: Record<string, any> = {
-      xp: currentXp,
-      streak_freezes: currentFreezes,
-    };
-
-    if (profile.league_opted_in) {
-      currentWeeklyXp += xpEarned;
-      updateData.weekly_xp = currentWeeklyXp;
-    }
-
     await supabase
       .from("profiles")
-      .update(updateData)
+      .update({ xp: currentXp, streak_freezes: currentFreezes })
       .eq("id", user.id);
   }
 
@@ -285,12 +274,7 @@ export async function POST(req: Request) {
     xpEarned += badgeXp;
     currentXp += badgeXp;
 
-    const badgeUpdate: Record<string, any> = { xp: currentXp };
-    if (profile.league_opted_in) {
-      currentWeeklyXp += badgeXp;
-      badgeUpdate.weekly_xp = currentWeeklyXp;
-    }
-    await supabase.from("profiles").update(badgeUpdate).eq("id", user.id);
+    await supabase.from("profiles").update({ xp: currentXp }).eq("id", user.id);
   }
 
   return NextResponse.json({

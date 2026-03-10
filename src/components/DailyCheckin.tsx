@@ -23,7 +23,7 @@ interface CheckinData {
   totalDidntApproach: number;
   successRate: number;
   approachConversionRate: number;
-  last7: { date: string; talked: boolean | null }[];
+  last7: { date: string; talked: boolean | null; approaches: number }[];
   history: { date: string; talked: boolean; note: string | null; opportunities: number; approaches: number; successes: number }[];
   streakFreezes: number;
 }
@@ -122,7 +122,7 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
         totalDidntApproach: result.totalDidntApproach,
         successRate: result.successRate,
         approachConversionRate: result.approachConversionRate,
-        last7: prev.last7.map((d, i) => i === prev.last7.length - 1 ? { ...d, talked } : d),
+        last7: prev.last7.map((d, i) => i === prev.last7.length - 1 ? { ...d, talked, approaches } : d),
       } : prev
     );
     setJustCheckedIn(true);
@@ -169,7 +169,7 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
         approachConversionRate: result.approachConversionRate,
         totalTalked: result.totalTalked,
         approachRate: result.approachRate,
-        last7: prev.last7.map((d, i) => i === prev.last7.length - 1 ? { ...d, talked } : d),
+        last7: prev.last7.map((d, i) => i === prev.last7.length - 1 ? { ...d, talked, approaches: editApproaches } : d),
       } : prev
     );
     setEditing(false);
@@ -320,17 +320,17 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 ${flame.bgColor}`}>
                     <Flame size={flame.size} strokeWidth={1.5} className={flame.color} />
                   </div>
-                  <h2 className="font-display text-[18px] font-bold mb-1">Daily check-in</h2>
-                  <p className="text-text-muted text-[14px]">Did you talk to someone new today?</p>
+                  <h2 className="font-display text-[18px] font-bold mb-1">Log today&apos;s approaches</h2>
+                  <p className="text-text-muted text-[14px]">Did you approach anyone today?</p>
                 </div>
                 <div className="flex gap-2 mb-4">
                   <button onClick={() => handleCheckin(true)} disabled={submitting}
                     className="flex-1 py-3.5 rounded-xl bg-[#1a1a1a] text-white text-[15px] font-medium press">
-                    Yes, I did
+                    Yes — log stats
                   </button>
                   <button onClick={() => handleCheckin(false)} disabled={submitting}
                     className="flex-1 py-3.5 rounded-xl bg-bg-card-hover border border-border text-[15px] font-medium press">
-                    Not yet
+                    No approaches
                   </button>
                 </div>
               </>
@@ -445,13 +445,13 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
                 <span className={`text-[10px] font-medium ${isToday ? "text-text" : "text-text-muted"}`}>
                   {DAY_LABELS[dayOfWeek]}
                 </span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-bold transition-all ${
                   day.talked === true ? "bg-green-500 text-white"
                     : day.talked === false ? "bg-orange-100 text-orange-600"
                     : isToday ? "border-2 border-dashed border-text-muted/30"
                     : "bg-bg-card-hover"
                 } ${justCheckedIn && isToday ? "streak-pop" : ""}`}>
-                  {day.talked === true ? <Check size={14} strokeWidth={2.5} /> : day.talked === false ? <X size={14} strokeWidth={2.5} /> : null}
+                  {day.talked !== null ? day.approaches : null}
                 </div>
               </div>
             );
@@ -690,7 +690,7 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
       {data.streak > 0 && !data.checkedInToday && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-center">
           <p className="text-[14px] font-medium text-orange-700">
-            Your {data.streak}-day streak is at risk! Check in to keep it alive.
+            Your {data.streak}-day streak is at risk! Log today&apos;s approaches to keep it alive.
           </p>
         </div>
       )}

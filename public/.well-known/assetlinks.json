@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.approachai.twa",
+      "package_name": "com.wingmate.twa",
       "sha256_cert_fingerprints": [
         "54:E9:59:3B:A8:3B:2E:F1:FD:59:F0:CB:7D:B8:38:17:7D:02:BD:9D:A0:D8:55:0D:A5:06:1E:38:EC:AB:EF:58"
       ]
