@@ -40,7 +40,7 @@ function formatHistoryDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAboutIt: (talked: boolean) => void; onCheckedIn?: () => void }) {
+export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: { greeting?: string; onTalkAboutIt: (talked: boolean) => void; onCheckedIn?: () => void }) {
   const [data, setData] = useState<CheckinData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
@@ -375,25 +375,16 @@ export default function DailyCheckin({ onTalkAboutIt, onCheckedIn }: { onTalkAbo
     <div className="space-y-4">
       {/* Page header — different message depending on state */}
       <div className="mb-2 animate-slide-up">
+        {greeting && <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">{greeting}</h1>}
         <p className="text-text-muted text-[13px] font-medium uppercase tracking-wide mb-1">{todayDate}</p>
         {!data.checkedInToday ? (
-          <>
-            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">
-              Log today&apos;s approaches
-            </h1>
-            <p className="text-text-muted text-[14px] leading-relaxed">
-              Track how many girls you saw, approached, and how many went well. Build the habit — check in every day.
-            </p>
-          </>
+          <p className="text-text-muted text-[14px] leading-relaxed">
+            Track how many girls you saw, approached, and how many went well. Build the habit — check in every day.
+          </p>
         ) : (
-          <>
-            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">
-              {data.streak > 0 ? `${data.streak}-day streak` : "Logged for today"}
-            </h1>
-            <p className="text-text-muted text-[14px] leading-relaxed">
-              Keep updating your numbers throughout the day. Every approach counts.
-            </p>
-          </>
+          <p className="text-text-muted text-[14px] leading-relaxed">
+            {data.streak > 0 ? `${data.streak}-day streak. ` : ""}Keep updating your numbers throughout the day.
+          </p>
         )}
       </div>
 

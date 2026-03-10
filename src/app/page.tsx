@@ -237,6 +237,7 @@ export default function Home() {
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
           <DailyCheckin
+            greeting={greeting}
             onTalkAboutIt={(talked) => {
               setCheckinTalked(talked);
               updateState("checkin-chat");
