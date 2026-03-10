@@ -5,3 +5,7 @@ node_modules
 out
 
 .vercel
+
+# Android signing
+*.jks
+*.keystore

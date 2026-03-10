@@ -1,0 +1,99 @@
+name: Build & Publish Android App
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap
+        run: npm install -g @nicksaiz/nicksaiz
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/keystore.jks
+
+      - name: Generate Bubblewrap project
+        run: |
+          mkdir -p android-build && cd android-build
+          cat > twa-manifest.json << 'MANIFEST'
+          {
+            "packageId": "${{ vars.ANDROID_PACKAGE_ID || 'com.approachai.twa' }}",
+            "host": "${{ vars.APP_HOST || 'approachai.vercel.app' }}",
+            "name": "ApproachAI",
+            "launcherName": "ApproachAI",
+            "display": "standalone",
+            "themeColor": "#1a1a1a",
+            "navigationColor": "#1a1a1a",
+            "backgroundColor": "#fafafa",
+            "startUrl": "/",
+            "iconUrl": "https://${{ vars.APP_HOST || 'approachai.vercel.app' }}/icons/icon-512.png",
+            "maskableIconUrl": "https://${{ vars.APP_HOST || 'approachai.vercel.app' }}/icons/icon-maskable-512.png",
+            "shortcuts": [],
+            "signingKey": {
+              "path": "/tmp/keystore.jks",
+              "alias": "${{ secrets.KEY_ALIAS || 'approachai' }}"
+            },
+            "appVersionCode": ${{ github.run_number }},
+            "appVersion": "1.0.${{ github.run_number }}",
+            "generatorApp": "bubblewrap-cli",
+            "enableNotifications": false,
+            "isChromeOSOnly": false,
+            "orientation": "portrait"
+          }
+          MANIFEST
+
+      - name: Build AAB with Bubblewrap
+        working-directory: android-build
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          bubblewrap build \
+            --manifest twa-manifest.json \
+            --signingKeyPath /tmp/keystore.jks \
+            --signingKeyAlias "${{ secrets.KEY_ALIAS || 'approachai' }}" \
+            --signingKeyPassword "$KEY_PASSWORD" \
+            --signingStorePassword "$KEYSTORE_PASSWORD"
+
+      - name: Find AAB
+        id: find-aab
+        working-directory: android-build
+        run: |
+          AAB_PATH=$(find . -name "*.aab" | head -1)
+          echo "aab_path=android-build/$AAB_PATH" >> "$GITHUB_OUTPUT"
+          echo "Found AAB: $AAB_PATH"
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: approachai-android
+          path: ${{ steps.find-aab.outputs.aab_path }}
+          retention-days: 90
+
+      - name: Publish to Google Play (internal track)
+        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ vars.ANDROID_PACKAGE_ID || 'com.approachai.twa' }}
+          releaseFiles: ${{ steps.find-aab.outputs.aab_path }}
+          track: internal
+          status: completed
