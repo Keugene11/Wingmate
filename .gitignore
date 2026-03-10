@@ -9,3 +9,7 @@ out
 # Android signing
 *.jks
 *.keystore
+
+# Fastlane / Ruby
+android-twa/vendor/
+android-twa/.bundle/
