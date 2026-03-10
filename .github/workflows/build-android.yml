@@ -24,105 +24,107 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set up Node
+      - name: Set up Node 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Bubblewrap
-        run: npm install -g @nicksaiz/nicksaiz || npm install -g @nicksaiz/nicksaiz@latest
+      - name: Install Bubblewrap CLI
+        run: npm install -g @nicksaiz/nicksaiz
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/keystore.jks
+        run: echo "$KEYSTORE_BASE64" | base64 -d > /tmp/keystore.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      - name: Download icon files
+      - name: Create TWA project
+        env:
+          APP_HOST: ${{ vars.APP_HOST }}
+          PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
-          mkdir -p /tmp/icons
-          curl -sL "https://${{ vars.APP_HOST }}/icons/icon-512.png" -o /tmp/icons/icon-512.png
-          curl -sL "https://${{ vars.APP_HOST }}/icons/icon-maskable-512.png" -o /tmp/icons/icon-maskable-512.png
-
-      - name: Initialize Bubblewrap project
-        run: |
-          mkdir -p android-build && cd android-build
-
-          # Create twa-manifest.json
-          cat > twa-manifest.json << EOF
-          {
-            "packageId": "${{ vars.ANDROID_PACKAGE_ID }}",
-            "host": "${{ vars.APP_HOST }}",
-            "name": "ApproachAI - Your Cold Approach Wingman",
-            "launcherName": "ApproachAI",
-            "display": "standalone",
-            "themeColor": "#1a1a1a",
-            "themeColorDark": "#1a1a1a",
-            "navigationColor": "#1a1a1a",
-            "navigationColorDark": "#1a1a1a",
-            "navigationDividerColor": "#1a1a1a",
-            "navigationDividerColorDark": "#1a1a1a",
-            "backgroundColor": "#fafafa",
-            "enableSiteSettingsShortcut": true,
-            "startUrl": "/",
-            "iconUrl": "https://${{ vars.APP_HOST }}/icons/icon-512.png",
-            "maskableIconUrl": "https://${{ vars.APP_HOST }}/icons/icon-maskable-512.png",
-            "shortcuts": [],
-            "signingKey": {
-              "path": "/tmp/keystore.jks",
-              "alias": "${{ secrets.KEY_ALIAS }}"
+          mkdir -p android-build
+          node -e "
+          const fs = require('fs');
+          const manifest = {
+            packageId: process.env.PACKAGE_ID,
+            host: process.env.APP_HOST,
+            name: 'ApproachAI - Your Cold Approach Wingman',
+            launcherName: 'ApproachAI',
+            display: 'standalone',
+            themeColor: '#1a1a1a',
+            themeColorDark: '#1a1a1a',
+            navigationColor: '#1a1a1a',
+            navigationColorDark: '#1a1a1a',
+            navigationDividerColor: '#1a1a1a',
+            navigationDividerColorDark: '#1a1a1a',
+            backgroundColor: '#fafafa',
+            enableSiteSettingsShortcut: true,
+            startUrl: '/',
+            iconUrl: 'https://' + process.env.APP_HOST + '/icons/icon-512.png',
+            maskableIconUrl: 'https://' + process.env.APP_HOST + '/icons/icon-maskable-512.png',
+            shortcuts: [],
+            signingKey: {
+              path: '/tmp/keystore.jks',
+              alias: process.env.KEY_ALIAS
             },
-            "appVersionCode": ${{ github.run_number }},
-            "appVersion": "1.0.${{ github.run_number }}",
-            "generatorApp": "nicksaiz-cli",
-            "webManifestUrl": "https://${{ vars.APP_HOST }}/manifest.json",
-            "fallbackType": "customtabs",
-            "enableNotifications": false,
-            "isChromeOSOnly": false,
-            "orientation": "portrait",
-            "fingerprints": []
-          }
-          EOF
+            appVersionCode: parseInt(process.env.RUN_NUMBER),
+            appVersion: '1.0.' + process.env.RUN_NUMBER,
+            generatorApp: 'nicksaiz-cli',
+            webManifestUrl: 'https://' + process.env.APP_HOST + '/manifest.json',
+            fallbackType: 'customtabs',
+            enableNotifications: false,
+            isChromeOSOnly: false,
+            orientation: 'portrait',
+            fingerprints: []
+          };
+          fs.writeFileSync('android-build/twa-manifest.json', JSON.stringify(manifest, null, 2));
+          console.log('Created twa-manifest.json');
+          "
 
-          # Run bubblewrap init
-          bubblewrap init --manifest "https://${{ vars.APP_HOST }}/manifest.json" --directory .
-
-      - name: Build signed AAB
+      - name: Initialize and build TWA
         working-directory: android-build
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          APP_HOST: ${{ vars.APP_HOST }}
         run: |
-          bubblewrap build \
-            --skipPwaValidation \
-            --signingKeyPath /tmp/keystore.jks \
-            --signingKeyAlias "${{ secrets.KEY_ALIAS }}" \
-          <<EOF
-          ${{ secrets.KEYSTORE_PASSWORD }}
-          ${{ secrets.KEY_PASSWORD }}
+          echo "Initializing from manifest URL..."
+          bubblewrap init --manifest "https://${APP_HOST}/manifest.json" --directory . <<EOF
+          ${KEYSTORE_PASSWORD}
+          ${KEY_PASSWORD}
           EOF
 
-      - name: Find outputs
-        id: find-outputs
-        run: |
-          AAB=$(find android-build -name "*.aab" -o -name "*-signed*.apk" | head -1)
-          if [ -z "$AAB" ]; then
-            echo "No AAB/APK found, listing all files:"
-            find android-build -type f -name "*.aab" -o -name "*.apk"
-            exit 1
-          fi
-          echo "output_path=$AAB" >> "$GITHUB_OUTPUT"
-          echo "Found: $AAB"
+          echo "Building..."
+          bubblewrap build --skipPwaValidation <<EOF
+          ${KEYSTORE_PASSWORD}
+          ${KEY_PASSWORD}
+          EOF
 
-      - name: Upload Android artifact
+      - name: List build outputs
+        run: |
+          echo "=== Build outputs ==="
+          find android-build -name "*.aab" -o -name "*.apk" | sort
+
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: approachai-android-v1.0.${{ github.run_number }}
           path: |
             android-build/*.aab
-            android-build/*-signed*.apk
+            android-build/*.apk
+          if-no-files-found: error
           retention-days: 90
 
-      - name: Publish to Google Play (internal track)
-        if: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
+      - name: Publish to Google Play
+        if: env.HAS_PLAY_KEY == 'true'
+        env:
+          HAS_PLAY_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ vars.ANDROID_PACKAGE_ID }}
-          releaseFiles: ${{ steps.find-outputs.outputs.output_path }}
+          releaseFiles: android-build/*.aab
           track: internal
           status: completed
