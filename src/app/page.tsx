@@ -148,16 +148,20 @@ export default function Home() {
   );
 
   const handleTabChange = (tab: Tab) => {
-    if (tab === "coach") {
-      setActiveConversationId(null);
-      updateState("chat");
-      return;
-    }
     setActiveTab(tab);
+    if (tab === "coach") {
+      // If already on wingman tab viewing history, stay there; otherwise show chat
+      if (activeTab !== "coach") {
+        setActiveConversationId(null);
+        updateState("chat");
+      }
+    } else {
+      updateState("tabs");
+    }
     try {
       sessionStorage.setItem(
         "approachai-state",
-        JSON.stringify({ state: "tabs", fromPhoto: false, tab })
+        JSON.stringify({ state: tab === "coach" ? "chat" : "tabs", fromPhoto: false, tab })
       );
     } catch {}
   };
@@ -170,40 +174,7 @@ export default function Home() {
 
   if (!hydrated) return null;
 
-  // Full-screen states (no tab bar)
-  if (state === "conversations") {
-    return (
-      <main className="min-h-screen max-w-md mx-auto">
-        <ConversationList
-          onBack={() => updateState("tabs")}
-          onSelectConversation={(id) => {
-            setActiveConversationId(id);
-            updateState("chat");
-          }}
-          onNewChat={() => {
-            setActiveConversationId(null);
-            updateState("chat");
-          }}
-        />
-      </main>
-    );
-  }
-
-  if (state === "chat") {
-    return (
-      <main className="min-h-screen max-w-md mx-auto">
-        <ChatCoach
-          onBack={() => {
-            setActiveConversationId(null);
-            updateState("conversations");
-          }}
-          conversationId={activeConversationId}
-          onConversationCreated={(id) => setActiveConversationId(id)}
-        />
-      </main>
-    );
-  }
-
+  // Full-screen: checkin-chat (no tab bar — temporary coaching flow)
   if (state === "checkin-chat") {
     return (
       <main className="min-h-screen max-w-md mx-auto">
@@ -216,9 +187,44 @@ export default function Home() {
     );
   }
 
-  // Tab-based layout
+  // Tab-based layout (tab bar always visible)
   return (
     <main className="min-h-screen max-w-md mx-auto pb-20">
+      {/* ===== WINGMAN TAB: CONVERSATIONS ===== */}
+      {activeTab === "coach" && state === "conversations" && (
+        <ConversationList
+          onBack={() => updateState("tabs")}
+          onSelectConversation={(id) => {
+            setActiveConversationId(id);
+            updateState("chat");
+          }}
+          onNewChat={() => {
+            setActiveConversationId(null);
+            updateState("chat");
+          }}
+        />
+      )}
+
+      {/* ===== WINGMAN TAB: CHAT ===== */}
+      {activeTab === "coach" && (state === "chat" || state === "tabs") && (
+        <ChatCoach
+          onBack={() => {
+            setActiveConversationId(null);
+            updateState("tabs");
+          }}
+          conversationId={activeConversationId}
+          onConversationCreated={(id) => setActiveConversationId(id)}
+          onShowHistory={() => {
+            updateState("conversations");
+          }}
+          onNewChat={() => {
+            setActiveConversationId(null);
+            updateState("chat");
+          }}
+          showBottomPadding
+        />
+      )}
+
       {/* ===== CHECK-IN TAB ===== */}
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, ArrowUp, Lock } from "lucide-react";
+import { ArrowLeft, ArrowUp, Lock, List, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -14,9 +14,12 @@ interface ChatCoachProps {
   checkinMode?: "talked" | "didnt-talk";
   conversationId?: string | null;
   onConversationCreated?: (id: string) => void;
+  onShowHistory?: () => void;
+  onNewChat?: () => void;
+  showBottomPadding?: boolean;
 }
 
-export default function ChatCoach({ onBack, checkinMode, conversationId, onConversationCreated }: ChatCoachProps) {
+export default function ChatCoach({ onBack, checkinMode, conversationId, onConversationCreated, onShowHistory, onNewChat, showBottomPadding }: ChatCoachProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -291,19 +294,31 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-bg animate-fade-in">
+    <div className={`flex flex-col max-w-md mx-auto bg-bg animate-fade-in ${showBottomPadding ? "h-[calc(100vh-4.5rem)]" : "h-screen"}`}>
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 bg-bg/80 backdrop-blur-lg sticky top-0 z-10">
-        <button onClick={onBack} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors">
-          <ArrowLeft size={18} strokeWidth={2} />
-        </button>
+        {onShowHistory ? (
+          <button onClick={onShowHistory} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors" title="Chat history">
+            <List size={18} strokeWidth={2} />
+          </button>
+        ) : (
+          <button onClick={onBack} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors">
+            <ArrowLeft size={18} strokeWidth={2} />
+          </button>
+        )}
         <div className="flex-1 text-center">
           <p className="font-display text-[15px] font-bold">Wingman</p>
           {isLoading && (
             <p className="text-[11px] text-orange-500 font-medium animate-fade-in">thinking...</p>
           )}
         </div>
-        <div className="w-[34px]" />
+        {onNewChat ? (
+          <button onClick={onNewChat} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors" title="New chat">
+            <Plus size={18} strokeWidth={2} />
+          </button>
+        ) : (
+          <div className="w-[34px]" />
+        )}
       </div>
 
       {/* Messages */}

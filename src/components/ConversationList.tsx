@@ -47,13 +47,13 @@ export default function ConversationList({
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-bg animate-fade-in">
+    <div className="flex flex-col h-[calc(100vh-4.5rem)] bg-bg animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4">
         <button onClick={onBack} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors">
           <ArrowLeft size={18} strokeWidth={2} />
         </button>
-        <h1 className="font-display text-[18px] font-bold">Wingman</h1>
+        <h1 className="font-display text-[18px] font-bold">Past chats</h1>
         <button
           onClick={onNewChat}
           className="flex items-center gap-1.5 bg-[#1a1a1a] text-white px-3.5 py-2 rounded-full press text-[13px] font-medium"
