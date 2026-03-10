@@ -3,7 +3,7 @@ plugins {
 }
 
 def twaHost = System.getenv("TWA_HOST") ?: "approachai-mu.vercel.app"
-def twaPackageId = System.getenv("TWA_PACKAGE_ID") ?: "com.approachai.twa"
+def twaPackageId = System.getenv("TWA_PACKAGE_ID") ?: "com.wingmate.twa"
 def twaVersionCode = (System.getenv("TWA_VERSION_CODE") ?: "1").toInteger()
 def twaVersionName = System.getenv("TWA_VERSION_NAME") ?: "1.0.${twaVersionCode}"
 
@@ -21,7 +21,7 @@ android {
         manifestPlaceholders = [
             hostName: twaHost,
             defaultUrl: "https://${twaHost}",
-            launcherName: "ApproachAI",
+            launcherName: "Wingmate",
             assetStatements: """[{"relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "web", "site": "https://${twaHost}"}}]"""
         ]
     }

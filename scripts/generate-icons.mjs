@@ -8,7 +8,7 @@ function createSvg(size, maskable = false) {
   const fontSize = Math.round(size * (maskable ? 0.38 : 0.42));
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <rect width="${size}" height="${size}" fill="#1a1a1a" rx="${radius}"/>
-  <text x="${size / 2}" y="${size / 2}" fill="white" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="${fontSize}" text-anchor="middle" dominant-baseline="central">A</text>
+  <text x="${size / 2}" y="${size / 2}" fill="white" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="${fontSize}" text-anchor="middle" dominant-baseline="central">W</text>
 </svg>`);
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "approachai",
+  "name": "wingmate",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -32,6 +32,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.27",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3"
   }
 }

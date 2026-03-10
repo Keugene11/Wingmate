@@ -285,7 +285,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
         <button onClick={handleBack} className="font-display text-[17px] font-bold flex-1 text-left cursor-pointer">
-          ApproachAI
+          Wingmate
         </button>
         {isLoading && (
           <span className="text-[12px] text-text-muted animate-fade-in">typing...</span>
@@ -346,7 +346,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData }: ChatCoachPro
             onClick={() => router.push("/pricing")}
             className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-medium text-[14px] press"
           >
-            Unlock ApproachAI
+            Unlock Wingmate
           </button>
         </div>
       ) : (

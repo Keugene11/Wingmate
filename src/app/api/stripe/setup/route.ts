@@ -7,7 +7,7 @@ export async function POST() {
   try {
     // Check if product already exists by searching
     const existingProducts = await getStripe().products.search({
-      query: "metadata['app']:'approachai'",
+      query: "metadata['app']:'wingmate'",
     });
 
     let product;
@@ -15,9 +15,9 @@ export async function POST() {
       product = existingProducts.data[0];
     } else {
       product = await getStripe().products.create({
-        name: "ApproachAI Pro",
+        name: "Wingmate Pro",
         description: "AI-powered confidence coach for cold approaches",
-        metadata: { app: "approachai" },
+        metadata: { app: "wingmate" },
       });
     }
 

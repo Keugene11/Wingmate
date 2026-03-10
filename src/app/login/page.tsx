@@ -17,7 +17,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-8 max-w-md mx-auto animate-fade-in">
       <div className="w-full text-center">
         <h1 className="font-display text-[28px] font-extrabold tracking-tight mb-2">
-          ApproachAI
+          Wingmate
         </h1>
         <p className="text-text-muted text-[15px] mb-12">
           Your confidence coach for cold approaches.

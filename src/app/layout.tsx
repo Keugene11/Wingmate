@@ -3,13 +3,13 @@ import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: "ApproachAI - Your Cold Approach Wingman",
+  title: "Wingmate - Your Cold Approach Wingman",
   description: "AI-powered confidence coach for cold approaches. Get motivated, get a game plan, and go talk to her.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ApproachAI",
+    title: "Wingmate",
   },
 };
 

@@ -101,7 +101,7 @@ export default function ProfilePage() {
         {subscription ? (
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-[15px]">ApproachAI Pro</span>
+              <span className="font-medium text-[15px]">Wingmate Pro</span>
               <span className="text-[11px] font-semibold bg-[#1a1a1a] text-white px-2 py-0.5 rounded-full">
                 {subscription.status === "active" ? "Active" : subscription.status}
               </span>

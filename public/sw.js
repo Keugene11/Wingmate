@@ -1,4 +1,4 @@
-const CACHE_NAME = "approachai-v1";
+const CACHE_NAME = "wingmate-v1";
 const PRECACHE_URLS = ["/", "/offline"];
 
 self.addEventListener("install", (event) => {

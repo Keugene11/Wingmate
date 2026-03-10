@@ -27,7 +27,7 @@ export default function PricingPage() {
     <main className="min-h-screen max-w-md mx-auto px-5 pt-14 pb-8 animate-fade-in">
       <div className="mb-10 animate-slide-up">
         <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-none mb-2">
-          Unlock ApproachAI
+          Unlock Wingmate
         </h1>
         <p className="text-text-muted text-[15px]">
           Your AI wingman, always in your pocket.

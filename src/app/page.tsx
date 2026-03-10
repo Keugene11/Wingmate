@@ -151,7 +151,7 @@ export default function Home() {
             {/* Header */}
             <div className="flex items-center justify-between mb-16 animate-slide-up">
               <h1 className="font-display text-[20px] font-bold tracking-tight leading-none">
-                ApproachAI
+                Wingmate
               </h1>
               <div className="flex items-center gap-2">
                 <Link

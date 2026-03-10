@@ -65,7 +65,7 @@ jobs:
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: approachai-android-v1.0.${{ github.run_number }}
+          name: wingmate-android-v1.0.${{ github.run_number }}
           path: |
             android-twa/app/build/outputs/bundle/release/*.aab
             android-twa/app/build/outputs/apk/release/*.apk
