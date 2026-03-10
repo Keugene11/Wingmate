@@ -236,13 +236,13 @@ export default function Home() {
       {/* ===== CHECK-IN TAB ===== */}
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          <div className="mb-8 animate-slide-up">
-            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-2">
-              {greeting}
-            </h1>
-            <p className="text-text-muted text-[15px] leading-relaxed">
-              Enter your daily stats below
+          <div className="mb-6 animate-slide-up">
+            <p className="text-text-muted text-[13px] font-medium uppercase tracking-wide mb-1">
+              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
+            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2]">
+              Today&apos;s Stats
+            </h1>
           </div>
 
           <DailyCheckin
