@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Camera, Upload, MessageCircle, ChevronRight, Plus } from "lucide-react";
+import { Camera, Upload, MessageCircle, ChevronRight, Plus, Flame } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import ImageAnnotator from "@/components/ImageAnnotator";
@@ -41,6 +41,7 @@ export default function Home() {
   const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [greeting, setGreeting] = useState("");
+  const [checkedInToday, setCheckedInToday] = useState<boolean | null>(null);
 
   // Community state
   const [posts, setPosts] = useState<any[]>([]);
@@ -73,6 +74,11 @@ export default function Home() {
       setGreeting(getGreeting(first));
       if (data.user) setUserId(data.user.id);
     });
+
+    fetch("/api/checkin")
+      .then((res) => res.json())
+      .then((d) => { if (!d.error) setCheckedInToday(d.checkedInToday); })
+      .catch(() => {});
   }, []);
 
   // Load community posts when tab switches to community
@@ -251,6 +257,7 @@ export default function Home() {
               setCheckinTalked(talked);
               updateState("checkin-chat", false);
             }}
+            onCheckedIn={() => setCheckedInToday(true)}
           />
         </div>
       )}
@@ -315,6 +322,26 @@ export default function Home() {
       {/* ===== COMMUNITY TAB ===== */}
       {activeTab === "community" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
+          {/* Gate: must check in first */}
+          {checkedInToday === false && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mb-4">
+                <Flame size={28} strokeWidth={1.5} className="text-orange-500" />
+              </div>
+              <h2 className="font-display text-[20px] font-bold mb-2">Check in first</h2>
+              <p className="text-text-muted text-[14px] leading-relaxed mb-6 max-w-[260px]">
+                Complete your daily check-in to unlock the community feed.
+              </p>
+              <button
+                onClick={() => handleTabChange("checkin")}
+                className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
+              >
+                Go to check-in
+              </button>
+            </div>
+          )}
+
+          {checkedInToday !== false && (<div>
           <div className="flex items-center justify-between mb-6">
             <h1 className="font-display text-[28px] font-bold tracking-tight">Community</h1>
             <Link
@@ -383,6 +410,7 @@ export default function Home() {
               )}
             </div>
           )}
+          </div>)}
         </div>
       )}
 
