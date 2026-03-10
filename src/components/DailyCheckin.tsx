@@ -53,6 +53,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
   const [todayApproaches, setTodayApproaches] = useState<number | null>(null);
   const [todaySuccesses, setTodaySuccesses] = useState<number | null>(null);
   const [savingToday, setSavingToday] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
 
   const getLocalDate = () => {
@@ -60,27 +61,51 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   };
 
-  const refreshData = () =>
-    fetch(`/api/checkin?today=${getLocalDate()}`)
-      .then((res) => res.json())
-      .then(setData)
-      .catch(() => {});
+  const refreshData = async () => {
+    try {
+      const res = await fetch(`/api/checkin?today=${getLocalDate()}`);
+      if (!res.ok) {
+        console.error("GET /api/checkin failed:", res.status, await res.text());
+        return;
+      }
+      const json = await res.json();
+      if (json.error) {
+        console.error("GET /api/checkin error:", json.error);
+        return;
+      }
+      setData(json);
+    } catch (e) {
+      console.error("refreshData failed:", e);
+    }
+  };
 
   useEffect(() => { refreshData(); }, []);
 
   const submitCheckin = async (talked: boolean, opportunities: number, approaches: number, successes: number) => {
     setSubmitting(true);
-    const res = await fetch("/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ talked, opportunitiesCount: opportunities, approachesCount: approaches, successesCount: successes, clientDate: getLocalDate() }),
-    });
-    if (!res.ok) console.error("POST /api/checkin failed:", await res.text());
-    await refreshData();
-    setJustCheckedIn(true);
-    setShowNoteField(true);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ talked, opportunitiesCount: opportunities, approachesCount: approaches, successesCount: successes, clientDate: getLocalDate() }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("POST /api/checkin failed:", res.status, text);
+        setSaveError(`Save failed (${res.status})`);
+        setSubmitting(false);
+        return;
+      }
+      await refreshData();
+      setJustCheckedIn(true);
+      setShowNoteField(true);
+      onCheckedIn?.();
+    } catch (e) {
+      console.error("submitCheckin error:", e);
+      setSaveError("Network error — check your connection");
+    }
     setSubmitting(false);
-    onCheckedIn?.();
   };
 
   const startEditing = () => {
@@ -116,18 +141,28 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
     const approaches = todayApproaches ?? data?.approachesCount ?? 0;
     const successes = todaySuccesses ?? data?.successesCount ?? 0;
     setSavingToday(true);
+    setSaveError(null);
     try {
       const res = await fetch("/api/checkin", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: today, opportunities, approaches, successes }),
       });
-      if (!res.ok) console.error("PATCH /api/checkin failed:", await res.text());
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("PATCH /api/checkin failed:", res.status, text);
+        setSaveError(`Save failed (${res.status})`);
+        setSavingToday(false);
+        return;
+      }
       await refreshData();
       setTodayOpportunities(null);
       setTodayApproaches(null);
       setTodaySuccesses(null);
-    } catch {}
+    } catch (e) {
+      console.error("saveToday error:", e);
+      setSaveError("Network error — check your connection");
+    }
     setSavingToday(false);
   };
 
@@ -280,6 +315,14 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn }: {
           </p>
         )}
       </div>
+
+      {/* Error banner */}
+      {saveError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center animate-fade-in">
+          <p className="text-[14px] font-medium text-red-700">{saveError}</p>
+          <button onClick={() => setSaveError(null)} className="text-[12px] text-red-500 mt-1 press">Dismiss</button>
+        </div>
+      )}
 
       {/* Today's counters — always at the very top when checked in */}
       {data.checkedInToday && todayCountersSection}

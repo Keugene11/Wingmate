@@ -16,9 +16,13 @@ async function getAuthSupabase() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // setAll can throw in certain contexts — safe to ignore if middleware handles refresh
+          }
         },
       },
     }
@@ -216,6 +220,7 @@ export async function POST(req: Request) {
       successes_count: succ,
     }).eq("user_id", user.id).eq("checked_in_at", today);
     error = res.error;
+    if (res.error) console.error("[POST] update error:", res.error);
   } else {
     const res = await supabase.from("checkins").insert({
       user_id: user.id,
@@ -227,6 +232,7 @@ export async function POST(req: Request) {
       successes_count: succ,
     });
     error = res.error;
+    if (res.error) console.error("[POST] insert error:", res.error);
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -352,7 +358,10 @@ export async function PATCH(req: Request) {
         successes_count: succ,
         talked: appr > 0,
       }).eq("user_id", user.id).eq("checked_in_at", date);
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) {
+        console.error("[PATCH] update error:", updateErr);
+        return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      }
     } else {
       const { error: insertErr } = await supabase.from("checkins").insert({
         user_id: user.id,
@@ -362,8 +371,17 @@ export async function PATCH(req: Request) {
         approaches_count: appr,
         successes_count: succ,
       });
-      if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
+      if (insertErr) {
+        console.error("[PATCH] insert error:", insertErr);
+        return NextResponse.json({ error: insertErr.message }, { status: 500 });
+      }
     }
+
+    // Verify the write
+    const { data: verify } = await supabase
+      .from("checkins").select("opportunities_count, approaches_count, successes_count")
+      .eq("user_id", user.id).eq("checked_in_at", date).single();
+    console.log("[PATCH] verify after write:", JSON.stringify(verify));
 
     const stats = await getFullStats(supabase, user.id, date);
     return NextResponse.json({
