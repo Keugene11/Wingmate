@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Camera, Upload, MessageCircle, ChevronRight, User, Sparkles, Flame, Target, Trophy } from "lucide-react";
+import { Camera, Upload, MessageCircle, ChevronRight, User, Sparkles, Flame } from "lucide-react";
 import Link from "next/link";
 import ImageAnnotator from "@/components/ImageAnnotator";
 import ChatCoach from "@/components/ChatCoach";
@@ -200,50 +200,11 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Motivational nudge */}
-            <div className="mb-8 bg-gradient-to-br from-accent-light to-white border border-accent/15 rounded-2xl px-5 py-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
-              <p className="text-[14px] leading-relaxed text-primary/70">
-                That person across the room? You&apos;ll never see them again. The <span className="text-accent-dark font-semibold">worst thing that happens</span> is a 10-second conversation. The best thing? You meet someone amazing. <span className="text-accent-dark font-semibold">Take the shot.</span>
-              </p>
-            </div>
+            <p className="text-center text-[12px] text-text-muted mt-6 animate-fade-in" style={{ animationDelay: "200ms" }}>
+              The fear fades in 5 seconds. The regret doesn&apos;t.
+            </p>
 
-            {/* Real talk cards */}
-            <div className="space-y-3 animate-fade-in" style={{ animationDelay: "300ms" }}>
-              <p className="text-[12px] font-semibold text-accent uppercase tracking-wide">
-                Real talk
-              </p>
-              <div className="space-y-2.5">
-                <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5 flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent-light flex items-center justify-center shrink-0 mt-0.5">
-                    <Flame size={15} strokeWidth={1.5} className="text-accent" />
-                  </div>
-                  <p className="text-[13px] leading-relaxed">
-                    <span className="font-semibold">You regret the ones you don&apos;t approach.</span>{" "}
-                    <span className="text-text-muted">The fear fades in 5 seconds — the regret lasts way longer.</span>
-                  </p>
-                </div>
-                <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5 flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent-light flex items-center justify-center shrink-0 mt-0.5">
-                    <Target size={15} strokeWidth={1.5} className="text-accent" />
-                  </div>
-                  <p className="text-[13px] leading-relaxed">
-                    <span className="font-semibold">Every approach makes you better.</span>{" "}
-                    <span className="text-text-muted">Even the awkward ones build the confidence muscle most people never develop.</span>
-                  </p>
-                </div>
-                <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5 flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent-light flex items-center justify-center shrink-0 mt-0.5">
-                    <Trophy size={15} strokeWidth={1.5} className="text-accent" />
-                  </div>
-                  <p className="text-[13px] leading-relaxed">
-                    <span className="font-semibold">This isn&apos;t about pickup lines.</span>{" "}
-                    <span className="text-text-muted">It&apos;s about reading the moment, being genuine, and having the guts to say hi.</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-center text-[11px] text-text-muted mt-10 animate-fade-in" style={{ animationDelay: "400ms" }}>
+            <p className="text-center text-[11px] text-text-muted mt-4 animate-fade-in" style={{ animationDelay: "300ms" }}>
               Your photos stay on your device. Always.
             </p>
           </div>
