@@ -217,7 +217,7 @@ export default function ChatCoach({ onBack, fromPhoto, imageData, checkinMode }:
       setMessages([
         {
           role: "assistant",
-          content: "What's going on? Tell me where you are, who caught your eye, and what's running through your head right now.",
+          content: "Too scared to go up to her? That's normal — every guy feels that. Tell me what's going on. Where are you, what's she doing, and what's holding you back right now?",
         },
       ]);
       setInitialized(true);
