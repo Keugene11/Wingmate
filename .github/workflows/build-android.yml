@@ -24,76 +24,105 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Install Bubblewrap
-        run: npm install -g @nicksaiz/nicksaiz
+        run: npm install -g @nicksaiz/nicksaiz || npm install -g @nicksaiz/nicksaiz@latest
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/keystore.jks
 
-      - name: Generate Bubblewrap project
+      - name: Download icon files
+        run: |
+          mkdir -p /tmp/icons
+          curl -sL "https://${{ vars.APP_HOST }}/icons/icon-512.png" -o /tmp/icons/icon-512.png
+          curl -sL "https://${{ vars.APP_HOST }}/icons/icon-maskable-512.png" -o /tmp/icons/icon-maskable-512.png
+
+      - name: Initialize Bubblewrap project
         run: |
           mkdir -p android-build && cd android-build
-          cat > twa-manifest.json << 'MANIFEST'
+
+          # Create twa-manifest.json
+          cat > twa-manifest.json << EOF
           {
-            "packageId": "${{ vars.ANDROID_PACKAGE_ID || 'com.approachai.twa' }}",
-            "host": "${{ vars.APP_HOST || 'approachai.vercel.app' }}",
-            "name": "ApproachAI",
+            "packageId": "${{ vars.ANDROID_PACKAGE_ID }}",
+            "host": "${{ vars.APP_HOST }}",
+            "name": "ApproachAI - Your Cold Approach Wingman",
             "launcherName": "ApproachAI",
             "display": "standalone",
             "themeColor": "#1a1a1a",
+            "themeColorDark": "#1a1a1a",
             "navigationColor": "#1a1a1a",
+            "navigationColorDark": "#1a1a1a",
+            "navigationDividerColor": "#1a1a1a",
+            "navigationDividerColorDark": "#1a1a1a",
             "backgroundColor": "#fafafa",
+            "enableSiteSettingsShortcut": true,
             "startUrl": "/",
-            "iconUrl": "https://${{ vars.APP_HOST || 'approachai.vercel.app' }}/icons/icon-512.png",
-            "maskableIconUrl": "https://${{ vars.APP_HOST || 'approachai.vercel.app' }}/icons/icon-maskable-512.png",
+            "iconUrl": "https://${{ vars.APP_HOST }}/icons/icon-512.png",
+            "maskableIconUrl": "https://${{ vars.APP_HOST }}/icons/icon-maskable-512.png",
             "shortcuts": [],
             "signingKey": {
               "path": "/tmp/keystore.jks",
-              "alias": "${{ secrets.KEY_ALIAS || 'approachai' }}"
+              "alias": "${{ secrets.KEY_ALIAS }}"
             },
             "appVersionCode": ${{ github.run_number }},
             "appVersion": "1.0.${{ github.run_number }}",
-            "generatorApp": "bubblewrap-cli",
+            "generatorApp": "nicksaiz-cli",
+            "webManifestUrl": "https://${{ vars.APP_HOST }}/manifest.json",
+            "fallbackType": "customtabs",
             "enableNotifications": false,
             "isChromeOSOnly": false,
-            "orientation": "portrait"
+            "orientation": "portrait",
+            "fingerprints": []
           }
-          MANIFEST
+          EOF
 
-      - name: Build AAB with Bubblewrap
+          # Run bubblewrap init
+          bubblewrap init --manifest "https://${{ vars.APP_HOST }}/manifest.json" --directory .
+
+      - name: Build signed AAB
         working-directory: android-build
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           bubblewrap build \
-            --manifest twa-manifest.json \
+            --skipPwaValidation \
             --signingKeyPath /tmp/keystore.jks \
-            --signingKeyAlias "${{ secrets.KEY_ALIAS || 'approachai' }}" \
-            --signingKeyPassword "$KEY_PASSWORD" \
-            --signingStorePassword "$KEYSTORE_PASSWORD"
+            --signingKeyAlias "${{ secrets.KEY_ALIAS }}" \
+          <<EOF
+          ${{ secrets.KEYSTORE_PASSWORD }}
+          ${{ secrets.KEY_PASSWORD }}
+          EOF
 
-      - name: Find AAB
-        id: find-aab
-        working-directory: android-build
+      - name: Find outputs
+        id: find-outputs
         run: |
-          AAB_PATH=$(find . -name "*.aab" | head -1)
-          echo "aab_path=android-build/$AAB_PATH" >> "$GITHUB_OUTPUT"
-          echo "Found AAB: $AAB_PATH"
+          AAB=$(find android-build -name "*.aab" -o -name "*-signed*.apk" | head -1)
+          if [ -z "$AAB" ]; then
+            echo "No AAB/APK found, listing all files:"
+            find android-build -type f -name "*.aab" -o -name "*.apk"
+            exit 1
+          fi
+          echo "output_path=$AAB" >> "$GITHUB_OUTPUT"
+          echo "Found: $AAB"
 
-      - name: Upload AAB artifact
+      - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: approachai-android
-          path: ${{ steps.find-aab.outputs.aab_path }}
+          name: approachai-android-v1.0.${{ github.run_number }}
+          path: |
+            android-build/*.aab
+            android-build/*-signed*.apk
           retention-days: 90
 
       - name: Publish to Google Play (internal track)
-        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
+        if: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ vars.ANDROID_PACKAGE_ID || 'com.approachai.twa' }}
-          releaseFiles: ${{ steps.find-aab.outputs.aab_path }}
+          packageName: ${{ vars.ANDROID_PACKAGE_ID }}
+          releaseFiles: ${{ steps.find-outputs.outputs.output_path }}
           track: internal
           status: completed
