@@ -51,8 +51,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          chmod +x gradlew 2>/dev/null || true
-          gradle wrapper
+          gradle wrapper --gradle-version 8.11.1
+          chmod +x gradlew
           ./gradlew bundleRelease assembleRelease --no-daemon
 
       - name: List build outputs
