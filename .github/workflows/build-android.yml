@@ -10,6 +10,9 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-twa
 
     steps:
       - name: Checkout
@@ -24,75 +27,47 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set up Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Decode keystore
         run: echo "$KEYSTORE_BASE64" | base64 -d > /tmp/keystore.jks
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      - name: Initialize TWA project
-        env:
-          APP_HOST: ${{ vars.APP_HOST }}
-          PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          RUN_NUMBER: ${{ github.run_number }}
+      - name: Copy icon into Android resources
         run: |
-          mkdir -p android-build && cd android-build
+          cp ../public/icons/icon-512.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
-          # Bubblewrap init prompts for passwords via stdin
-          echo -e "${KEYSTORE_PASSWORD}\n${KEY_PASSWORD}" | bubblewrap init \
-            --manifest "https://${APP_HOST}/manifest.json" \
-            --directory .
-
-      - name: Patch twa-manifest.json
+      - name: Build release AAB and APK
         env:
-          PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          RUN_NUMBER: ${{ github.run_number }}
-        working-directory: android-build
-        run: |
-          node -e "
-          const fs = require('fs');
-          const m = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
-          m.packageId = process.env.PACKAGE_ID || m.packageId;
-          m.signingKey = { path: '/tmp/keystore.jks', alias: process.env.KEY_ALIAS };
-          m.appVersionCode = parseInt(process.env.RUN_NUMBER);
-          m.appVersion = '1.0.' + process.env.RUN_NUMBER;
-          fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
-          console.log('Patched twa-manifest.json:', JSON.stringify(m, null, 2));
-          "
-
-      - name: Build signed AAB and APK
-        working-directory: android-build
-        env:
+          TWA_HOST: ${{ vars.APP_HOST }}
+          TWA_PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
+          TWA_VERSION_CODE: ${{ github.run_number }}
+          TWA_VERSION_NAME: 1.0.${{ github.run_number }}
+          KEYSTORE_FILE: /tmp/keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo -e "${KEYSTORE_PASSWORD}\n${KEY_PASSWORD}" | bubblewrap build \
-            --skipPwaValidation
+          chmod +x gradlew 2>/dev/null || true
+          gradle wrapper
+          ./gradlew bundleRelease assembleRelease --no-daemon
 
       - name: List build outputs
         run: |
-          echo "=== Build outputs ==="
-          find android-build -maxdepth 1 \( -name "*.aab" -o -name "*.apk" \) | sort
-          ls -la android-build/*.aab android-build/*.apk 2>/dev/null || echo "No AAB/APK found"
+          echo "=== AAB files ==="
+          find . -name "*.aab" -type f
+          echo "=== APK files ==="
+          find . -name "*.apk" -type f
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: approachai-android-v1.0.${{ github.run_number }}
           path: |
-            android-build/*.aab
-            android-build/*.apk
+            android-twa/app/build/outputs/bundle/release/*.aab
+            android-twa/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 90
 
@@ -104,6 +79,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ vars.ANDROID_PACKAGE_ID }}
-          releaseFiles: android-build/*.aab
+          releaseFiles: android-twa/app/build/outputs/bundle/release/*.aab
           track: internal
           status: completed

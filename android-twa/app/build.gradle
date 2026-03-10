@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.application'
+}
+
+def twaHost = System.getenv("TWA_HOST") ?: "approachai-mu.vercel.app"
+def twaPackageId = System.getenv("TWA_PACKAGE_ID") ?: "com.approachai.twa"
+def twaVersionCode = (System.getenv("TWA_VERSION_CODE") ?: "1").toInteger()
+def twaVersionName = System.getenv("TWA_VERSION_NAME") ?: "1.0.${twaVersionCode}"
+
+android {
+    namespace twaPackageId
+    compileSdk 34
+
+    defaultConfig {
+        applicationId twaPackageId
+        minSdk 19
+        targetSdk 34
+        versionCode twaVersionCode
+        versionName twaVersionName
+
+        manifestPlaceholders = [
+            hostName: twaHost,
+            defaultUrl: "https://${twaHost}",
+            launcherName: "ApproachAI",
+            assetStatements: """[{"relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "web", "site": "https://${twaHost}"}}]"""
+        ]
+    }
+
+    signingConfigs {
+        release {
+            if (System.getenv("KEYSTORE_FILE")) {
+                storeFile file(System.getenv("KEYSTORE_FILE"))
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
