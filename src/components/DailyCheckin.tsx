@@ -42,9 +42,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const [data, setData] = useState<CheckinData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
-  const [noteInput, setNoteInput] = useState("");
-  const [showNoteField, setShowNoteField] = useState(false);
-  const [noteSaved, setNoteSaved] = useState(false);
 
   const [flowOpportunities, setFlowOpportunities] = useState(0);
   const [flowApproaches, setFlowApproaches] = useState(0);
@@ -116,7 +113,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       }
       await refreshData();
       setJustCheckedIn(true);
-      setShowNoteField(true);
       onCheckedIn?.();
     } catch (e) {
       console.error("submitCheckin error:", e);
@@ -184,24 +180,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   };
 
 
-  const saveNote = async () => {
-    if (!noteInput.trim()) return;
-    await fetch("/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        talked: data?.talked,
-        note: noteInput.trim(),
-        opportunitiesCount: data?.opportunitiesCount,
-        approachesCount: data?.approachesCount,
-        successesCount: data?.successesCount,
-        clientDate: getLocalDate(),
-      }),
-    });
-    await refreshData();
-    setNoteSaved(true);
-    setShowNoteField(false);
-  };
 
   if (!data) {
     if (!isLoggedIn) {
@@ -597,23 +575,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           </div>
         )}
 
-        {/* Note field */}
-        {showNoteField && !noteSaved && (
-          <div className="mt-4 animate-fade-in">
-            <textarea value={noteInput} onChange={(e) => setNoteInput(e.target.value.slice(0, 280))}
-              placeholder={data.talked ? "How did it go? What did you say?" : "What held you back today?"} rows={2}
-              className="w-full bg-bg-card-hover border border-border rounded-xl px-4 py-3 text-[14px] leading-relaxed placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors resize-none" />
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-[11px] text-text-muted">{noteInput.length}/280</span>
-              <div className="flex gap-2">
-                <button onClick={() => setShowNoteField(false)} className="text-[13px] text-text-muted press px-3 py-1.5">Skip</button>
-                <button onClick={saveNote} disabled={!noteInput.trim()}
-                  className={`text-[13px] font-medium press px-4 py-1.5 rounded-full transition-opacity ${
-                    noteInput.trim() ? "bg-[#1a1a1a] text-white" : "bg-border text-text-muted opacity-50"}`}>Save</button>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
       )}
