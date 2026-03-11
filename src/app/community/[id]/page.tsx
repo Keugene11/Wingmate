@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { ArrowLeft, ChevronUp, ChevronDown, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronUp, ChevronDown, Send, Trash2, Pencil, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -17,6 +17,9 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   const [vote, setVote] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
   const router = useRouter();
   const supabase = createClient();
 
@@ -101,6 +104,24 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
     router.push("/");
   };
 
+  const startEditing = () => {
+    setEditTitle(post.title);
+    setEditBody(post.body);
+    setEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitle.trim() || !editBody.trim()) return;
+    const { error } = await supabase
+      .from("posts")
+      .update({ title: editTitle.trim(), body: editBody.trim(), updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (!error) {
+      setPost((prev: any) => ({ ...prev, title: editTitle.trim(), body: editBody.trim() }));
+      setEditing(false);
+    }
+  };
+
   const handleDeleteComment = async (commentId: string) => {
     await supabase.from("comments").delete().eq("id", commentId);
     setComments((prev) => prev.filter((c) => c.id !== commentId));
@@ -125,10 +146,15 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
           <ArrowLeft size={20} strokeWidth={1.5} />
         </Link>
         <h1 className="font-display text-[20px] font-bold tracking-tight">Post</h1>
-        {post.user_id === userId && (
-          <button onClick={handleDelete} className="ml-auto p-2 press text-text-muted">
-            <Trash2 size={16} strokeWidth={1.5} />
-          </button>
+        {post.user_id === userId && !editing && (
+          <div className="ml-auto flex items-center gap-1">
+            <button onClick={startEditing} className="p-2 press text-text-muted">
+              <Pencil size={16} strokeWidth={1.5} />
+            </button>
+            <button onClick={handleDelete} className="p-2 press text-text-muted">
+              <Trash2 size={16} strokeWidth={1.5} />
+            </button>
+          </div>
         )}
       </div>
 
@@ -153,15 +179,49 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
             </button>
           </div>
           <div className="flex-1">
-            <h2 className="font-display text-[20px] font-bold tracking-tight leading-snug mb-2">{post.title}</h2>
-            <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-3">{post.body}</p>
-            <p className="text-[12px] text-text-muted">
-              <Link href={`/community/user/${post.user_id}`} className="hover:underline">
-                {post.author_name}
-              </Link>
-              {" · "}
-              {timeAgo(post.created_at)}
-            </p>
+            {editing ? (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value.slice(0, 120))}
+                  className="w-full bg-bg-card border border-border rounded-xl px-4 py-2.5 text-[16px] font-bold outline-none focus:border-text-muted transition-colors"
+                />
+                <textarea
+                  value={editBody}
+                  onChange={(e) => setEditBody(e.target.value.slice(0, 2000))}
+                  rows={4}
+                  className="w-full bg-bg-card border border-border rounded-xl px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-text-muted transition-colors resize-none"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={!editTitle.trim() || !editBody.trim()}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#1a1a1a] text-white rounded-full text-[13px] font-medium press disabled:opacity-50"
+                  >
+                    <Check size={14} strokeWidth={2} /> Save
+                  </button>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-text-muted text-[13px] press"
+                  >
+                    <X size={14} strokeWidth={2} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className="font-display text-[20px] font-bold tracking-tight leading-snug mb-2">{post.title}</h2>
+                <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-3">{post.body}</p>
+                <p className="text-[12px] text-text-muted">
+                  <Link href={`/community/user/${post.user_id}`} className="hover:underline">
+                    {post.author_name}
+                  </Link>
+                  {" · "}
+                  {timeAgo(post.created_at)}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
