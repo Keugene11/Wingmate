@@ -89,6 +89,15 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
   useEffect(() => { refreshData(); }, []);
 
+  // Sync flow counters with saved data when loaded
+  useEffect(() => {
+    if (data?.checkedInToday) {
+      setFlowOpportunities(data.opportunitiesCount);
+      setFlowApproaches(data.approachesCount);
+      setFlowSuccesses(data.successesCount);
+    }
+  }, [data?.checkedInToday, data?.opportunitiesCount, data?.approachesCount, data?.successesCount]);
+
   const submitCheckin = async (talked: boolean, opportunities: number, approaches: number, successes: number) => {
     setSubmitting(true);
     setSaveError(null);
@@ -488,23 +497,18 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
         </div>
       )}
 
-      {/* Today's counters — always at the very top when checked in (Pro only) */}
-      {data.checkedInToday && isPro && todayCountersSection}
-
-      {/* All-time approach stats */}
-      {data.checkedInToday && isPro && approachStatsSection}
-
-      {/* Main check-in card — show for free users always, for Pro only when not checked in */}
-      {(!data.checkedInToday || !isPro) && (
-      <div className={`rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white`}>
+      {/* Main check-in card — always the same black card style */}
+      <div className="rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="font-display text-[18px] font-bold">Enter today&apos;s stats</h2>
+                <h2 className="font-display text-[18px] font-bold">
+                  {data.checkedInToday ? "Today\u2019s stats" : "Enter today\u2019s stats"}
+                </h2>
                 <p className="text-white/50 text-[13px]">
-                  {data.streak > 0 ? `${data.streak}-day streak — don't break it` : "Start your streak today"}
+                  {data.streak > 0 ? `${data.streak}-day streak — don\u2019t break it` : "Start your streak today"}
                 </p>
               </div>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white/10`}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white/10">
                 <Flame size={20} strokeWidth={1.5} className="text-orange-400" />
               </div>
             </div>
@@ -554,7 +558,9 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
               </button>
             </div>
       </div>
-      )}
+
+      {/* All-time approach stats */}
+      {data.checkedInToday && approachStatsSection}
 
       {/* 7-day history + talk button */}
       {data.checkedInToday && (
