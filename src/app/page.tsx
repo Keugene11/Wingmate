@@ -266,8 +266,9 @@ export default function Home() {
     <main className="min-h-screen max-w-md mx-auto pb-20">
       {/* Branding — visible on non-chat tabs */}
       {activeTab !== "coach" && (
-        <div className="px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1">
+        <div className="flex items-center justify-between px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1">
           <p className="font-display text-[15px] font-bold tracking-tight text-text-muted/40">Wingmate</p>
+          <Link href="/privacy" className="text-[11px] text-text-muted/40">Privacy Policy</Link>
         </div>
       )}
 
