@@ -189,6 +189,11 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   if (!data) {
     if (!isLoggedIn) {
       const todayDate = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+      const emptyLast7 = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return { date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`, talked: null as boolean | null, approaches: 0 };
+      });
       return (
         <div className="space-y-4">
           <div className="mb-2 animate-slide-up">
@@ -198,13 +203,132 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
               Track how many girls you saw, approached, and how many went well. Build the habit — check in every day.
             </p>
           </div>
-          <div className="rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white text-center">
-            <Flame size={32} strokeWidth={1.5} className="text-orange-400 mx-auto mb-3" />
-            <h2 className="font-display text-[18px] font-bold mb-2">Start tracking your approaches</h2>
-            <p className="text-white/50 text-[14px] mb-5">Sign in to log your daily stats, build streaks, and track your progress over time.</p>
-            <a href="/login" className="inline-flex items-center justify-center gap-3 w-full bg-white text-[#1a1a1a] py-3.5 rounded-xl font-semibold text-[15px] press">
-              Sign in to get started
+
+          {/* Check-in card (disabled) */}
+          <div className="rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white relative overflow-hidden">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="font-display text-[18px] font-bold">Enter today&apos;s stats</h2>
+                <p className="text-white/50 text-[13px]">Start your streak today</p>
+              </div>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white/10">
+                <Flame size={20} strokeWidth={1.5} className="text-orange-400" />
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-5 opacity-40 pointer-events-none">
+              <div>
+                <p className="text-[13px] text-white/50 mb-2">Girls you saw</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold">−</div>
+                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">0</span>
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold">+</div>
+                </div>
+              </div>
+              <div>
+                <p className="text-[13px] text-white/50 mb-2">Girls you approached</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold">−</div>
+                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">0</span>
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold">+</div>
+                </div>
+              </div>
+              <div>
+                <p className="text-[13px] text-white/50 mb-2">Went well</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold">−</div>
+                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">0</span>
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold">+</div>
+                </div>
+              </div>
+            </div>
+
+            <a href="/login" className="block w-full py-3.5 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold text-center press">
+              Sign in to start tracking
             </a>
+          </div>
+
+          {/* All-time stats (zeroed, disabled) */}
+          <div className="bg-bg-card border border-border rounded-2xl px-5 py-4 opacity-50">
+            <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">All-time stats</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
+                  <span className="font-display text-[22px] font-bold">0</span>
+                </div>
+                <p className="text-[11px] text-text-muted">Opportunities</p>
+              </div>
+              <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Target size={14} strokeWidth={1.5} className="text-blue-500" />
+                  <span className="font-display text-[22px] font-bold">0</span>
+                </div>
+                <p className="text-[11px] text-text-muted">Approaches</p>
+              </div>
+              <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
+                  <span className="font-display text-[22px] font-bold">0</span>
+                </div>
+                <p className="text-[11px] text-text-muted">Went well</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
+                <span className="font-display text-[18px] font-bold text-blue-500">0%</span>
+                <p className="text-[10px] text-text-muted">Approach rate</p>
+              </div>
+              <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
+                <span className="font-display text-[18px] font-bold text-green-500">0%</span>
+                <p className="text-[10px] text-text-muted">Success rate</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 7-day dots (empty) */}
+          <div className="bg-bg-card border border-border rounded-2xl px-5 py-5 opacity-50">
+            <div className="flex justify-between px-1">
+              {emptyLast7.map((day, i) => {
+                const dayOfWeek = new Date(day.date + "T00:00:00").getDay();
+                const isToday = i === 6;
+                return (
+                  <div key={day.date} className="flex flex-col items-center gap-1.5">
+                    <span className={`text-[10px] font-medium ${isToday ? "text-text" : "text-text-muted"}`}>
+                      {DAY_LABELS[dayOfWeek]}
+                    </span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-bold ${
+                      isToday ? "border-2 border-dashed border-text-muted/30" : "bg-bg-card-hover"
+                    }`} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quick stats (zeroed) */}
+          <div className="grid grid-cols-3 gap-3 opacity-50">
+            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Trophy size={13} strokeWidth={1.5} className="text-orange-500" />
+                <span className="font-display text-[20px] font-bold">0</span>
+              </div>
+              <p className="text-[11px] text-text-muted">Best streak</p>
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Calendar size={13} strokeWidth={1.5} className="text-text-muted" />
+                <span className="font-display text-[20px] font-bold">0</span>
+              </div>
+              <p className="text-[11px] text-text-muted">Total days</p>
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <UserX size={13} strokeWidth={1.5} className="text-text-muted" />
+                <span className="font-display text-[20px] font-bold">0</span>
+              </div>
+              <p className="text-[11px] text-text-muted">Days skipped</p>
+            </div>
           </div>
         </div>
       );
