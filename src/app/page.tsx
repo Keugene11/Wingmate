@@ -46,7 +46,7 @@ const PAGE_SIZE = 20;
 export default function Home() {
   const router = useRouter();
   const [state, setState] = useState<AppState>("tabs");
-  const [activeTab, setActiveTab] = useState<Tab>("coach");
+  const [activeTab, setActiveTab] = useState<Tab>("checkin");
   const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
