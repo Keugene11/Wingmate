@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Eye, Target, ThumbsUp, TrendingUp, Flame, Calendar } from "lucide-react";
+import UpgradeModal from "@/components/UpgradeModal";
 
 interface CheckinEntry {
   date: string;
@@ -19,7 +20,13 @@ const DAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
 
 type ViewMode = "month" | "all-time";
 
-export default function StatsView() {
+export default function StatsView({ isPro = true }: { isPro?: boolean }) {
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const guardPro = (fn: () => void) => {
+    if (!isPro) { setShowUpgrade(true); return; }
+    fn();
+  };
   const [checkins, setCheckins] = useState<CheckinEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMonth, setViewMonth] = useState(() => {
@@ -176,7 +183,7 @@ export default function StatsView() {
         {(["month", "all-time"] as const).map((m) => (
           <button
             key={m}
-            onClick={() => setMode(m)}
+            onClick={() => guardPro(() => setMode(m))}
             className={`flex-1 px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
               mode === m ? "bg-[#1a1a1a] text-white" : "text-text-muted"
             }`}
@@ -189,14 +196,14 @@ export default function StatsView() {
       {/* Month navigation */}
       {mode === "month" && (
         <div className="flex items-center justify-between px-1">
-          <button onClick={() => navigateMonth(-1)} className="p-2 press rounded-full hover:bg-bg-card-hover transition-colors">
+          <button onClick={() => guardPro(() => navigateMonth(-1))} className="p-2 press rounded-full hover:bg-bg-card-hover transition-colors">
             <ChevronLeft size={20} strokeWidth={2} />
           </button>
           <h2 className="font-display text-[18px] font-bold">
             {MONTH_NAMES[viewMonth.month]} {viewMonth.year}
           </h2>
           <button
-            onClick={() => navigateMonth(1)}
+            onClick={() => guardPro(() => navigateMonth(1))}
             disabled={isCurrentMonth}
             className="p-2 press rounded-full hover:bg-bg-card-hover transition-colors disabled:opacity-20"
           >
@@ -380,6 +387,13 @@ export default function StatsView() {
           )}
         </>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="Unlock stats"
+        description="Upgrade to Pro to navigate your stats, view trends, and track your progress over time."
+      />
     </div>
   );
 }

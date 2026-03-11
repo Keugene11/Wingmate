@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Flame, MessageCircle, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX, Pencil } from "lucide-react";
 import { getFlameLevel } from "@/lib/gamification";
 import { createClient } from "@/lib/supabase-browser";
+import UpgradeModal from "@/components/UpgradeModal";
 
 interface CheckinData {
   checkedInToday: boolean;
@@ -31,7 +32,13 @@ interface CheckinData {
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
-export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isLoggedIn = true }: { greeting?: string; onTalkAboutIt: (talked: boolean) => void; onCheckedIn?: () => void; isLoggedIn?: boolean }) {
+export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isLoggedIn = true, isPro = true }: { greeting?: string; onTalkAboutIt: (talked: boolean) => void; onCheckedIn?: () => void; isLoggedIn?: boolean; isPro?: boolean }) {
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const guardPro = (fn: () => void) => {
+    if (!isPro) { setShowUpgrade(true); return; }
+    fn();
+  };
   const [data, setData] = useState<CheckinData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
@@ -370,28 +377,28 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           {/* Seen */}
           <div className="bg-purple-50 rounded-2xl px-3 py-4 flex flex-col items-center">
             <span className="text-[11px] font-bold text-purple-500 uppercase tracking-wider mb-3">Seen</span>
-            <button onClick={() => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); }}
+            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); })}
               className="w-full h-11 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-200 mb-2">+</button>
             <span className="font-display text-[40px] font-extrabold leading-none text-purple-600 my-1">{dispOpp}</span>
-            <button onClick={() => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); }}
+            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); })}
               className="w-full h-11 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-200 mt-2">−</button>
           </div>
           {/* Approached */}
           <div className="bg-blue-50 rounded-2xl px-3 py-4 flex flex-col items-center">
             <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-3">Approached</span>
-            <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); }}
+            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); })}
               className="w-full h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-200 mb-2">+</button>
             <span className="font-display text-[40px] font-extrabold leading-none text-blue-600 my-1">{dispAppr}</span>
-            <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); }}
+            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); })}
               className="w-full h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-200 mt-2">−</button>
           </div>
           {/* Went well */}
           <div className="bg-green-50 rounded-2xl px-3 py-4 flex flex-col items-center">
             <span className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-3">Went well</span>
-            <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); }}
+            <button onClick={() => guardPro(() => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); })}
               className="w-full h-11 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-100 mb-2">+</button>
             <span className="font-display text-[40px] font-extrabold leading-none text-green-600 my-1">{dispSucc}</span>
-            <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); }}
+            <button onClick={() => guardPro(() => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); })}
               className="w-full h-11 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-200 mt-2">−</button>
           </div>
         </div>
@@ -499,41 +506,41 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
               <div>
                 <p className="text-[13px] text-white/50 mb-2">Girls you saw</p>
                 <div className="flex items-center gap-4">
-                  <button onClick={() => setFlowOpportunities(Math.max(0, flowOpportunities - 1))}
+                  <button onClick={() => guardPro(() => setFlowOpportunities(Math.max(0, flowOpportunities - 1)))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
                   <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{flowOpportunities}</span>
-                  <button onClick={() => setFlowOpportunities(flowOpportunities + 1)}
+                  <button onClick={() => guardPro(() => setFlowOpportunities(flowOpportunities + 1))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
                 </div>
               </div>
               <div>
                 <p className="text-[13px] text-white/50 mb-2">Girls you approached</p>
                 <div className="flex items-center gap-4">
-                  <button onClick={() => setFlowApproaches(Math.max(0, flowApproaches - 1))}
+                  <button onClick={() => guardPro(() => setFlowApproaches(Math.max(0, flowApproaches - 1)))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
                   <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{flowApproaches}</span>
-                  <button onClick={() => { setFlowApproaches(Math.min(flowOpportunities, flowApproaches + 1)); }}
+                  <button onClick={() => guardPro(() => setFlowApproaches(Math.min(flowOpportunities, flowApproaches + 1)))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
                 </div>
               </div>
               <div>
                 <p className="text-[13px] text-white/50 mb-2">Went well</p>
                 <div className="flex items-center gap-4">
-                  <button onClick={() => setFlowSuccesses(Math.max(0, flowSuccesses - 1))}
+                  <button onClick={() => guardPro(() => setFlowSuccesses(Math.max(0, flowSuccesses - 1)))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
                   <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{flowSuccesses}</span>
-                  <button onClick={() => setFlowSuccesses(Math.min(flowApproaches, flowSuccesses + 1))}
+                  <button onClick={() => guardPro(() => setFlowSuccesses(Math.min(flowApproaches, flowSuccesses + 1)))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => submitCheckin(false, 0, 0, 0)} disabled={submitting}
+              <button onClick={() => guardPro(() => submitCheckin(false, 0, 0, 0))} disabled={submitting}
                 className="flex-1 py-3.5 rounded-xl bg-white/10 text-white/70 text-[14px] font-medium press">
                 No approaches today
               </button>
-              <button onClick={() => submitCheckin(true, flowOpportunities, flowApproaches, flowSuccesses)}
+              <button onClick={() => guardPro(() => submitCheckin(true, flowOpportunities, flowApproaches, flowSuccesses))}
                 disabled={submitting}
                 className="flex-1 py-3.5 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold press disabled:opacity-60">
                 {submitting ? "..." : "Save"}
@@ -642,6 +649,13 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           </p>
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="Unlock the tracker"
+        description="Upgrade to Pro to log check-ins, build streaks, and track your approach stats."
+      />
     </div>
   );
 }

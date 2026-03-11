@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Flame, Lock, MessageCircle, Search, X, Target, BarChart3 } from "lucide-react";
+import { Plus, Flame, Lock, MessageCircle, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -280,75 +280,16 @@ export default function Home() {
       {/* ===== CHECK-IN TAB ===== */}
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          {isPro === null && isLoggedIn !== false && (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-
-          {(isPro === false || isLoggedIn === false) && (
-            <div>
-              <div className="mb-6">
-                <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">{greeting || "Hey"}</h1>
-                <p className="text-text-muted text-[15px]">Track your daily progress</p>
-              </div>
-
-              {/* Placeholder check-in card */}
-              <div className="bg-bg-card border border-border rounded-2xl p-5 mb-4 opacity-40">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-4 bg-bg-card-hover rounded w-32" />
-                  <div className="h-4 bg-bg-card-hover rounded w-16" />
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-bg-card-hover rounded-xl p-4 flex flex-col items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-bg" />
-                      <div className="h-6 w-6 bg-bg rounded" />
-                      <div className="h-3 w-12 bg-bg rounded" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* CTA */}
-              <div className="flex flex-col items-center text-center mt-8">
-                <div className="w-16 h-16 rounded-full bg-bg-card border border-border flex items-center justify-center mb-4">
-                  <Target size={24} strokeWidth={1.5} className="text-text-muted" />
-                </div>
-                <h2 className="font-display text-[20px] font-bold mb-2">
-                  {isLoggedIn === false ? "Track your approaches" : "Pro feature"}
-                </h2>
-                <p className="text-text-muted text-[14px] leading-relaxed mb-6 max-w-[260px]">
-                  Log daily check-ins, build streaks, and track your approach confidence over time.
-                </p>
-                {isLoggedIn === false ? (
-                  <button onClick={() => { const s = createClient(); s.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } }); }}
-                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press">
-                    Sign in to start
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => router.push("/plans")}
-                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
-                  >
-                    Unlock with Pro
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {isPro === true && (
-            <DailyCheckin
-              greeting={greeting}
-              onTalkAboutIt={(talked) => {
-                setCheckinTalked(talked);
-                updateState("checkin-chat");
-              }}
-              onCheckedIn={() => setCheckedInToday(true)}
-              isLoggedIn={isLoggedIn !== false}
-            />
-          )}
+          <DailyCheckin
+            greeting={greeting}
+            onTalkAboutIt={(talked) => {
+              setCheckinTalked(talked);
+              updateState("checkin-chat");
+            }}
+            onCheckedIn={() => setCheckedInToday(true)}
+            isLoggedIn={isLoggedIn !== false}
+            isPro={isPro !== false}
+          />
         </div>
       )}
 
@@ -363,57 +304,7 @@ export default function Home() {
               Your approach history at a glance
             </p>
           </div>
-
-          {isPro === null && isLoggedIn !== false && (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-
-          {(isPro === false || isLoggedIn === false) && (
-            <div>
-              {/* Placeholder stats cards */}
-              <div className="grid grid-cols-3 gap-3 mb-4 opacity-40">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-bg-card border border-border rounded-xl p-4">
-                    <div className="h-3 bg-bg-card-hover rounded w-16 mb-3" />
-                    <div className="h-6 bg-bg-card-hover rounded w-10" />
-                  </div>
-                ))}
-              </div>
-              <div className="bg-bg-card border border-border rounded-xl p-4 mb-4 opacity-40">
-                <div className="h-32 bg-bg-card-hover rounded" />
-              </div>
-
-              {/* CTA */}
-              <div className="flex flex-col items-center text-center mt-8">
-                <div className="w-16 h-16 rounded-full bg-bg-card border border-border flex items-center justify-center mb-4">
-                  <BarChart3 size={24} strokeWidth={1.5} className="text-text-muted" />
-                </div>
-                <h2 className="font-display text-[20px] font-bold mb-2">
-                  {isLoggedIn === false ? "See your progress" : "Pro feature"}
-                </h2>
-                <p className="text-text-muted text-[14px] leading-relaxed mb-6 max-w-[260px]">
-                  View your approach calendar, streaks, success rates, and monthly trends.
-                </p>
-                {isLoggedIn === false ? (
-                  <button onClick={() => { const s = createClient(); s.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } }); }}
-                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press">
-                    Sign in to start
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => router.push("/plans")}
-                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
-                  >
-                    Unlock with Pro
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {isPro === true && <StatsView />}
+          <StatsView isPro={isPro !== false} />
         </div>
       )}
 
