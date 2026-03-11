@@ -200,7 +200,8 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
           ? "I talked to someone new today! I want to tell you about it."
           : "I didn't talk to anyone new today. I want to talk about what held me back.",
       };
-      setMessages([trigger]);
+      // Don't show the trigger as a user bubble — just send it to the API
+      setMessages([]);
       setInitialized(true);
 
       const mode = `checkin-${checkinMode}`;
