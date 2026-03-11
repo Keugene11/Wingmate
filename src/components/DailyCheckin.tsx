@@ -368,31 +368,31 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       <div className="bg-bg-card border border-border rounded-2xl px-4 py-5">
         <div className="grid grid-cols-3 gap-3">
           {/* Seen */}
-          <div className="flex flex-col items-center">
+          <div className="bg-purple-50 rounded-2xl px-3 py-4 flex flex-col items-center">
             <span className="text-[11px] font-bold text-purple-500 uppercase tracking-wider mb-3">Seen</span>
             <button onClick={() => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); }}
-              className="w-full h-11 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-100 mb-2">+</button>
+              className="w-full h-11 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-200 mb-2">+</button>
             <span className="font-display text-[40px] font-extrabold leading-none text-purple-600 my-1">{dispOpp}</span>
             <button onClick={() => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); }}
-              className="w-full h-11 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-100 mt-2">−</button>
+              className="w-full h-11 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-200 mt-2">−</button>
           </div>
           {/* Approached */}
-          <div className="flex flex-col items-center">
+          <div className="bg-blue-50 rounded-2xl px-3 py-4 flex flex-col items-center">
             <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-3">Approached</span>
             <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); }}
-              className="w-full h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-100 mb-2">+</button>
+              className="w-full h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-200 mb-2">+</button>
             <span className="font-display text-[40px] font-extrabold leading-none text-blue-600 my-1">{dispAppr}</span>
             <button onClick={() => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); }}
-              className="w-full h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-100 mt-2">−</button>
+              className="w-full h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-200 mt-2">−</button>
           </div>
           {/* Went well */}
-          <div className="flex flex-col items-center">
+          <div className="bg-green-50 rounded-2xl px-3 py-4 flex flex-col items-center">
             <span className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-3">Went well</span>
             <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); }}
-              className="w-full h-11 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-100 mb-2">+</button>
+              className="w-full h-11 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-100 mb-2">+</button>
             <span className="font-display text-[40px] font-extrabold leading-none text-green-600 my-1">{dispSucc}</span>
             <button onClick={() => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); }}
-              className="w-full h-11 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-100 mt-2">−</button>
+              className="w-full h-11 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-200 mt-2">−</button>
           </div>
         </div>
         {isDirty && (
