@@ -10,7 +10,7 @@ export default function Privacy() {
       <h1 className="font-display text-[28px] font-bold tracking-tight mb-2">
         Privacy Policy
       </h1>
-      <p className="text-text-muted text-[14px] mb-8">Last updated: March 10, 2026</p>
+      <p className="text-text-muted text-[14px] mb-8">Last updated: March 11, 2026</p>
 
       <div className="space-y-6 text-[15px] leading-relaxed text-text-muted">
         <section>
@@ -36,6 +36,29 @@ export default function Privacy() {
             <li>Usage counts (sessions used, messages sent) for managing free tier limits</li>
             <li>Daily check-in records (whether you checked in and your streak)</li>
             <li>Community posts, comments, and votes you create</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-text font-semibold text-[17px] mb-2">Google API Services disclosure</h2>
+          <p className="mb-2">
+            Wingmate&apos;s use and transfer of information received from Google APIs adheres to the{" "}
+            <a
+              href="https://developers.google.com/terms/api-services-user-data-policy"
+              className="underline text-text"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Google API Services User Data Policy
+            </a>
+            , including the Limited Use requirements. Specifically:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>We only request access to the Google data necessary to provide the service (basic profile information for authentication)</li>
+            <li>We do not use Google data for serving advertisements</li>
+            <li>We do not transfer Google data to third parties unless necessary to provide or improve the service, to comply with applicable law, or as part of a merger or acquisition with adequate data protection</li>
+            <li>We do not use Google data for purposes unrelated to the functionality of Wingmate</li>
+            <li>Human review of Google user data is limited to security purposes, investigating abuse, complying with legal obligations, or where the user has provided affirmative consent</li>
           </ul>
         </section>
 
@@ -119,6 +142,23 @@ export default function Privacy() {
             <li>Delete your account and all associated data at any time from your profile page</li>
             <li>Export your data by contacting us</li>
           </ul>
+        </section>
+
+        <section>
+          <h2 className="text-text font-semibold text-[17px] mb-2">Revoking access</h2>
+          <p>
+            You can revoke Wingmate&apos;s access to your Google account at any time by visiting your{" "}
+            <a
+              href="https://myaccount.google.com/permissions"
+              className="underline text-text"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Google Account Permissions
+            </a>{" "}
+            page and removing Wingmate. You can also delete your Wingmate account from your profile
+            page, which will permanently remove all your data from our systems.
+          </p>
         </section>
 
         <section>
