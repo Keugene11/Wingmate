@@ -662,15 +662,6 @@ export default function Home() {
         </div>
       )}
 
-      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+68px)] left-0 right-0 flex justify-center gap-3 pointer-events-none">
-        <Link href="/terms" className="text-[11px] text-text-muted/50 underline pointer-events-auto">
-          Terms
-        </Link>
-        <Link href="/privacy" className="text-[11px] text-text-muted/50 underline pointer-events-auto">
-          Privacy
-        </Link>
-      </div>
-
       <BottomNav active={activeTab} onChange={handleTabChange} />
     </main>
   );
