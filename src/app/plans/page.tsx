@@ -33,7 +33,6 @@ export default function PlansPage() {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
-  const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
@@ -84,8 +83,6 @@ export default function PlansPage() {
 
   if (!loaded) return null;
 
-  const price = billing === "yearly" ? 10 : 15;
-
   return (
     <main className="min-h-screen max-w-lg mx-auto px-6 pb-24 animate-fade-in">
       {/* Nav */}
@@ -94,34 +91,6 @@ export default function PlansPage() {
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
       </div>
-
-      {/* Active subscriber banner */}
-      {isActive && (
-        <div className="bg-bg-card border border-border rounded-2xl p-5 mb-10">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[14px] font-semibold">Wingmate Pro</span>
-            </div>
-            <span className="text-[12px] text-text-muted font-medium">
-              {isYearly ? "$10/mo · Yearly" : "$15/mo · Monthly"}
-            </span>
-          </div>
-          <p className="text-text-muted text-[13px] mb-4">
-            {subscription?.cancel_at_period_end
-              ? `Your plan cancels ${formatDate(subscription.current_period_end)}`
-              : `Renews ${formatDate(subscription!.current_period_end)}`}
-          </p>
-          <button
-            onClick={handleManageBilling}
-            disabled={loadingPortal}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-bg-input text-[14px] font-semibold press disabled:opacity-60"
-          >
-            <CreditCard size={16} strokeWidth={1.5} className="text-text-muted" />
-            {loadingPortal ? "Redirecting..." : "Manage billing"}
-          </button>
-        </div>
-      )}
 
       {/* Hero */}
       <div className="text-center mb-12">
@@ -135,55 +104,63 @@ export default function PlansPage() {
         </p>
       </div>
 
-      {/* Billing toggle — hide for active subscribers */}
-      {!isActive && (
-        <div className="flex items-center justify-center mb-10">
-          <div className="bg-bg-card border border-border rounded-full p-1 flex">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`px-6 py-2.5 rounded-full text-[14px] font-semibold transition-colors ${
-                billing === "monthly" ? "bg-[#1a1a1a] text-white" : "text-text-muted"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling("yearly")}
-              className={`px-6 py-2.5 rounded-full text-[14px] font-semibold transition-colors relative ${
-                billing === "yearly" ? "bg-[#1a1a1a] text-white" : "text-text-muted"
-              }`}
-            >
-              Annually
-              <span className={`absolute -top-2.5 -right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                billing === "yearly" ? "bg-green-500 text-white" : "bg-green-100 text-green-700"
-              }`}>
-                -33%
-              </span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Pricing cards — stacked full width */}
+      {/* Pricing cards */}
       <div className="space-y-4 mb-16">
-        {/* Starter */}
-        <div className={`bg-bg-card rounded-2xl p-6 ${
-          !isActive ? "border-2 border-[#1a1a1a]" : "border border-border"
-        } relative`}>
-          {!isActive && (
+        {/* Active subscriber banner */}
+        {isActive && (
+          <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-5 relative">
             <span className="absolute -top-3 left-6 bg-[#1a1a1a] text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
               Current plan
             </span>
-          )}
-          <div className={`flex items-start justify-between ${!isActive ? "mt-1" : ""} mb-6`}>
-            <div>
-              <h3 className="font-display text-[18px] font-bold mb-1">Starter</h3>
-              <p className="text-text-muted text-[14px]">All the essentials to get started</p>
+            <div className="flex items-center justify-between mt-1 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-[14px] font-semibold">Wingmate Pro · {isYearly ? "Yearly" : "Monthly"}</span>
+              </div>
+              <span className="text-[14px] font-bold">${isYearly ? "10" : "15"}/mo</span>
             </div>
-            <span className="font-display text-[28px] font-extrabold">Free</span>
+            <p className="text-text-muted text-[13px] mb-4">
+              {subscription?.cancel_at_period_end
+                ? `Your plan cancels ${formatDate(subscription.current_period_end)}`
+                : `Renews ${formatDate(subscription!.current_period_end)}`}
+            </p>
+            <button
+              onClick={handleManageBilling}
+              disabled={loadingPortal}
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-bg-input text-[14px] font-semibold press disabled:opacity-60"
+            >
+              <CreditCard size={16} strokeWidth={1.5} className="text-text-muted" />
+              {loadingPortal ? "Redirecting..." : "Manage billing"}
+            </button>
           </div>
+        )}
+
+        {/* Monthly Pro */}
+        <div className="bg-bg-card border border-border rounded-2xl p-6">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h3 className="font-display text-[18px] font-bold mb-1">Pro Monthly</h3>
+              <p className="text-text-muted text-[14px]">Unlimited AI coaching & analysis</p>
+            </div>
+            <div className="text-right">
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-display text-[28px] font-extrabold">$15</span>
+                <span className="text-text-muted text-[14px] font-medium">/mo</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-text-muted text-[12px] mb-5">Cancel anytime</p>
+          {!isActive && (
+            <button
+              onClick={() => handleCheckout("monthly")}
+              disabled={!!loading}
+              className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+            >
+              {loading === "monthly" ? "Redirecting..." : "Subscribe monthly"}
+            </button>
+          )}
           <div className="space-y-3">
-            {["3 AI coaching sessions per day", "Daily check-ins & streaks", "Approach tracking & stats", "Community feed"].map((f) => (
+            {["Unlimited AI coaching sessions", "Photo situation analysis", "Personalized openers for any moment", "Text & DM coaching", "Dating profile reviews"].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
                 <span className="text-[14px]">{f}</span>
@@ -192,49 +169,34 @@ export default function PlansPage() {
           </div>
         </div>
 
-        {/* Pro */}
-        <div className={`bg-bg-card rounded-2xl p-6 relative ${
-          isActive ? "border-2 border-[#1a1a1a]" : "border border-border"
-        }`}>
-          {isActive && (
-            <span className="absolute -top-3 left-6 bg-[#1a1a1a] text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-              Current plan
-            </span>
-          )}
-          <div className={`flex items-start justify-between ${isActive ? "mt-1" : ""} mb-2`}>
+        {/* Yearly Pro */}
+        <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-6 relative">
+          <span className="absolute -top-3 left-6 bg-green-500 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+            Save 33%
+          </span>
+          <div className="flex items-start justify-between mt-1 mb-2">
             <div>
-              <h3 className="font-display text-[18px] font-bold mb-1">Pro</h3>
+              <h3 className="font-display text-[18px] font-bold mb-1">Pro Yearly</h3>
               <p className="text-text-muted text-[14px]">Unlimited AI coaching & analysis</p>
             </div>
             <div className="text-right">
               <div className="flex items-baseline gap-1.5">
-                {!isActive && billing === "yearly" && (
-                  <span className="text-text-muted text-[18px] font-bold line-through">$15</span>
-                )}
-                <span className="font-display text-[28px] font-extrabold">
-                  {isActive ? `$${isYearly ? "10" : "15"}` : `$${price}`}
-                </span>
+                <span className="text-text-muted text-[18px] font-bold line-through">$15</span>
+                <span className="font-display text-[28px] font-extrabold">$10</span>
                 <span className="text-text-muted text-[14px] font-medium">/mo</span>
               </div>
             </div>
           </div>
-          <p className="text-text-muted text-[12px] mb-6">
-            {isActive
-              ? isYearly ? "$120 billed annually" : "Billed monthly"
-              : billing === "yearly" ? "$120 billed annually" : "Cancel anytime"}
-          </p>
+          <p className="text-text-muted text-[12px] mb-5">$120 billed annually</p>
           {!isActive && (
             <button
-              onClick={() => handleCheckout(billing)}
+              onClick={() => handleCheckout("yearly")}
               disabled={!!loading}
-              className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-6"
+              className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
             >
-              {loading ? "Redirecting..." : "Subscribe"}
+              {loading === "yearly" ? "Redirecting..." : "Subscribe yearly"}
             </button>
           )}
-          <p className="text-[12px] font-semibold text-text-muted uppercase tracking-wide mb-3">
-            Everything in Starter, plus
-          </p>
           <div className="space-y-3">
             {["Unlimited AI coaching sessions", "Photo situation analysis", "Personalized openers for any moment", "Text & DM coaching", "Dating profile reviews"].map((f) => (
               <div key={f} className="flex items-center gap-3">
@@ -245,25 +207,6 @@ export default function PlansPage() {
           </div>
         </div>
       </div>
-
-      {/* Bottom CTA — only for non-subscribers */}
-      {!isActive && (
-        <div className="text-center mb-16">
-          <h2 className="font-display text-[24px] font-bold tracking-tight mb-3">
-            Your AI wingman, always ready.
-          </h2>
-          <p className="text-text-muted text-[15px] leading-relaxed mb-8 max-w-[320px] mx-auto">
-            Try Wingmate Pro on your next approach.
-          </p>
-          <button
-            onClick={() => handleCheckout(billing)}
-            disabled={!!loading}
-            className="bg-[#1a1a1a] text-white py-3.5 px-12 rounded-2xl font-semibold text-[15px] press disabled:opacity-60"
-          >
-            {loading ? "Redirecting..." : "Get Wingmate Pro"}
-          </button>
-        </div>
-      )}
 
       {/* FAQ */}
       <div className="mb-16">
