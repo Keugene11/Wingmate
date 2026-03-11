@@ -194,21 +194,14 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
 
     // New conversation
     if (checkinMode) {
-      const trigger: Message = {
-        role: "user",
+      const initialMsg: Message = {
+        role: "assistant",
         content: checkinMode === "talked"
-          ? "I talked to someone new today! I want to tell you about it."
-          : "I didn't talk to anyone new today. I want to talk about what held me back.",
+          ? "Nice — you made a move today. Tell me what happened. Where were you, what did you say, and how did she respond?"
+          : "No worries — most guys don't approach every day. What happened today? Where were you, and what held you back?",
       };
-      // Don't show the trigger as a user bubble — just send it to the API
-      setMessages([]);
+      setMessages([initialMsg]);
       setInitialized(true);
-
-      const mode = `checkin-${checkinMode}`;
-      ensureConversation(mode).then((id) => {
-        if (id) saveMessages(id, [trigger]);
-        streamResponse([trigger], id);
-      });
     } else {
       const initialMsg: Message = {
         role: "assistant",
