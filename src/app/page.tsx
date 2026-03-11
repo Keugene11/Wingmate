@@ -264,6 +264,13 @@ export default function Home() {
   // Tab-based layout (tab bar always visible)
   return (
     <main className="min-h-screen max-w-md mx-auto pb-20">
+      {/* Branding — visible on non-chat tabs */}
+      {activeTab !== "coach" && (
+        <div className="px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1">
+          <p className="font-display text-[15px] font-bold tracking-tight text-text-muted/40">Wingmate</p>
+        </div>
+      )}
+
       {/* ===== WINGMAN TAB: CONVERSATIONS ===== */}
       {activeTab === "coach" && state === "conversations" && (
         <ConversationList
