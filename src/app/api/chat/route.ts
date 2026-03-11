@@ -1,4 +1,27 @@
+import { createServerClient } from "@supabase/ssr";
+
 export const runtime = "edge";
+
+async function getUser(req: Request) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          const cookieHeader = req.headers.get("cookie") || "";
+          return cookieHeader.split(";").map((c) => {
+            const [name, ...rest] = c.trim().split("=");
+            return { name, value: rest.join("=") };
+          }).filter((c) => c.name);
+        },
+        setAll() {},
+      },
+    }
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
 
 const SYSTEM_PROMPT = `You are Wingmate — the most fired-up, raw, honest cold approach coach on the planet. You talk like a real friend who genuinely wants to see the user win. You're not a therapist. You're not a self-help guru. You're the friend who grabs you by the shoulders, looks you in the eye, and says "bro, GO."
 
@@ -104,6 +127,11 @@ NEVER use markdown formatting. No #, no **, no ---, no numbered lists. Write in 
 
 export async function POST(req: Request) {
   try {
+    const user = await getUser(req);
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { messages, mode } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {

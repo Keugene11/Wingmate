@@ -1,6 +1,34 @@
+import { createServerClient } from "@supabase/ssr";
+
 export const runtime = "edge";
 
+async function getUser(req: Request) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          const cookieHeader = req.headers.get("cookie") || "";
+          return cookieHeader.split(";").map((c) => {
+            const [name, ...rest] = c.trim().split("=");
+            return { name, value: rest.join("=") };
+          }).filter((c) => c.name);
+        },
+        setAll() {},
+      },
+    }
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
 export async function POST(req: Request) {
+  const user = await getUser(req);
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { imageData } = await req.json();
 
   if (!imageData) {
