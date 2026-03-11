@@ -3,7 +3,7 @@ import { createSign } from "crypto";
 import sharp from "sharp";
 
 const SA_PATH = "c:/Users/Daniel/Downloads/voicenote-pro-484818-6d6db67c7fdb.json";
-const PACKAGE = "com.wingmate.twa";
+const PACKAGE = "com.approachai.twa";
 const OUT_DIR = "scripts/play-store-assets";
 
 mkdirSync(OUT_DIR, { recursive: true });

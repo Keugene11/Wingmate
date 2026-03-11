@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { createSign } from "crypto";
 
 const SA_PATH = process.argv[2] || "c:/Users/Daniel/Downloads/voicenote-pro-484818-6d6db67c7fdb.json";
-const PACKAGE = process.argv[3] || "com.wingmate.twa";
+const PACKAGE = process.argv[3] || "com.approachai.twa";
 
 const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
 

@@ -4,7 +4,7 @@ import { cpSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-const PACKAGE = "com.wingmate.twa";
+const PACKAGE = "com.approachai.twa";
 const PRIVACY_URL = "https://wingmate.vercel.app/privacy";
 const CONTACT_EMAIL = "support@wingmate.app";
 const USER_DATA = (process.env.LOCALAPPDATA || "C:\\Users\\Daniel\\AppData\\Local") + "\\Google\\Chrome\\User Data";

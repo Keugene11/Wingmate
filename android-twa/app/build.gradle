@@ -3,7 +3,7 @@ plugins {
 }
 
 def twaHost = System.getenv("TWA_HOST") ?: "wingmate.vercel.app"
-def twaPackageId = System.getenv("TWA_PACKAGE_ID") ?: "com.wingmate.twa"
+def twaPackageId = System.getenv("TWA_PACKAGE_ID") ?: "com.approachai.twa"
 def twaVersionCode = (System.getenv("TWA_VERSION_CODE") ?: "1").toInteger()
 def twaVersionName = System.getenv("TWA_VERSION_NAME") ?: "1.0.${twaVersionCode}"
 

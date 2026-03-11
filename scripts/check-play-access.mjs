@@ -31,10 +31,10 @@ async function main() {
 
   // Try a few possible package names
   const guesses = [
-    "com.wingmate.twa",
+    "com.approachai.twa",
     "com.wingmate.app",
     "com.wingmate",
-    "com.wingmate.twa",
+    "com.approachai.twa",
     "com.wingmate.app",
     "com.voicenote.pro",
   ];

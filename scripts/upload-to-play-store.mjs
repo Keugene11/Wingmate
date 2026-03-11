@@ -3,7 +3,7 @@ import { createSign } from "crypto";
 
 const SERVICE_ACCOUNT_JSON = process.argv[2] || "c:/Users/Daniel/Downloads/voicenote-pro-484818-6d6db67c7fdb.json";
 const AAB_PATH = process.argv[3] || "C:/Users/Daniel/Downloads/wingmate-android/wingmate-android-v1.0.12/bundle/release/app-release.aab";
-const PACKAGE_NAME = process.argv[4] || "com.wingmate.twa";
+const PACKAGE_NAME = process.argv[4] || "com.approachai.twa";
 
 const sa = JSON.parse(readFileSync(SERVICE_ACCOUNT_JSON, "utf8"));
 
