@@ -278,10 +278,13 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-8 text-center space-x-3">
         <Link href="/privacy" className="text-[12px] text-text-muted underline">
           Privacy Policy
         </Link>
+        <a href="mailto:wingmatesupport@gmail.com" className="text-[12px] text-text-muted underline">
+          Support
+        </a>
       </div>
 
       <BottomNav />
