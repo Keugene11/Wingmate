@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Flame, Lock, MessageCircle, Search, X, Check, ChevronDown } from "lucide-react";
+import { Plus, Flame, Lock, MessageCircle, Search, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -59,7 +59,6 @@ export default function Home() {
   const [communitySearch, setCommunitySearch] = useState("");
   const [communitySearchOpen, setCommunitySearchOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const communityDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const communitySearchRef = useRef<HTMLInputElement>(null);
 
@@ -606,55 +605,37 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Motivational nudge */}
+          {/* Motivational sell */}
           {!isPro && (
-            <div className="mt-10 rounded-2xl bg-[#1a1a1a] text-white px-6 py-7 text-center">
-              <p className="text-[26px] mb-4">🤔</p>
-              <h3 className="font-display text-[18px] font-bold leading-snug mb-3">
-                Think about it
-              </h3>
-              <p className="text-white/70 text-[15px] leading-relaxed max-w-[300px] mx-auto mb-4">
-                Cold approaching your crush and overcoming your nerves to actually talk to her is one of the most fulfilling experiences of your life — something you&apos;ll remember forever.
-              </p>
-              <p className="text-white/70 text-[15px] leading-relaxed max-w-[300px] mx-auto">
-                That one moment is worth way more than $15. Wingmate gets you there.
-              </p>
+            <div className="mt-10 space-y-6">
+              <div className="rounded-2xl bg-[#1a1a1a] text-white px-6 py-7">
+                <h3 className="font-display text-[20px] font-bold leading-snug mb-4">
+                  Think about how sick it would be.
+                </h3>
+                <p className="text-white/70 text-[15px] leading-relaxed mb-4">
+                  You see her across the room. Your heart&apos;s pounding. You walk over, say exactly the right thing, and she lights up. You get her number. You go home feeling like a king.
+                </p>
+                <p className="text-white/70 text-[15px] leading-relaxed mb-4">
+                  That moment — that rush — is worth way more than $15.
+                </p>
+                <p className="text-white/70 text-[15px] leading-relaxed">
+                  Cold approaching your crush and overcoming your nerves to actually talk to her is one of the most fulfilling experiences of your life. It&apos;s something you&apos;ll remember forever. Not the Netflix you watched that night. Not the scroll session. The time you actually went for it.
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-[#1a1a1a] text-white px-6 py-7">
+                <h3 className="font-display text-[18px] font-bold leading-snug mb-4">
+                  Wingmate makes it happen.
+                </h3>
+                <p className="text-white/70 text-[15px] leading-relaxed mb-4">
+                  Your AI wingman tells you exactly what to say. The tracker keeps you accountable. The community has guys on the same path cheering you on.
+                </p>
+                <p className="text-white text-[15px] leading-relaxed font-semibold">
+                  One approach that goes right will change how you see yourself. Wingmate is how you get there.
+                </p>
+              </div>
             </div>
           )}
-
-          {/* FAQ */}
-          <div className="mt-10">
-            <h2 className="font-display text-[22px] font-bold tracking-tight mb-6">
-              Frequently asked questions
-            </h2>
-            <div className="rounded-2xl border border-border overflow-hidden">
-              {[
-                { q: "Can I try it for free?", a: "You're already using it! You get 2 free AI coaching messages. Upgrade for unlimited coaching, full tracker access, and community." },
-                { q: "How is this different from ChatGPT?", a: "Wingmate is purpose-built for approaching. It reads photos of your situation, gives you exact openers for that moment, and tracks your progress over time." },
-                { q: "Can I cancel anytime?", a: "One tap. No questions asked. You keep access until the end of your billing period." },
-              ].map((item, i, arr) => (
-                <button
-                  key={i}
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full text-left press"
-                >
-                  <div className={`flex items-start justify-between gap-4 px-5 py-4 ${i < arr.length - 1 ? "border-b border-border/50" : ""}`}>
-                    <div className="flex-1">
-                      <p className="font-semibold text-[14px] leading-snug">{item.q}</p>
-                      {openFaq === i && (
-                        <p className="text-text-muted text-[14px] leading-relaxed mt-3">{item.a}</p>
-                      )}
-                    </div>
-                    <ChevronDown
-                      size={16}
-                      strokeWidth={2}
-                      className={`text-text-muted shrink-0 mt-0.5 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
-                    />
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="text-center text-[13px] text-text-muted mt-8">
             <p>Secure payment via Stripe &middot; Cancel anytime</p>
