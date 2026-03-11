@@ -308,121 +308,6 @@ export default function Home() {
             isPro={isPro !== false}
           />
 
-          {/* Inline pricing section for free/logged-out users */}
-          {isPro === false && (
-            <div className="mt-10 space-y-4">
-              <div className="text-center mb-2">
-                <h2 className="font-display text-[22px] font-bold tracking-tight mb-2">Unlock everything</h2>
-                <p className="text-text-muted text-[14px] leading-relaxed max-w-[320px] mx-auto">
-                  Unlimited AI coaching, full tracker access, and community.
-                </p>
-              </div>
-
-              {/* Yearly Pro */}
-              <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-6 relative">
-                <span className="absolute -top-3 left-6 bg-green-500 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                  Save 33%
-                </span>
-                <div className="flex items-start justify-between mt-1 mb-2">
-                  <div>
-                    <h3 className="font-display text-[18px] font-bold mb-1">Pro Yearly</h3>
-                    <p className="text-text-muted text-[14px]">Unlimited AI coaching & analysis</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-text-muted text-[18px] font-bold line-through">$15</span>
-                      <span className="font-display text-[28px] font-extrabold">$10</span>
-                      <span className="text-text-muted text-[14px] font-medium">/mo</span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-text-muted text-[12px] mb-5">$120 billed annually</p>
-                <button
-                  onClick={() => handleCheckout("yearly")}
-                  disabled={!!checkoutLoading}
-                  className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
-                >
-                  {checkoutLoading === "yearly" ? "Redirecting..." : "Subscribe yearly"}
-                </button>
-                <div className="space-y-3">
-                  {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
-                    <div key={f} className="flex items-center gap-3">
-                      <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
-                      <span className="text-[14px]">{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Monthly Pro */}
-              <div className="bg-bg-card border border-border rounded-2xl p-6">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-display text-[18px] font-bold mb-1">Pro Monthly</h3>
-                    <p className="text-text-muted text-[14px]">Unlimited AI coaching & analysis</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="font-display text-[28px] font-extrabold">$15</span>
-                      <span className="text-text-muted text-[14px] font-medium">/mo</span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-text-muted text-[12px] mb-5">Cancel anytime</p>
-                <button
-                  onClick={() => handleCheckout("monthly")}
-                  disabled={!!checkoutLoading}
-                  className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
-                >
-                  {checkoutLoading === "monthly" ? "Redirecting..." : "Subscribe monthly"}
-                </button>
-                <div className="space-y-3">
-                  {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
-                    <div key={f} className="flex items-center gap-3">
-                      <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
-                      <span className="text-[14px]">{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* FAQ */}
-              <div className="pt-4">
-                <h3 className="font-display text-[18px] font-bold tracking-tight mb-4">FAQ</h3>
-                <div className="rounded-2xl border border-border overflow-hidden">
-                  {[
-                    { q: "Can I try it for free?", a: "You're already using it! You get 2 free AI coaching messages. Upgrade for unlimited coaching, full tracker access, and community." },
-                    { q: "How is this different from ChatGPT?", a: "Wingmate is purpose-built for approaching. It reads photos of your situation, gives you exact openers for that moment, and tracks your progress over time." },
-                    { q: "Can I cancel anytime?", a: "One tap. No questions asked. You keep access until the end of your billing period." },
-                  ].map((item, i, arr) => (
-                    <button
-                      key={i}
-                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                      className="w-full text-left press"
-                    >
-                      <div className={`flex items-start justify-between gap-4 px-5 py-4 ${i < arr.length - 1 ? "border-b border-border/50" : ""}`}>
-                        <div className="flex-1">
-                          <p className="font-semibold text-[14px] leading-snug">{item.q}</p>
-                          {openFaq === i && (
-                            <p className="text-text-muted text-[14px] leading-relaxed mt-3">{item.a}</p>
-                          )}
-                        </div>
-                        <ChevronDown
-                          size={16}
-                          strokeWidth={2}
-                          className={`text-text-muted shrink-0 mt-0.5 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
-                        />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-center text-[13px] text-text-muted pt-2">
-                <p>Secure payment via Stripe &middot; Cancel anytime</p>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -605,6 +490,159 @@ export default function Home() {
             </div>
           )}
           </div>)}
+        </div>
+      )}
+
+      {/* ===== PLANS TAB ===== */}
+      {activeTab === "plans" && (
+        <div className="px-5 pt-14 pb-10 animate-fade-in">
+          <div className="text-center mb-10">
+            <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-3">
+              {isPro ? "Your plan" : "Unlock everything"}
+            </h1>
+            <p className="text-text-muted text-[15px] leading-relaxed max-w-[340px] mx-auto">
+              {isPro
+                ? "You have unlimited access to all Pro features."
+                : "Unlimited AI coaching, full tracker access, and community."}
+            </p>
+          </div>
+
+          {/* Active subscriber banner */}
+          {isPro && (
+            <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-5 relative mb-4">
+              <span className="absolute -top-3 left-6 bg-[#1a1a1a] text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                Current plan
+              </span>
+              <div className="flex items-center gap-2 mt-1 mb-3">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-[14px] font-semibold">Wingmate Pro</span>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/stripe/portal", { method: "POST" });
+                    const data = await res.json();
+                    if (data.url) window.location.href = data.url;
+                  } catch {}
+                }}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-bg-input text-[14px] font-semibold press"
+              >
+                Manage billing
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {/* Yearly Pro */}
+            <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-6 relative">
+              <span className="absolute -top-3 left-6 bg-green-500 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                Save 33%
+              </span>
+              <div className="flex items-start justify-between mt-1 mb-2">
+                <div>
+                  <h3 className="font-display text-[18px] font-bold mb-1">Pro Yearly</h3>
+                  <p className="text-text-muted text-[14px]">Unlimited AI coaching & analysis</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-text-muted text-[18px] font-bold line-through">$15</span>
+                    <span className="font-display text-[28px] font-extrabold">$10</span>
+                    <span className="text-text-muted text-[14px] font-medium">/mo</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-text-muted text-[12px] mb-5">$120 billed annually</p>
+              {!isPro && (
+                <button
+                  onClick={() => handleCheckout("yearly")}
+                  disabled={!!checkoutLoading}
+                  className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+                >
+                  {checkoutLoading === "yearly" ? "Redirecting..." : "Subscribe yearly"}
+                </button>
+              )}
+              <div className="space-y-3">
+                {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+                  <div key={f} className="flex items-center gap-3">
+                    <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
+                    <span className="text-[14px]">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Monthly Pro */}
+            <div className="bg-bg-card border border-border rounded-2xl p-6">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="font-display text-[18px] font-bold mb-1">Pro Monthly</h3>
+                  <p className="text-text-muted text-[14px]">Unlimited AI coaching & analysis</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-display text-[28px] font-extrabold">$15</span>
+                    <span className="text-text-muted text-[14px] font-medium">/mo</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-text-muted text-[12px] mb-5">Cancel anytime</p>
+              {!isPro && (
+                <button
+                  onClick={() => handleCheckout("monthly")}
+                  disabled={!!checkoutLoading}
+                  className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+                >
+                  {checkoutLoading === "monthly" ? "Redirecting..." : "Subscribe monthly"}
+                </button>
+              )}
+              <div className="space-y-3">
+                {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+                  <div key={f} className="flex items-center gap-3">
+                    <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
+                    <span className="text-[14px]">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="mt-10">
+            <h2 className="font-display text-[22px] font-bold tracking-tight mb-6">
+              Frequently asked questions
+            </h2>
+            <div className="rounded-2xl border border-border overflow-hidden">
+              {[
+                { q: "Can I try it for free?", a: "You're already using it! You get 2 free AI coaching messages. Upgrade for unlimited coaching, full tracker access, and community." },
+                { q: "How is this different from ChatGPT?", a: "Wingmate is purpose-built for approaching. It reads photos of your situation, gives you exact openers for that moment, and tracks your progress over time." },
+                { q: "Can I cancel anytime?", a: "One tap. No questions asked. You keep access until the end of your billing period." },
+              ].map((item, i, arr) => (
+                <button
+                  key={i}
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full text-left press"
+                >
+                  <div className={`flex items-start justify-between gap-4 px-5 py-4 ${i < arr.length - 1 ? "border-b border-border/50" : ""}`}>
+                    <div className="flex-1">
+                      <p className="font-semibold text-[14px] leading-snug">{item.q}</p>
+                      {openFaq === i && (
+                        <p className="text-text-muted text-[14px] leading-relaxed mt-3">{item.a}</p>
+                      )}
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      strokeWidth={2}
+                      className={`text-text-muted shrink-0 mt-0.5 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
+                    />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center text-[13px] text-text-muted mt-8">
+            <p>Secure payment via Stripe &middot; Cancel anytime</p>
+          </div>
         </div>
       )}
 
