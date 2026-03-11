@@ -322,9 +322,10 @@ export default function Home() {
                   Connect with other guys on the same journey. Share stories, tips, and wins.
                 </p>
                 {isLoggedIn === false ? (
-                  <a href="/login" className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press">
+                  <button onClick={() => { const s = createClient(); s.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } }); }}
+                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press">
                     Sign in to join
-                  </a>
+                  </button>
                 ) : (
                   <button
                     onClick={() => router.push("/plans")}

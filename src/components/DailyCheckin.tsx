@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Flame, MessageCircle, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX, Pencil } from "lucide-react";
 import { getFlameLevel } from "@/lib/gamification";
+import { createClient } from "@/lib/supabase-browser";
 
 interface CheckinData {
   checkedInToday: boolean;
@@ -243,9 +244,10 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
               </div>
             </div>
 
-            <a href="/login" className="block w-full py-3.5 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold text-center press">
+            <button onClick={() => { const s = createClient(); s.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } }); }}
+              className="block w-full py-3.5 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold text-center press">
               Sign in to start tracking
-            </a>
+            </button>
           </div>
 
           {/* All-time stats (zeroed, disabled) */}
