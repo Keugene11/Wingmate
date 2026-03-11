@@ -481,14 +481,14 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
         </div>
       )}
 
-      {/* Today's counters — always at the very top when checked in */}
-      {data.checkedInToday && todayCountersSection}
+      {/* Today's counters — always at the very top when checked in (Pro only) */}
+      {data.checkedInToday && isPro && todayCountersSection}
 
       {/* All-time approach stats */}
-      {data.checkedInToday && approachStatsSection}
+      {data.checkedInToday && isPro && approachStatsSection}
 
-      {/* Main check-in card */}
-      {!data.checkedInToday && (
+      {/* Main check-in card — show for free users always, for Pro only when not checked in */}
+      {(!data.checkedInToday || !isPro) && (
       <div className={`rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white`}>
             <div className="flex items-center justify-between mb-5">
               <div>
