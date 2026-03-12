@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flame, MessageCircle, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX } from "lucide-react";
-import { getFlameLevel } from "@/lib/gamification";
+import { Flame, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -46,17 +45,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const [flowApproaches, setFlowApproaches] = useState(0);
   const [flowSuccesses, setFlowSuccesses] = useState(0);
 
-  // Edit today's check-in (pencil button)
-  const [editing, setEditing] = useState(false);
-  const [editOpportunities, setEditOpportunities] = useState(0);
-  const [editApproaches, setEditApproaches] = useState(0);
-  const [editSuccesses, setEditSuccesses] = useState(0);
-
-  // Today's inline counters
-  const [todayOpportunities, setTodayOpportunities] = useState<number | null>(null);
-  const [todayApproaches, setTodayApproaches] = useState<number | null>(null);
-  const [todaySuccesses, setTodaySuccesses] = useState<number | null>(null);
-  const [savingToday, setSavingToday] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
 
@@ -118,63 +106,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       setSaveError("Network error — check your connection");
     }
     setSubmitting(false);
-  };
-
-  const startEditing = () => {
-    setEditOpportunities(data?.opportunitiesCount ?? 0);
-    setEditApproaches(data?.approachesCount ?? 0);
-    setEditSuccesses(data?.successesCount ?? 0);
-    setEditing(true);
-  };
-
-  const saveEdit = async () => {
-    setSubmitting(true);
-    await fetch("/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        talked: editApproaches > 0,
-        opportunitiesCount: editOpportunities,
-        approachesCount: editApproaches,
-        successesCount: editSuccesses,
-        clientDate: getLocalDate(),
-      }),
-    });
-    await refreshData();
-    setEditing(false);
-    setSubmitting(false);
-  };
-
-  const saveToday = async () => {
-    if (todayOpportunities === null && todayApproaches === null && todaySuccesses === null) return;
-    const today = getLocalDate();
-    const opportunities = todayOpportunities ?? data?.opportunitiesCount ?? 0;
-    const approaches = todayApproaches ?? data?.approachesCount ?? 0;
-    const successes = todaySuccesses ?? data?.successesCount ?? 0;
-    setSavingToday(true);
-    setSaveError(null);
-    try {
-      const res = await fetch("/api/checkin", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: today, opportunities, approaches, successes }),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("PATCH /api/checkin failed:", res.status, text);
-        setSaveError(`Save failed (${res.status})`);
-        setSavingToday(false);
-        return;
-      }
-      await refreshData();
-      setTodayOpportunities(null);
-      setTodayApproaches(null);
-      setTodaySuccesses(null);
-    } catch (e) {
-      console.error("saveToday error:", e);
-      setSaveError("Network error — check your connection");
-    }
-    setSavingToday(false);
   };
 
 
@@ -344,68 +275,8 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
     );
   }
 
-  const flame = getFlameLevel(data.streak);
-
-
 
   const todayDate = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-
-  const todayCountersSection = (() => {
-    const dispOpp = todayOpportunities ?? data.opportunitiesCount;
-    const dispAppr = todayApproaches ?? data.approachesCount;
-    const dispSucc = todaySuccesses ?? data.successesCount;
-    const hasChanges = todayOpportunities !== null || todayApproaches !== null || todaySuccesses !== null;
-    const isDirty = hasChanges && (dispOpp !== data.opportunitiesCount || dispAppr !== data.approachesCount || dispSucc !== data.successesCount);
-
-    const initIfNeeded = () => {
-      if (todayOpportunities === null) setTodayOpportunities(data.opportunitiesCount);
-      if (todayApproaches === null) setTodayApproaches(data.approachesCount);
-      if (todaySuccesses === null) setTodaySuccesses(data.successesCount);
-    };
-
-    return (
-      <div className="bg-bg-card border border-border rounded-2xl px-4 py-5">
-        <div className="grid grid-cols-3 gap-3">
-          {/* Seen */}
-          <div className="bg-purple-50 rounded-2xl px-3 py-4 flex flex-col items-center">
-            <span className="text-[11px] font-bold text-purple-500 uppercase tracking-wider mb-3">Seen</span>
-            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayOpportunities(dispOpp + 1); })}
-              className="w-full h-11 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-200 mb-2">+</button>
-            <span className="font-display text-[40px] font-extrabold leading-none text-purple-600 my-1">{dispOpp}</span>
-            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayOpportunities(Math.max(0, dispOpp - 1)); if (dispAppr > dispOpp - 1) setTodayApproaches(Math.max(0, dispOpp - 1)); })}
-              className="w-full h-11 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-[22px] font-bold press active:bg-purple-200 mt-2">−</button>
-          </div>
-          {/* Approached */}
-          <div className="bg-blue-50 rounded-2xl px-3 py-4 flex flex-col items-center">
-            <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-3">Approached</span>
-            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayApproaches(Math.min(dispOpp, dispAppr + 1)); })}
-              className="w-full h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-200 mb-2">+</button>
-            <span className="font-display text-[40px] font-extrabold leading-none text-blue-600 my-1">{dispAppr}</span>
-            <button onClick={() => guardPro(() => { initIfNeeded(); setTodayApproaches(Math.max(0, dispAppr - 1)); if (dispSucc > dispAppr - 1) setTodaySuccesses(Math.max(0, dispAppr - 1)); })}
-              className="w-full h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-[22px] font-bold press active:bg-blue-200 mt-2">−</button>
-          </div>
-          {/* Went well */}
-          <div className="bg-green-50 rounded-2xl px-3 py-4 flex flex-col items-center">
-            <span className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-3">Went well</span>
-            <button onClick={() => guardPro(() => { initIfNeeded(); setTodaySuccesses(Math.min(dispAppr, dispSucc + 1)); })}
-              className="w-full h-11 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-100 mb-2">+</button>
-            <span className="font-display text-[40px] font-extrabold leading-none text-green-600 my-1">{dispSucc}</span>
-            <button onClick={() => guardPro(() => { initIfNeeded(); setTodaySuccesses(Math.max(0, dispSucc - 1)); })}
-              className="w-full h-11 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-[22px] font-bold press active:bg-green-200 mt-2">−</button>
-          </div>
-        </div>
-        {isDirty && (
-          <div className="flex gap-2 mt-4 animate-fade-in">
-            <button onClick={() => { setTodayOpportunities(null); setTodayApproaches(null); setTodaySuccesses(null); }}
-              className="flex-1 py-3 rounded-xl bg-bg-card-hover border border-border text-[14px] font-medium press">Cancel</button>
-            <button onClick={saveToday} disabled={savingToday}
-              className="flex-1 py-3 rounded-xl bg-[#1a1a1a] text-white text-[14px] font-semibold press disabled:opacity-60">
-              {savingToday ? "..." : "Save"}</button>
-          </div>
-        )}
-      </div>
-    );
-  })();
 
   const approachStatsSection = (
     <div className="bg-bg-card border border-border rounded-2xl px-5 py-4">

@@ -392,12 +392,6 @@ export async function PATCH(req: Request) {
       }
     }
 
-    // Verify the write
-    const { data: verify } = await supabase
-      .from("checkins").select("opportunities_count, approaches_count, successes_count")
-      .eq("user_id", user.id).eq("checked_in_at", date).single();
-    console.log("[PATCH] verify after write:", JSON.stringify(verify));
-
     const stats = await getFullStats(supabase, user.id, date);
     return NextResponse.json({
       totalOpportunities: stats.totalOpportunities,
