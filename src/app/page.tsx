@@ -88,6 +88,15 @@ export default function Home() {
       if (data.user) {
         setUserId(data.user.id);
         setIsLoggedIn(true);
+        // Check if onboarding is needed
+        fetch("/api/profile")
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.profile && !d.profile.goal) {
+              router.replace("/onboarding");
+            }
+          })
+          .catch(() => {});
         // If there's a pending message from pre-auth, switch to coach tab
         try {
           if (sessionStorage.getItem("wingmate-pending-message")) {

@@ -70,6 +70,10 @@ export async function PATCH(req: Request) {
     updates.avatar_url = body.avatar_url;
   }
 
+  if (body.goal !== undefined) {
+    updates.goal = body.goal;
+  }
+
   const { data, error } = await supabase
     .from("profiles")
     .update(updates)

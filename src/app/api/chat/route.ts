@@ -2,8 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "edge";
 
-async function getUser(req: Request) {
-  const supabase = createServerClient(
+function createSupabase(req: Request) {
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -19,6 +19,10 @@ async function getUser(req: Request) {
       },
     }
   );
+}
+
+async function getUser(req: Request) {
+  const supabase = createSupabase(req);
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
@@ -128,7 +132,25 @@ export async function POST(req: Request) {
       return Response.json({ error: "Message too long" }, { status: 400 });
     }
 
+    // Fetch user's goal to personalize coaching
+    const supabase = createSupabase(req);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("goal")
+      .eq("id", user.id)
+      .single();
+
+    const goalDescriptions: Record<string, string> = {
+      girlfriend: "find a girlfriend and build a real relationship",
+      rizz: "improve their social skills and get smoother with girls",
+      hookups: "hook up with girls and enjoy casual connections",
+      memories: "have fun, meet new people, and make great memories",
+    };
+
     let systemPrompt = SYSTEM_PROMPT;
+    if (profile?.goal && goalDescriptions[profile.goal]) {
+      systemPrompt += `\n\nIMPORTANT CONTEXT: This user's goal is to ${goalDescriptions[profile.goal]}. Tailor ALL your advice, openers, and game plans specifically toward this goal. Your coaching should reflect what they're actually going for.`;
+    }
     if (mode === "checkin-talked") {
       systemPrompt += CHECKIN_TALKED_PROMPT;
     } else if (mode === "checkin-didnt-talk") {
