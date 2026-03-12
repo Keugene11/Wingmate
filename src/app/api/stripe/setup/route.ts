@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { getStripe, PRICES } from "@/lib/stripe";
 
 // One-time setup: creates the product and prices in Stripe
-// Call this once via POST /api/stripe/setup
-export async function POST() {
+export async function GET() { return setup(); }
+export async function POST() { return setup(); }
+
+async function setup() {
   try {
     // Check if product already exists by searching
     const existingProducts = await getStripe().products.search({
