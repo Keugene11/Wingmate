@@ -36,7 +36,7 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [customGoal, setCustomGoal] = useState("");
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState<"goals" | "community" | "motivation">("goals");
+  const [step, setStep] = useState<"goals" | "remember" | "community" | "motivation">("goals");
 
   const toggleGoal = (id: string) => {
     setSelected((prev) => {
@@ -61,11 +61,37 @@ export default function OnboardingPage() {
         body: JSON.stringify(body),
       });
       setSaving(false);
-      setStep("community");
+      setStep("remember");
     } catch {
       setSaving(false);
     }
   };
+
+  if (step === "remember") {
+    return (
+      <main className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12 animate-fade-in">
+        <div className="text-center mb-12">
+          <p className="text-[48px] mb-6">💭</p>
+          <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4">
+            Remember that crush you had?
+          </h1>
+          <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto">
+            She was so beautiful. Your heart would pound every time you saw her. Or that stunning girl at the airport, or in one of your classes. You imagined what it&apos;d be like to talk to them, make memories together, get to know them. But you never had the guts to walk up — because you were too scared.
+          </p>
+          <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium">
+            That ends now.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setStep("community")}
+          className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press"
+        >
+          Next
+        </button>
+      </main>
+    );
+  }
 
   if (step === "community") {
     return (
