@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Sparkles, Flame, PartyPopper, Pencil } from "lucide-react";
+import { Heart, Sparkles, Flame, PartyPopper, Pencil, Check } from "lucide-react";
 
 const GOALS = [
   {
@@ -55,7 +55,8 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [customGoal, setCustomGoal] = useState("");
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState<"goals" | "remember" | "regret" | "community" | "motivation">("goals");
+  const [step, setStep] = useState<"goals" | "remember" | "regret" | "community" | "pitch" | "motivation">("goals");
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [stepKey, setStepKey] = useState(0);
 
   const goToStep = (s: typeof step) => {
@@ -152,7 +153,107 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        <DelayedButton onClick={() => goToStep("motivation")} label="Next" />
+        <DelayedButton onClick={() => goToStep("pitch")} label="Next" />
+      </main>
+    );
+  }
+
+  if (step === "pitch") {
+    const handleCheckout = async (plan: "monthly" | "yearly") => {
+      setCheckoutLoading(plan);
+      try {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan }),
+        });
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+      } catch {
+        setCheckoutLoading(null);
+      }
+    };
+
+    return (
+      <main key={stepKey} className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12">
+        <div className="text-center mb-8">
+          <p className="text-[48px] mb-6 onb-emoji">🔥</p>
+          <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
+            Imagine if you never missed another opportunity.
+          </h1>
+          <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
+            Remember the good moments you&apos;ve had with girls. Now imagine having the confidence and cold approach skills so that whenever you see a stunning girl in public, you react instantly and approach her before overthinking it. Imagine how different your life would be if you just went for it every single time.
+          </p>
+          <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
+            All of that is definitely worth $15/mo.
+          </p>
+        </div>
+
+        {/* Plan cards */}
+        <div className="space-y-3 mb-4 onb-goals">
+          {/* Monthly */}
+          <div className="bg-bg-card border border-border rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display text-[16px] font-bold">Pro Monthly</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="font-display text-[22px] font-extrabold">$15</span>
+                <span className="text-text-muted text-[13px]">/mo</span>
+              </div>
+            </div>
+            <div className="space-y-2 mb-4">
+              {["AI coach for in-the-moment help", "Daily check-ins & streak tracker", "Community of cold approachers"].map((f) => (
+                <div key={f} className="flex items-center gap-2">
+                  <Check size={14} strokeWidth={2.5} className="text-text-muted shrink-0" />
+                  <span className="text-[13px]">{f}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => handleCheckout("monthly")}
+              disabled={!!checkoutLoading}
+              className="w-full bg-bg-input text-text py-2.5 rounded-xl font-semibold text-[14px] press disabled:opacity-60"
+            >
+              {checkoutLoading === "monthly" ? "Redirecting..." : "Subscribe monthly"}
+            </button>
+          </div>
+
+          {/* Yearly */}
+          <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-5 relative">
+            <span className="absolute -top-2.5 left-5 bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+              Save 33%
+            </span>
+            <div className="flex items-center justify-between mb-3 mt-1">
+              <h3 className="font-display text-[16px] font-bold">Pro Yearly</h3>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-text-muted text-[16px] font-bold line-through">$15</span>
+                <span className="font-display text-[22px] font-extrabold">$10</span>
+                <span className="text-text-muted text-[13px]">/mo</span>
+              </div>
+            </div>
+            <div className="space-y-2 mb-4">
+              {["AI coach for in-the-moment help", "Daily check-ins & streak tracker", "Community of cold approachers"].map((f) => (
+                <div key={f} className="flex items-center gap-2">
+                  <Check size={14} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
+                  <span className="text-[13px]">{f}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => handleCheckout("yearly")}
+              disabled={!!checkoutLoading}
+              className="w-full bg-[#1a1a1a] text-white py-2.5 rounded-xl font-semibold text-[14px] press disabled:opacity-60"
+            >
+              {checkoutLoading === "yearly" ? "Redirecting..." : "Subscribe yearly"}
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={() => goToStep("motivation")}
+          className="text-text-muted text-[14px] font-medium py-3 press onb-body-2"
+        >
+          Skip for now
+        </button>
       </main>
     );
   }
