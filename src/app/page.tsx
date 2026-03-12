@@ -247,7 +247,11 @@ export default function Home() {
     updateState("tabs");
   };
 
-  if (!hydrated || isLoggedIn === null) return null;
+  if (!hydrated || isLoggedIn === null) return (
+    <main className="min-h-screen flex items-center justify-center">
+      <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
+    </main>
+  );
 
   // Public landing page for unauthenticated visitors
   if (isLoggedIn === false) return <LandingPage />;
