@@ -74,6 +74,10 @@ export async function PATCH(req: Request) {
     updates.goal = body.goal;
   }
 
+  if (body.custom_goal !== undefined) {
+    updates.custom_goal = body.custom_goal.trim().slice(0, 100);
+  }
+
   const { data, error } = await supabase
     .from("profiles")
     .update(updates)

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Sparkles, Flame, PartyPopper } from "lucide-react";
+import { Heart, Sparkles, Flame, PartyPopper, Pencil } from "lucide-react";
 
 const GOALS = [
   {
@@ -34,6 +34,7 @@ const GOALS = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [customGoal, setCustomGoal] = useState("");
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<"goals" | "motivation">("goals");
 
@@ -46,14 +47,18 @@ export default function OnboardingPage() {
     });
   };
 
+  const hasAnyGoal = selected.size > 0 || customGoal.trim().length > 0;
+
   const handleContinue = async () => {
-    if (selected.size === 0) return;
+    if (!hasAnyGoal) return;
     setSaving(true);
     try {
+      const body: Record<string, string> = { goal: Array.from(selected).join(",") };
+      if (customGoal.trim()) body.custom_goal = customGoal.trim();
       await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal: Array.from(selected).join(",") }),
+        body: JSON.stringify(body),
       });
       setSaving(false);
       setStep("motivation");
@@ -99,7 +104,7 @@ export default function OnboardingPage() {
         </p>
       </div>
 
-      <div className="space-y-3 mb-10">
+      <div className="space-y-3 mb-4">
         {GOALS.map((goal) => (
           <button
             key={goal.id}
@@ -135,9 +140,23 @@ export default function OnboardingPage() {
         ))}
       </div>
 
+      {/* Custom goal */}
+      <div className="flex items-center gap-3 bg-bg-card border-2 border-border rounded-2xl px-5 py-4 mb-10">
+        <div className="w-10 h-10 rounded-xl bg-bg-input flex items-center justify-center shrink-0">
+          <Pencil size={20} strokeWidth={1.5} className="text-text" />
+        </div>
+        <input
+          type="text"
+          value={customGoal}
+          onChange={(e) => setCustomGoal(e.target.value.slice(0, 100))}
+          placeholder="Or type your own goal..."
+          className="flex-1 bg-transparent text-[15px] font-medium placeholder:text-text-muted/50 outline-none"
+        />
+      </div>
+
       <button
         onClick={handleContinue}
-        disabled={selected.size === 0 || saving}
+        disabled={!hasAnyGoal || saving}
         className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press disabled:opacity-40 transition-opacity"
       >
         {saving ? "Saving..." : "Continue"}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, LogOut, CreditCard, Camera, Check, ChevronRight, Trash2, Flame } from "lucide-react";
+import { ArrowLeft, LogOut, CreditCard, Camera, Check, ChevronRight, Trash2, Flame, Heart, Sparkles, PartyPopper, Pencil, X } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,16 @@ type Profile = {
   id: string;
   username: string;
   avatar_url: string | null;
+  goal: string | null;
+  custom_goal: string | null;
 };
+
+const GOAL_OPTIONS = [
+  { id: "girlfriend", icon: Heart, label: "Get a girlfriend" },
+  { id: "rizz", icon: Sparkles, label: "Improve my rizz" },
+  { id: "hookups", icon: Flame, label: "Hook up with girls" },
+  { id: "memories", icon: PartyPopper, label: "Just have fun memories" },
+];
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -33,6 +42,12 @@ export default function ProfilePage() {
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Goals
+  const [editingGoals, setEditingGoals] = useState(false);
+  const [goalSelection, setGoalSelection] = useState<Set<string>>(new Set());
+  const [customGoalInput, setCustomGoalInput] = useState("");
+  const [savingGoals, setSavingGoals] = useState(false);
 
   // Stats
   const [streak, setStreak] = useState(0);
@@ -131,6 +146,40 @@ export default function ProfilePage() {
     const data = await res.json();
     if (data.profile) setProfile(data.profile);
     setUploadingAvatar(false);
+  };
+
+  const startEditingGoals = () => {
+    const current = profile?.goal ? new Set(profile.goal.split(",").filter(Boolean)) : new Set<string>();
+    setGoalSelection(current);
+    setCustomGoalInput(profile?.custom_goal || "");
+    setEditingGoals(true);
+  };
+
+  const toggleGoalSelection = (id: string) => {
+    setGoalSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const saveGoals = async () => {
+    setSavingGoals(true);
+    const res = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        goal: Array.from(goalSelection).join(","),
+        custom_goal: customGoalInput.trim(),
+      }),
+    });
+    const data = await res.json();
+    if (data.profile) {
+      setProfile(data.profile);
+    }
+    setSavingGoals(false);
+    setEditingGoals(false);
   };
 
   const formatDate = (dateStr: string) =>
@@ -253,6 +302,90 @@ export default function ProfilePage() {
           <span className="font-display text-[22px] font-bold">{totalCheckins}</span>
           <p className="text-[12px] text-text-muted">Check-ins this week</p>
         </div>
+      </div>
+
+      {/* Goals */}
+      <div className="bg-bg-card border border-border rounded-xl px-4 py-4 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[12px] font-semibold text-text-muted uppercase tracking-wide">
+            Your Goals
+          </p>
+          {!editingGoals && (
+            <button onClick={startEditingGoals} className="text-[12px] font-medium text-text-muted press">
+              Edit
+            </button>
+          )}
+        </div>
+        {editingGoals ? (
+          <div>
+            <div className="space-y-2 mb-3">
+              {GOAL_OPTIONS.map((g) => (
+                <button
+                  key={g.id}
+                  onClick={() => toggleGoalSelection(g.id)}
+                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium transition-colors ${
+                    goalSelection.has(g.id)
+                      ? "bg-[#1a1a1a] text-white"
+                      : "bg-bg-input text-text"
+                  }`}
+                >
+                  <g.icon size={16} strokeWidth={1.5} />
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 bg-bg-input rounded-xl px-3 py-2.5 mb-3">
+              <Pencil size={16} strokeWidth={1.5} className="text-text-muted shrink-0" />
+              <input
+                type="text"
+                value={customGoalInput}
+                onChange={(e) => setCustomGoalInput(e.target.value.slice(0, 100))}
+                placeholder="Custom goal..."
+                className="flex-1 bg-transparent text-[14px] placeholder:text-text-muted/50 outline-none"
+              />
+              {customGoalInput && (
+                <button onClick={() => setCustomGoalInput("")} className="press">
+                  <X size={14} className="text-text-muted" />
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditingGoals(false)}
+                className="flex-1 py-2 rounded-xl text-[13px] font-medium bg-bg-input press"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveGoals}
+                disabled={savingGoals}
+                className="flex-1 py-2 rounded-xl text-[13px] font-medium bg-[#1a1a1a] text-white press disabled:opacity-60"
+              >
+                {savingGoals ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            {(() => {
+              const goalLabels = (profile?.goal || "").split(",").filter(Boolean).map(
+                (g) => GOAL_OPTIONS.find((o) => o.id === g)?.label
+              ).filter(Boolean);
+              if (profile?.custom_goal) goalLabels.push(profile.custom_goal);
+              return goalLabels.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {goalLabels.map((label) => (
+                    <span key={label} className="text-[13px] bg-bg-input rounded-lg px-3 py-1.5 font-medium">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-text-muted text-[14px]">No goals set</p>
+              );
+            })()}
+          </div>
+        )}
       </div>
 
       {/* Subscription */}

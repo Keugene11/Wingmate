@@ -136,7 +136,7 @@ export async function POST(req: Request) {
     const supabase = createSupabase(req);
     const { data: profile } = await supabase
       .from("profiles")
-      .select("goal")
+      .select("goal, custom_goal")
       .eq("id", user.id)
       .single();
 
@@ -148,8 +148,9 @@ export async function POST(req: Request) {
     };
 
     let systemPrompt = SYSTEM_PROMPT;
-    if (profile?.goal) {
-      const goals = profile.goal.split(",").map((g: string) => goalDescriptions[g]).filter(Boolean);
+    if (profile?.goal || profile?.custom_goal) {
+      const goals = (profile.goal || "").split(",").map((g: string) => goalDescriptions[g]).filter(Boolean);
+      if (profile.custom_goal) goals.push(profile.custom_goal);
       if (goals.length > 0) {
         systemPrompt += `\n\nIMPORTANT CONTEXT: This user's goals are to ${goals.join(" and ")}. Tailor ALL your advice, openers, and game plans specifically toward these goals. Your coaching should reflect what they're actually going for.`;
       }
