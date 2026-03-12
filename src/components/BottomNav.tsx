@@ -42,7 +42,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
           ) : (
             <Link
               key={id}
-              href="/"
+              href={`/?tab=${id}`}
               className={`flex flex-col items-center gap-0.5 px-4 py-1 press text-text-muted/50`}
             >
               <Icon size={20} strokeWidth={1.5} />

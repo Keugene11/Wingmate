@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { Plus, Flame, Lock, MessageCircle, Search, X, Check } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 
 import ChatCoach from "@/components/ChatCoach";
@@ -45,7 +45,16 @@ function getSessionState(): { state: AppState; fromPhoto: boolean; tab: Tab } {
 const PAGE_SIZE = 20;
 
 export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeInner />
+    </Suspense>
+  );
+}
+
+function HomeInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [state, setState] = useState<AppState>("tabs");
   const [activeTab, setActiveTab] = useState<Tab>("checkin");
   const [checkinTalked, setCheckinTalked] = useState<boolean | null>(null);
@@ -73,11 +82,17 @@ export default function Home() {
   const supabase = createClient();
 
   useEffect(() => {
+    const tabParam = searchParams.get("tab") as Tab | null;
     const saved = getSessionState();
-    if (saved.state === "chat" || saved.state === "conversations") {
-      setState(saved.state);
+    if (tabParam && ["checkin", "coach", "stats", "community", "plans"].includes(tabParam)) {
+      setActiveTab(tabParam);
+      setState("tabs");
+    } else {
+      if (saved.state === "chat" || saved.state === "conversations") {
+        setState(saved.state);
+      }
+      if (saved.tab) setActiveTab(saved.tab);
     }
-    if (saved.tab) setActiveTab(saved.tab);
     setHydrated(true);
 
     supabase.auth.getUser().then(({ data }) => {
