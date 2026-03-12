@@ -12,6 +12,7 @@ import DailyCheckin from "@/components/DailyCheckin";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
 import StatsView from "@/components/StatsView";
+import LandingPage from "@/components/LandingPage";
 
 function getGreeting(name?: string): string {
   const first = name || "king";
@@ -246,7 +247,10 @@ export default function Home() {
     updateState("tabs");
   };
 
-  if (!hydrated) return null;
+  if (!hydrated || isLoggedIn === null) return null;
+
+  // Public landing page for unauthenticated visitors
+  if (isLoggedIn === false) return <LandingPage />;
 
   // Full-screen: checkin-chat (no tab bar — temporary coaching flow)
   if (state === "checkin-chat") {
@@ -299,15 +303,15 @@ export default function Home() {
           }}
           conversationId={activeConversationId}
           onConversationCreated={(id) => setActiveConversationId(id)}
-          onShowHistory={isLoggedIn === false ? undefined : () => {
+          onShowHistory={() => {
             updateState("conversations");
           }}
-          onNewChat={isLoggedIn === false ? undefined : () => {
+          onNewChat={() => {
             setActiveConversationId(null);
             updateState("chat");
           }}
           showBottomPadding
-          isLoggedIn={isLoggedIn !== false}
+          isLoggedIn
         />
       )}
 
@@ -321,7 +325,7 @@ export default function Home() {
               updateState("checkin-chat");
             }}
             onCheckedIn={() => setCheckedInToday(true)}
-            isLoggedIn={isLoggedIn !== false}
+            isLoggedIn
             isPro={isPro !== false}
           />
 
@@ -350,13 +354,13 @@ export default function Home() {
             <h1 className="font-display text-[28px] font-bold tracking-tight">Community</h1>
           </div>
 
-          {isPro === null && isLoggedIn !== false && (
+          {isPro === null && (
             <div className="flex items-center justify-center py-20">
               <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
-          {(isPro === false || isLoggedIn === false) && (
+          {isPro === false && (
             <div>
               {/* Sort toggle (disabled) */}
               <div className="flex gap-1 mb-5 bg-bg-card border border-border rounded-full p-1 w-fit opacity-50">
@@ -386,24 +390,17 @@ export default function Home() {
                   <Lock size={24} strokeWidth={1.5} className="text-text-muted" />
                 </div>
                 <h2 className="font-display text-[20px] font-bold mb-2">
-                  {isLoggedIn === false ? "Join the community" : "Pro feature"}
+                  Pro feature
                 </h2>
                 <p className="text-text-muted text-[14px] leading-relaxed mb-6 max-w-[260px]">
                   Connect with other guys on the same journey. Share stories, tips, and wins.
                 </p>
-                {isLoggedIn === false ? (
-                  <button onClick={() => { const s = createClient(); s.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } }); }}
-                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press">
-                    Sign in to join
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => router.push("/plans")}
-                    className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
-                  >
-                    Unlock with Pro
-                  </button>
-                )}
+                <button
+                  onClick={() => router.push("/plans")}
+                  className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
+                >
+                  Unlock with Pro
+                </button>
               </div>
             </div>
           )}
