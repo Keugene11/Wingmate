@@ -419,9 +419,9 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
       {limitReached ? (
         <div className="px-5 py-6 shrink-0 bg-bg-card border-t border-border text-center animate-fade-in">
           <Lock size={18} strokeWidth={1.5} className="mx-auto text-text-muted mb-2" />
-          <p className="font-display font-bold text-[16px] mb-1">You&apos;re out of free messages</p>
+          <p className="font-display font-bold text-[16px] mb-1">Pro feature</p>
           <p className="text-text-muted text-[13px] mb-4">
-            Go Pro for unlimited access to your AI wingmate.
+            Upgrade to Pro for unlimited AI coaching.
           </p>
           <button
             onClick={() => router.push("/pricing")}
@@ -432,11 +432,6 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         </div>
       ) : (
         <div className="shrink-0 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-          {messagesRemaining !== null && messagesRemaining >= 0 && (
-            <div className="text-center py-1.5 text-[11px] text-text-muted">
-              {messagesRemaining} free {messagesRemaining === 1 ? "message" : "messages"} left
-            </div>
-          )}
           <div className="px-4 py-2">
             <form
               onSubmit={handleSubmit}

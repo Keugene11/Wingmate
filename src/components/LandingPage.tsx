@@ -127,7 +127,7 @@ export default function LandingPage() {
           Ready to make a move?
         </h2>
         <p className="text-text-muted text-[15px] leading-relaxed mb-8 max-w-[320px] mx-auto">
-          Start with free AI coaching messages. Upgrade anytime for unlimited access.
+          View check-ins and stats for free. Upgrade to Pro for unlimited AI coaching.
         </p>
         <button
           onClick={handleSignIn}
