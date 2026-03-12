@@ -35,6 +35,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [step, setStep] = useState<"goals" | "motivation">("goals");
 
   const toggleGoal = (id: string) => {
     setSelected((prev) => {
@@ -54,11 +55,35 @@ export default function OnboardingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ goal: Array.from(selected).join(",") }),
       });
-      router.replace("/");
+      setSaving(false);
+      setStep("motivation");
     } catch {
       setSaving(false);
     }
   };
+
+  if (step === "motivation") {
+    return (
+      <main className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12 animate-fade-in">
+        <div className="text-center mb-12">
+          <p className="text-[48px] mb-6">🫵</p>
+          <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4">
+            Next time you see a girl and get nervous, remember why you&apos;re here.
+          </h1>
+          <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto">
+            Remember your goals. Take a breath. And go talk to her. That&apos;s how everything changes.
+          </p>
+        </div>
+
+        <button
+          onClick={() => router.replace("/")}
+          className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press"
+        >
+          Let&apos;s go
+        </button>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12 animate-fade-in">
