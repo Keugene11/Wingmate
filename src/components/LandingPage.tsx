@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, MessageCircle, Camera, BarChart3, Users, Shield } from "lucide-react";
+import { Check, MessageCircle, BarChart3, Users, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 
 const FEATURES = [
@@ -9,11 +9,6 @@ const FEATURES = [
     icon: MessageCircle,
     title: "AI Coaching",
     description: "Get real-time advice on what to say, how to approach, and how to handle any situation.",
-  },
-  {
-    icon: Camera,
-    title: "Photo Analysis",
-    description: "Snap a photo of your surroundings and get tailored openers and strategy for that exact moment.",
   },
   {
     icon: BarChart3,
@@ -31,7 +26,6 @@ const DATA_USAGE = [
   "Google account info (name, email, profile photo) to create and personalize your account",
   "Daily check-in responses to track your progress and build streaks",
   "Chat messages to provide AI coaching (messages are session-only and not permanently stored)",
-  "Photos are analyzed locally on your device and are never uploaded or stored on our servers",
 ];
 
 export default function LandingPage() {

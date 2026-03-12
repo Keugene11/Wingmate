@@ -576,7 +576,7 @@ export default function Home() {
                 </button>
               )}
               <div className="space-y-3">
-                {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+                {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
                   <div key={f} className="flex items-center gap-3">
                     <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
                     <span className="text-[14px]">{f}</span>
@@ -610,7 +610,7 @@ export default function Home() {
                 </button>
               )}
               <div className="space-y-3">
-                {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+                {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
                   <div key={f} className="flex items-center gap-3">
                     <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
                     <span className="text-[14px]">{f}</span>

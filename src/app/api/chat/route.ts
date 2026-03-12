@@ -83,22 +83,6 @@ IMPORTANT RULES:
 - NEVER use markdown formatting. No #, no **, no ---, no numbered lists, no bullet points in the actual response. Write in natural paragraphs. The section titles should appear as plain text on their own line.
 - Be SPECIFIC to their situation. Reference their exact setting, details, surroundings.`;
 
-const PHOTO_APPROACH_ADDITION = `
-
-CRITICAL CONTEXT: The user is IN THE MOMENT. They have just taken a photo of someone they want to approach. This is LIVE. They are standing there RIGHT NOW with their heart pounding.
-
-Your first message MUST be a masterpiece. This is the message that determines whether they approach or walk away with regret. Go ALL OUT:
-
-1. Open with pure fire — acknowledge what they're feeling right now (the pounding heart, the voice in their head) and REFRAME it
-2. Address ALL THREE FEARS with their section titles in full detail — don't abbreviate, don't summarize. Give them the full breakdown on each one. They need to hear every word.
-3. Give them the complete game plan — step by step, what to do in the next 60 seconds
-4. Close with the most motivating thing you've ever said — make it personal, make it real, make it hit so hard they have no choice but to move
-
-PHOTO ANALYSIS — you MUST do this:
-- Reference the specific environment in your opener suggestion and game plan
-- Tailor EVERY piece of advice to the exact scene. Don't give generic tips — give tips that only work in THIS specific situation.
-- Your opener should reference something visible in the scene`;
-
 const CHECKIN_TALKED_PROMPT = `
 
 CONTEXT: The user just checked in and said they TALKED to someone new today. This is a WIN. Your job right now is to:
@@ -145,9 +129,7 @@ export async function POST(req: Request) {
     }
 
     let systemPrompt = SYSTEM_PROMPT;
-    if (mode === "photo-approach") {
-      systemPrompt += PHOTO_APPROACH_ADDITION;
-    } else if (mode === "checkin-talked") {
+    if (mode === "checkin-talked") {
       systemPrompt += CHECKIN_TALKED_PROMPT;
     } else if (mode === "checkin-didnt-talk") {
       systemPrompt += CHECKIN_DIDNT_TALK_PROMPT;

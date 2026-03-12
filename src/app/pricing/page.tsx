@@ -7,7 +7,6 @@ import Link from "next/link";
 
 const COMPARISON = [
   { feature: "AI coaching messages", free: "2 messages", pro: "Unlimited" },
-  { feature: "Photo situation analysis", free: false, pro: true },
   { feature: "Daily check-ins & streaks", free: "View only", pro: true },
   { feature: "Approach tracking & stats", free: "View only", pro: true },
   { feature: "Community posts & comments", free: false, pro: true },
@@ -22,11 +21,7 @@ const FAQ = [
   },
   {
     q: "How is this different from ChatGPT?",
-    a: "Wingmate is purpose-built for approaching. It reads photos of your situation, gives you exact openers for that moment, and tracks your progress over time. No generic advice.",
-  },
-  {
-    q: "Are my photos private?",
-    a: "Photos never leave your device. They're analyzed locally and never uploaded. Chat sessions aren't saved after they end.",
+    a: "Wingmate is purpose-built for approaching. It gives you exact openers, tracks your progress over time, and keeps you accountable with daily check-ins. No generic advice.",
   },
   {
     q: "Can I cancel anytime?",
@@ -124,7 +119,7 @@ export default function PricingPage() {
             Get started
           </Link>
           <div className="space-y-3">
-            {["2 free AI coaching messages", "View check-ins & stats", "Photo situation analysis (1 try)"].map((f) => (
+            {["2 free AI coaching messages", "View check-ins & stats"].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
                 <span className="text-[14px]">{f}</span>
@@ -167,7 +162,7 @@ export default function PricingPage() {
             Everything in Starter, plus
           </p>
           <div className="space-y-3">
-            {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+            {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
                 <span className="text-[14px]">{f}</span>

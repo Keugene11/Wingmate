@@ -63,17 +63,6 @@ export default function Privacy() {
         </section>
 
         <section>
-          <h2 className="text-text font-semibold text-[17px] mb-2">Photos</h2>
-          <p>
-            Photos you take or upload are processed entirely in your browser. When you use the
-            photo analysis feature, a compressed version is sent to our AI service for scene
-            analysis. We do <strong className="text-text">not</strong> store your photos on our
-            servers. Photos are never shared with third parties beyond the AI processing needed
-            to provide the service. The original photo never leaves your device.
-          </p>
-        </section>
-
-        <section>
           <h2 className="text-text font-semibold text-[17px] mb-2">Chat messages</h2>
           <p>
             Conversations with the AI coach are stored only in your browser&apos;s session
@@ -127,7 +116,7 @@ export default function Privacy() {
           <h2 className="text-text font-semibold text-[17px] mb-2">Data retention</h2>
           <p>
             We retain your account data for as long as your account exists. Chat messages are
-            not retained beyond your browser session. Photos are never stored on our servers.
+            not retained beyond your browser session.
             When you delete your account, all associated data (profile, posts, comments, votes,
             check-ins, usage records, and subscription records) is permanently deleted.
           </p>

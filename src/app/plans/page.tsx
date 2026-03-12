@@ -19,7 +19,7 @@ const FAQ = [
   },
   {
     q: "How is this different from ChatGPT?",
-    a: "Wingmate is purpose-built for approaching. It reads photos of your situation, gives you exact openers for that moment, and tracks your progress over time.",
+    a: "Wingmate is purpose-built for approaching. It gives you exact openers, tracks your progress over time, and keeps you accountable with daily check-ins. No generic advice.",
   },
   {
     q: "Can I cancel anytime?",
@@ -160,7 +160,7 @@ export default function PlansPage() {
             </button>
           )}
           <div className="space-y-3">
-            {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+            {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
                 <span className="text-[14px]">{f}</span>
@@ -198,7 +198,7 @@ export default function PlansPage() {
             </button>
           )}
           <div className="space-y-3">
-            {["Unlimited AI coaching", "Photo situation analysis", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
+            {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
                 <span className="text-[14px]">{f}</span>
