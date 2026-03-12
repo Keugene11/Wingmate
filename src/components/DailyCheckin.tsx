@@ -538,8 +538,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       {/* All-time approach stats */}
       {data.checkedInToday && approachStatsSection}
 
-      {/* 7-day history + talk button */}
-      {data.checkedInToday && (
+      {/* 7-day history */}
       <div className="bg-bg-card border border-border rounded-2xl px-5 py-5">
 
         {/* 7-day dots */}
@@ -575,7 +574,6 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
 
       </div>
-      )}
 
       {/* Show approach stats after main card when NOT checked in */}
       {!data.checkedInToday && approachStatsSection}

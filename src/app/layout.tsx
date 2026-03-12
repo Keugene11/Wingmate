@@ -34,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen antialiased">
         {children}
+        <div className="text-center py-4 text-text-muted/30 text-[11px]">A Keugene Lee production</div>
         <ServiceWorkerRegister />
       </body>
     </html>
