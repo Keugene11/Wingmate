@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, MessageCircle, BarChart3, Users, Shield } from "lucide-react";
-import { createClient } from "@/lib/supabase-browser";
+import { signInWithGoogle } from "@/lib/supabase-browser";
 
 const FEATURES = [
   {
@@ -30,11 +30,7 @@ const DATA_USAGE = [
 
 export default function LandingPage() {
   const handleSignIn = () => {
-    const supabase = createClient();
-    supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    signInWithGoogle();
   };
 
   return (

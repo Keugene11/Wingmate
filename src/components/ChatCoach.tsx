@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, ArrowUp, Lock, List, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-browser";
+import { createClient, signInWithGoogle } from "@/lib/supabase-browser";
 
 interface Message {
   role: "user" | "assistant";
@@ -261,11 +261,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
       try {
         sessionStorage.setItem("wingmate-pending-message", content.trim());
       } catch {}
-      const supabase = createClient();
-      supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
+      signInWithGoogle();
       return;
     }
 

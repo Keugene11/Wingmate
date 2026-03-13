@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Sparkles, Flame, PartyPopper, Pencil, Check, MessageCircle } from "lucide-react";
-import { createClient } from "@/lib/supabase-browser";
+import { createClient, signInWithGoogle } from "@/lib/supabase-browser";
 
 const GOALS = [
   {
@@ -214,8 +214,7 @@ export default function OnboardingPage() {
     const handleCheckout = async (plan: "monthly" | "yearly") => {
       if (!isLoggedIn) {
         try { sessionStorage.setItem("wingmate-checkout-plan", plan); } catch {}
-        const supabase = createClient();
-        supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } });
+        signInWithGoogle();
         return;
       }
       setCheckoutLoading(plan);
@@ -341,11 +340,7 @@ export default function OnboardingPage() {
             if (isLoggedIn) {
               router.replace("/");
             } else {
-              const supabase = createClient();
-              supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: { redirectTo: `${window.location.origin}/auth/callback` },
-              });
+              signInWithGoogle();
             }
           }}
           label={isLoggedIn ? "Let's go" : "Sign in with Google"}

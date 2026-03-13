@@ -95,6 +95,20 @@ function HomeInner() {
     }
     setHydrated(true);
 
+    // Listen for auth state changes (handles implicit flow tokens from hash)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event) => {
+        if (event === "SIGNED_IN") {
+          // Re-check user to pick up the new session
+          supabase.auth.getUser().then(({ data }) => {
+            if (data.user && !isLoggedIn) {
+              window.location.reload();
+            }
+          });
+        }
+      }
+    );
+
     supabase.auth.getUser().then(({ data }) => {
       const meta = data.user?.user_metadata;
       const full = meta?.full_name || meta?.name || "";
@@ -152,6 +166,9 @@ function HomeInner() {
         setGreeting(getGreeting());
         setActiveTab("checkin");
       }
+    }).catch(() => {
+      setIsLoggedIn(false);
+      setGreeting(getGreeting());
     });
 
     const now = new Date();
@@ -165,6 +182,8 @@ function HomeInner() {
       .then((res) => res.json())
       .then((d) => setIsPro(d.subscribed === true))
       .catch(() => setIsPro(false));
+
+    return () => { subscription.unsubscribe(); };
   }, []);
 
   // Load community posts when tab switches to community

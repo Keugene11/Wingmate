@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Flame, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX } from "lucide-react";
-import { createClient } from "@/lib/supabase-browser";
+import { createClient, signInWithGoogle } from "@/lib/supabase-browser";
 import UpgradeModal from "@/components/UpgradeModal";
 
 interface CheckinData {
@@ -112,7 +112,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
   if (!data) {
     if (!isLoggedIn) {
-      const triggerSignIn = () => { const s = createClient(); s.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } }); };
+      const triggerSignIn = () => { signInWithGoogle(); };
       const todayDate = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
       const emptyLast7 = Array.from({ length: 7 }, (_, i) => {
         const d = new Date();

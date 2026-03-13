@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, LogOut, CreditCard, Camera, Check, ChevronRight, Trash2, Flame, Heart, Sparkles, PartyPopper, Pencil, X } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-browser";
+import { createClient, signInWithGoogle } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 
@@ -205,7 +205,7 @@ export default function ProfilePage() {
             Track your streaks, manage your subscription, and customize your profile.
           </p>
           <button
-            onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } })}
+            onClick={() => signInWithGoogle()}
             className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
           >
             Sign in with Google
