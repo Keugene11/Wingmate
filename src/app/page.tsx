@@ -121,7 +121,7 @@ function HomeInner() {
                   return; // goals saved, no need for onboarding
                 }
               } catch {}
-              router.replace("/onboarding");
+              // onboarding temporarily disabled
             }
           })
           .catch(() => {});
@@ -309,14 +309,9 @@ function HomeInner() {
     </main>
   );
 
-  // Send unauthenticated visitors to onboarding
+  // Show landing page for unauthenticated visitors
   if (isLoggedIn === false) {
-    router.replace("/onboarding");
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-text border-t-transparent rounded-full animate-spin" />
-      </main>
-    );
+    return <LandingPage />;
   }
 
   // Full-screen: checkin-chat (no tab bar — temporary coaching flow)
