@@ -38,7 +38,7 @@ export async function signInWithGoogle() {
       options: {
         redirectTo: window.location.origin,
         skipBrowserRedirect: true,
-        queryParams: { response_type: "token" },
+        queryParams: { response_type: "token", prompt: "select_account" },
       },
     });
     if (data?.url) {
@@ -50,7 +50,10 @@ export async function signInWithGoogle() {
   // Standard PKCE flow for regular browser sessions
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: { prompt: "select_account" },
+    },
   });
   return { error };
 }
