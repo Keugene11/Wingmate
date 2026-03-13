@@ -9,9 +9,33 @@ export function createClient() {
 
 /**
  * Triggers Google OAuth sign-in via standard PKCE flow.
+ * In standalone PWA mode, uses a popup to avoid crashing the PWA window.
  */
 export async function signInWithGoogle() {
   const supabase = createClient();
+
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone ===
+      true;
+
+  if (isStandalone) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/complete`,
+        queryParams: { prompt: "select_account" },
+        skipBrowserRedirect: true,
+      },
+    });
+
+    if (error) return { error };
+    if (data?.url) {
+      window.open(data.url, "_blank", "popup,width=500,height=600");
+    }
+    return { error: null };
+  }
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {

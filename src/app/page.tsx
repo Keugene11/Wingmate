@@ -171,6 +171,17 @@ function HomeInner() {
 
   }, []);
 
+  // Listen for auth completion from popup (standalone PWA OAuth flow)
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "auth-complete") {
+        window.location.reload();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   // Load community posts when tab switches to community
   const fetchPosts = useCallback(async (mode: "new" | "top", offset = 0, query = "") => {
     const { data: { user } } = await supabase.auth.getUser();
