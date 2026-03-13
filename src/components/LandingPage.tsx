@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Check, MessageCircle, BarChart3, Users, Shield } from "lucide-react";
 import { signInWithGoogle } from "@/lib/supabase-browser";
 
@@ -29,12 +30,22 @@ const DATA_USAGE = [
 ];
 
 export default function LandingPage() {
+  const searchParams = useSearchParams();
+  const authError = searchParams.get("error");
+
   const handleSignIn = () => {
     signInWithGoogle();
   };
 
   return (
     <main className="min-h-screen max-w-lg mx-auto px-6 pb-16 animate-fade-in">
+      {/* Auth error banner */}
+      {authError && (
+        <div className="mx-auto max-w-lg mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-red-700">
+          Sign-in failed: {authError}
+        </div>
+      )}
+
       {/* Nav */}
       <div className="flex items-center justify-between pt-[max(1.5rem,env(safe-area-inset-top))] mb-16">
         <p className="font-display text-[18px] font-bold tracking-tight">Wingmate</p>

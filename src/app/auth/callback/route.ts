@@ -1,29 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
+  // Build the redirect response up front so we can attach cookies to it
+  const redirectUrl = new URL(next, request.url);
+  const response = NextResponse.redirect(redirectUrl);
+
   if (code) {
-    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            return cookieStore.getAll();
+            return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
+            // Set cookies directly on the redirect response
             cookiesToSet.forEach(({ name, value, options }) => {
-              try {
-                cookieStore.set(name, value, options);
-              } catch {
-                // cookie setting can fail in certain edge cases
-              }
+              response.cookies.set(name, value, options);
             });
           },
         },
@@ -31,15 +30,12 @@ export async function GET(request: Request) {
     );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, request.url));
+    if (error) {
+      const errorUrl = new URL("/", request.url);
+      errorUrl.searchParams.set("error", error.message);
+      return NextResponse.redirect(errorUrl);
     }
-
-    // Auth exchange failed — redirect to onboarding with error so user can retry
-    const errorUrl = new URL("/onboarding", request.url);
-    errorUrl.searchParams.set("error", "auth_callback_failed");
-    return NextResponse.redirect(errorUrl);
   }
 
-  return NextResponse.redirect(new URL("/", request.url));
+  return response;
 }
