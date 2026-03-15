@@ -343,9 +343,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         )}
         <div className="flex-1 text-center">
           <p className="font-display text-[15px] font-bold">Wingmate</p>
-          {isLoading && (
-            <p className="text-[11px] text-orange-500 font-medium animate-fade-in">thinking...</p>
-          )}
+          <p className={`text-[11px] text-orange-500 font-medium transition-opacity ${isLoading ? "opacity-100" : "opacity-0"}`}>thinking...</p>
         </div>
         {onNewChat ? (
           <button onClick={onNewChat} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors" title="New chat">
