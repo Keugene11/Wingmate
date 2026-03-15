@@ -16,7 +16,7 @@
             android:value="${assetStatements}" />
 
         <activity
-            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:label="${launcherName}">
 
