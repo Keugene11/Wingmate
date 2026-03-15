@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
-import { Plus, Lock, Search, X, Check } from "lucide-react";
+import { Plus, Search, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -398,7 +398,6 @@ function HomeInner() {
               updateState("checkin-chat");
             }}
             isLoggedIn={isLoggedIn === true}
-            isPro={isPro === true}
           />
 
         </div>
@@ -415,7 +414,7 @@ function HomeInner() {
               Your approach history at a glance
             </p>
           </div>
-          <StatsView isPro={isPro === true} />
+          <StatsView />
         </div>
       )}
 
@@ -426,58 +425,7 @@ function HomeInner() {
             <h1 className="font-display text-[28px] font-bold tracking-tight">Community</h1>
           </div>
 
-          {isPro === null && (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-
-          {isPro === false && (
-            <div>
-              {/* Sort toggle (disabled) */}
-              <div className="flex gap-1 mb-5 bg-bg-card border border-border rounded-full p-1 w-fit opacity-50">
-                <div className="px-4 py-1.5 rounded-full text-[13px] font-medium bg-[#1a1a1a] text-white">New</div>
-                <div className="px-4 py-1.5 rounded-full text-[13px] font-medium text-text-muted">Top</div>
-              </div>
-
-              {/* Placeholder post cards */}
-              <div className="space-y-3 mb-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-bg-card border border-border rounded-2xl px-5 py-4 opacity-40">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-bg-card-hover shrink-0" />
-                      <div className="flex-1">
-                        <div className="h-3 bg-bg-card-hover rounded w-24 mb-2" />
-                        <div className="h-4 bg-bg-card-hover rounded w-full mb-2" />
-                        <div className="h-3 bg-bg-card-hover rounded w-3/4" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA overlay */}
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-bg-card border border-border flex items-center justify-center mb-4">
-                  <Lock size={24} strokeWidth={1.5} className="text-text-muted" />
-                </div>
-                <h2 className="font-display text-[20px] font-bold mb-2">
-                  Pro feature
-                </h2>
-                <p className="text-text-muted text-[14px] leading-relaxed mb-6 max-w-[260px]">
-                  Connect with other guys on the same journey. Share stories, tips, and wins.
-                </p>
-                <button
-                  onClick={() => router.push("/plans")}
-                  className="px-6 py-3 bg-[#1a1a1a] text-white rounded-xl font-medium text-[14px] press"
-                >
-                  Unlock with Pro
-                </button>
-              </div>
-            </div>
-          )}
-
-          {isPro === true && (<div>
+          <div>
           <div className="flex items-center justify-end mb-4 -mt-2 gap-2">
             <button
               onClick={() => { setCommunitySearchOpen(!communitySearchOpen); setTimeout(() => communitySearchRef.current?.focus(), 50); }}
@@ -575,7 +523,7 @@ function HomeInner() {
               )}
             </div>
           )}
-          </div>)}
+          </div>
         </div>
       )}
 

@@ -37,24 +37,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
-
-  // Community pages require Pro subscription
-  if (user && pathname.startsWith("/community")) {
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("status")
-      .eq("user_id", user.id)
-      .in("status", ["active", "trialing"])
-      .single();
-
-    if (!subscription) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/plans";
-      return NextResponse.redirect(url);
-    }
-  }
-
   return supabaseResponse;
 }
 
