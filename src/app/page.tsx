@@ -270,6 +270,11 @@ function HomeInner() {
     } else {
       updateState("tabs");
     }
+    // Update URL so refresh stays on this tab
+    const url = new URL(window.location.href);
+    if (tab === "checkin") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url.toString());
   };
 
   const reset = () => {
