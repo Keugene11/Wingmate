@@ -148,12 +148,12 @@ function HomeInner() {
       } else {
         setIsLoggedIn(false);
         setGreeting(getGreeting());
-        setActiveTab("stats");
+        if (!tabParam) setActiveTab("stats");
       }
     }).catch(() => {
       setIsLoggedIn(false);
       setGreeting(getGreeting());
-      setActiveTab("stats");
+      if (!tabParam) setActiveTab("stats");
     });
 
     fetch("/api/stripe/status")
