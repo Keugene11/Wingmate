@@ -352,6 +352,17 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
         )}
       </div>
 
+      {/* Success banner */}
+      {justCheckedIn && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-center animate-fade-in">
+          <p className="text-[14px] font-medium text-green-700">
+            {data.streak > 1
+              ? `Checked in! ${data.streak}-day streak 🔥`
+              : "Checked in! You're on the board today ✓"}
+          </p>
+        </div>
+      )}
+
       {/* Error banner */}
       {saveError && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center animate-fade-in">
@@ -519,13 +530,13 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
                 <span className={`text-[10px] font-medium ${isToday ? "text-text" : "text-text-muted"}`}>
                   {DAY_LABELS[dayOfWeek]}
                 </span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-bold transition-all ${
-                  day.talked === true ? "bg-green-500 text-white"
-                    : day.talked === false ? "bg-orange-100 text-orange-600"
-                    : isToday ? "border-2 border-dashed border-text-muted/30"
-                    : "bg-bg-card-hover"
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${
+                  day.talked === true ? "bg-green-500 text-white text-[14px]"
+                    : day.talked === false ? "bg-orange-100 text-orange-600 text-[12px]"
+                    : isToday ? "border-2 border-dashed border-text-muted/30 text-[14px]"
+                    : "bg-bg-card-hover text-[14px]"
                 } ${justCheckedIn && isToday ? "streak-pop" : ""}`}>
-                  {day.talked !== null ? day.approaches : null}
+                  {day.talked !== null ? (day.approaches > 0 ? day.approaches : "✓") : null}
                 </div>
               </div>
             );
