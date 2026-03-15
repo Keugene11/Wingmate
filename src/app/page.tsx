@@ -333,7 +333,7 @@ function HomeInner() {
 
   // Tab-based layout (tab bar always visible)
   return (
-    <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-[100dvh]" : "min-h-screen pb-20"}`}>
+    <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-[100dvh] overflow-hidden" : "min-h-screen pb-20"}`}>
       {/* Branding — visible on non-chat tabs */}
       {activeTab !== "coach" && (
         <div className="flex items-center justify-between px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1">

@@ -329,7 +329,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
   };
 
   return (
-    <div className={`flex flex-col max-w-md mx-auto bg-bg animate-fade-in ${showBottomPadding ? "h-[calc(100dvh-4.5rem)]" : "h-[100dvh]"}`}>
+    <div className={`flex flex-col max-w-md mx-auto bg-bg animate-fade-in overflow-hidden ${showBottomPadding ? "h-[calc(100dvh-4.5rem)]" : "h-[100dvh]"}`}>
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 bg-bg/80 backdrop-blur-lg sticky top-0 z-10">
         {onShowHistory ? (
