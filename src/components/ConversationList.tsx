@@ -35,7 +35,7 @@ export default function ConversationList({
   }, []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4.5rem)] bg-bg animate-fade-in">
+    <div className="flex flex-col h-[calc(100dvh-4.5rem)] bg-bg animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4">
         <button onClick={onBack} className="text-text-muted press p-1.5 rounded-full hover:bg-bg-card-hover transition-colors">
