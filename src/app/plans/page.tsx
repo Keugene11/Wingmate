@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Check, CreditCard, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
-import { createClient } from "@supabase/supabase-js";
 
 type Subscription = {
   status: string;
@@ -47,27 +46,10 @@ export default function PlansPage() {
 
   const [error, setError] = useState<string | null>(null);
 
-  const redirectToLogin = async (plan: string) => {
+  const redirectToLogin = (plan: string) => {
     localStorage.setItem("pending-checkout-plan", plan);
-    // Use core supabase-js client (not SSR browser client) to avoid cookie issues
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
-    );
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { prompt: "select_account" },
-        skipBrowserRedirect: true,
-      },
-    });
-    if (data?.url) {
-      window.location.href = data.url;
-    } else {
-      setError(error?.message || "Could not open sign-in. Please try again.");
-      setLoading(null);
-    }
+    // Use server-side redirect to avoid client-side JS navigation issues
+    window.location.href = `/api/auth/login`;
   };
 
   const handleCheckout = async (plan: "monthly" | "yearly") => {
