@@ -266,6 +266,11 @@ function HomeInner() {
   };
 
   const handleCheckout = async (plan: "monthly" | "yearly") => {
+    if (!isLoggedIn) {
+      localStorage.setItem("pending-checkout-plan", plan);
+      window.location.href = "/api/auth/login";
+      return;
+    }
     setCheckoutLoading(plan);
     try {
       const res = await fetch("/api/stripe/checkout", {
@@ -273,8 +278,14 @@ function HomeInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
+      if (res.status === 401) {
+        localStorage.setItem("pending-checkout-plan", plan);
+        window.location.href = "/api/auth/login";
+        return;
+      }
       const data = await res.json();
       if (data.url) window.location.href = data.url;
+      else setCheckoutLoading(null);
     } catch {
       setCheckoutLoading(null);
     }
