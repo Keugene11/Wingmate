@@ -4,7 +4,7 @@ plugins {
 
 def twaHost = System.getenv("TWA_HOST") ?: "wingmate.live"
 def twaPackageId = System.getenv("TWA_PACKAGE_ID") ?: "com.approachai.twa"
-def twaVersionCode = (System.getenv("TWA_VERSION_CODE") ?: "2").toInteger()
+def twaVersionCode = (System.getenv("TWA_VERSION_CODE") ?: "3").toInteger()
 def twaVersionName = System.getenv("TWA_VERSION_NAME") ?: "1.0.${twaVersionCode}"
 
 android {
@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId twaPackageId
         minSdk 21
-        targetSdk 35
+        targetSdk 34
         versionCode twaVersionCode
         versionName twaVersionName
 
