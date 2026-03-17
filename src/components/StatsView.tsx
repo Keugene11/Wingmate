@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Eye, Target, ThumbsUp, TrendingUp, Flame, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Target, ThumbsUp, TrendingUp, Flame, Calendar, X } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
 
 interface CheckinEntry {
@@ -35,7 +35,6 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
   });
   const [mode, setMode] = useState<ViewMode>("month");
   const [editingDate, setEditingDate] = useState<string | null>(null);
-  const [editOpp, setEditOpp] = useState(0);
   const [editAppr, setEditAppr] = useState(0);
   const [editSucc, setEditSucc] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -84,14 +83,12 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
   }, [viewMonth, checkinMap]);
 
   const computeStats = (entries: CheckinEntry[]) => {
-    const opportunities = entries.reduce((s, c) => s + c.opportunities, 0);
     const approaches = entries.reduce((s, c) => s + c.approaches, 0);
     const successes = entries.reduce((s, c) => s + c.successes, 0);
     const daysActive = entries.length;
     const daysApproached = entries.filter((c) => c.talked).length;
-    const approachRate = opportunities > 0 ? Math.round((approaches / opportunities) * 100) : 0;
     const successRate = approaches > 0 ? Math.round((successes / approaches) * 100) : 0;
-    return { opportunities, approaches, successes, daysActive, daysApproached, approachRate, successRate };
+    return { approaches, successes, daysActive, daysApproached, successRate };
   };
 
   const monthStats = useMemo(() => {
@@ -137,11 +134,10 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
     }
 
     // Monthly breakdown
-    const monthlyMap: Record<string, { opportunities: number; approaches: number; successes: number }> = {};
+    const monthlyMap: Record<string, { approaches: number; successes: number }> = {};
     checkins.forEach((c) => {
       const key = c.date.slice(0, 7);
-      if (!monthlyMap[key]) monthlyMap[key] = { opportunities: 0, approaches: 0, successes: 0 };
-      monthlyMap[key].opportunities += c.opportunities;
+      if (!monthlyMap[key]) monthlyMap[key] = { approaches: 0, successes: 0 };
       monthlyMap[key].approaches += c.approaches;
       monthlyMap[key].successes += c.successes;
     });
@@ -170,7 +166,6 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
 
   const openDayEditor = (date: string, entry: CheckinEntry | null) => {
     setEditingDate(date);
-    setEditOpp(entry?.opportunities ?? 0);
     setEditAppr(entry?.approaches ?? 0);
     setEditSucc(entry?.successes ?? 0);
   };
@@ -182,7 +177,7 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
       const res = await fetch("/api/checkin", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: editingDate, opportunities: editOpp, approaches: editAppr, successes: editSucc }),
+        body: JSON.stringify({ date: editingDate, approaches: editAppr, successes: editSucc }),
       });
       if (res.ok) {
         // Refresh stats
@@ -327,8 +322,7 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
 
               <div className="space-y-3">
                 {[
-                  { label: "Seen", value: editOpp, set: (v: number) => { setEditOpp(v); if (editAppr > v) setEditAppr(v); if (editSucc > Math.min(editAppr, v)) setEditSucc(Math.min(editAppr, v)); }, color: "purple" },
-                  { label: "Approached", value: editAppr, set: (v: number) => { setEditAppr(v); if (editSucc > v) setEditSucc(v); }, max: editOpp, color: "blue" },
+                  { label: "Talked to", value: editAppr, set: (v: number) => { setEditAppr(v); if (editSucc > v) setEditSucc(v); }, color: "blue" },
                   { label: "Went well", value: editSucc, set: setEditSucc, max: editAppr, color: "green" },
                 ].map(({ label, value, set, max, color }) => (
                   <div key={label} className="flex items-center justify-between">
@@ -363,21 +357,14 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
         </div>
       )}
 
-      {/* Main 3 stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
-            <span className="font-display text-[22px] font-bold">{stats.opportunities}</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Opportunities</p>
-        </div>
+      {/* Main stats */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Target size={14} strokeWidth={1.5} className="text-blue-500" />
             <span className="font-display text-[22px] font-bold">{stats.approaches}</span>
           </div>
-          <p className="text-[11px] text-text-muted">Approaches</p>
+          <p className="text-[11px] text-text-muted">Talked to</p>
         </div>
         <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
@@ -392,13 +379,6 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <TrendingUp size={14} strokeWidth={1.5} className="text-blue-500" />
-            <span className="font-display text-[22px] font-bold">{stats.approachRate}%</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Approach rate</p>
-        </div>
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
             <TrendingUp size={14} strokeWidth={1.5} className="text-green-500" />
             <span className="font-display text-[22px] font-bold">{stats.successRate}%</span>
           </div>
@@ -410,13 +390,6 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
             <span className="font-display text-[22px] font-bold">{stats.daysActive}</span>
           </div>
           <p className="text-[11px] text-text-muted">Days checked in</p>
-        </div>
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Flame size={14} strokeWidth={1.5} className="text-orange-500" />
-            <span className="font-display text-[22px] font-bold">{stats.daysApproached}</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Days approached</p>
         </div>
       </div>
 
@@ -451,12 +424,8 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
                     <p className="text-[14px] font-semibold mb-2.5">{m.label}</p>
                     <div className="flex gap-2">
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[18px] font-bold text-purple-600 block">{m.opportunities}</span>
-                        <span className="text-[10px] text-text-muted">seen</span>
-                      </div>
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
                         <span className="font-display text-[18px] font-bold text-blue-600 block">{m.approaches}</span>
-                        <span className="text-[10px] text-text-muted">approached</span>
+                        <span className="text-[10px] text-text-muted">talked to</span>
                       </div>
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
                         <span className="font-display text-[18px] font-bold text-green-600 block">{m.successes}</span>
