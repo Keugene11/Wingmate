@@ -112,6 +112,7 @@ jobs:
 
       - name: Promote to production
         if: steps.play-key-check.outputs.available == 'true'
+        continue-on-error: true
         env:
           ANDROID_PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
         run: |
