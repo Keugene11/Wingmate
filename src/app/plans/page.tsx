@@ -51,8 +51,8 @@ export default function PlansPage() {
     localStorage.setItem("pending-checkout-plan", plan);
     // Use core supabase-js client (not SSR browser client) to avoid cookie issues
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
     );
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
