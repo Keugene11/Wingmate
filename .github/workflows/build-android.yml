@@ -107,18 +107,7 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > play-store-key.json
           export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE="$(pwd)/play-store-key.json"
-          bundle exec fastlane internal
-          rm -f play-store-key.json
-
-      - name: Promote to production
-        if: steps.play-key-check.outputs.available == 'true'
-        continue-on-error: true
-        env:
-          ANDROID_PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
-        run: |
-          echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > play-store-key.json
-          export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE="$(pwd)/play-store-key.json"
-          bundle exec fastlane promote_to_production
+          bundle exec fastlane production
           rm -f play-store-key.json
 
       - name: Clean up secrets

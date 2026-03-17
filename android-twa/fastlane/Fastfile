@@ -20,7 +20,21 @@ platform :android do
       track_promote_to: "production",
       skip_upload_metadata: true,
       skip_upload_images: true,
-      skip_upload_screenshots: true
+      skip_upload_screenshots: true,
+      release_status: "completed",
+      version_code: ENV["VERSION_CODE"] || nil
+    )
+  end
+
+  desc "Upload directly to production track"
+  lane :production do
+    upload_to_play_store(
+      track: "production",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed"
     )
   end
 end
