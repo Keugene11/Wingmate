@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Target, ThumbsUp, TrendingUp, Flame, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Target, Flame, Calendar, X } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
 
 interface CheckinEntry {
@@ -84,11 +84,9 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
 
   const computeStats = (entries: CheckinEntry[]) => {
     const approaches = entries.reduce((s, c) => s + c.approaches, 0);
-    const successes = entries.reduce((s, c) => s + c.successes, 0);
     const daysActive = entries.length;
     const daysApproached = entries.filter((c) => c.talked).length;
-    const successRate = approaches > 0 ? Math.round((successes / approaches) * 100) : 0;
-    return { approaches, successes, daysActive, daysApproached, successRate };
+    return { approaches, daysActive, daysApproached };
   };
 
   const monthStats = useMemo(() => {
@@ -134,12 +132,11 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
     }
 
     // Monthly breakdown
-    const monthlyMap: Record<string, { approaches: number; successes: number }> = {};
+    const monthlyMap: Record<string, { approaches: number }> = {};
     checkins.forEach((c) => {
       const key = c.date.slice(0, 7);
-      if (!monthlyMap[key]) monthlyMap[key] = { approaches: 0, successes: 0 };
+      if (!monthlyMap[key]) monthlyMap[key] = { approaches: 0 };
       monthlyMap[key].approaches += c.approaches;
-      monthlyMap[key].successes += c.successes;
     });
     const monthlyBreakdown = Object.entries(monthlyMap)
       .sort(([a], [b]) => b.localeCompare(a))
@@ -322,9 +319,8 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
 
               <div className="space-y-3">
                 {[
-                  { label: "Talked to", value: editAppr, set: (v: number) => { setEditAppr(v); if (editSucc > v) setEditSucc(v); }, color: "blue" },
-                  { label: "Went well", value: editSucc, set: setEditSucc, max: editAppr, color: "green" },
-                ].map(({ label, value, set, max, color }) => (
+                  { label: "Talked to", value: editAppr, set: setEditAppr, color: "blue" },
+                ].map(({ label, value, set, color }) => (
                   <div key={label} className="flex items-center justify-between">
                     <span className={`text-[13px] font-medium text-${color}-600`}>{label}</span>
                     <div className="flex items-center gap-3">
@@ -334,7 +330,7 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
                       >−</button>
                       <span className="font-display text-[20px] font-bold w-8 text-center">{value}</span>
                       <button
-                        onClick={() => set(Math.min(max ?? 9999, value + 1))}
+                        onClick={() => set(value + 1)}
                         className="w-8 h-8 rounded-full bg-bg-card-hover flex items-center justify-center text-[16px] font-bold press"
                       >+</button>
                     </div>
@@ -365,24 +361,6 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
             <span className="font-display text-[22px] font-bold">{stats.approaches}</span>
           </div>
           <p className="text-[11px] text-text-muted">Talked to</p>
-        </div>
-        <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
-            <span className="font-display text-[22px] font-bold">{stats.successes}</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Went well</p>
-        </div>
-      </div>
-
-      {/* Rates + activity */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <TrendingUp size={14} strokeWidth={1.5} className="text-green-500" />
-            <span className="font-display text-[22px] font-bold">{stats.successRate}%</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Success rate</p>
         </div>
         <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
@@ -426,16 +404,6 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
                         <span className="font-display text-[18px] font-bold text-blue-600 block">{m.approaches}</span>
                         <span className="text-[10px] text-text-muted">talked to</span>
-                      </div>
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[18px] font-bold text-green-600 block">{m.successes}</span>
-                        <span className="text-[10px] text-text-muted">went well</span>
-                      </div>
-                      <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">
-                        <span className="font-display text-[18px] font-bold text-orange-500 block">
-                          {m.approaches > 0 ? Math.round((m.successes / m.approaches) * 100) : 0}%
-                        </span>
-                        <span className="text-[10px] text-text-muted">rate</span>
                       </div>
                     </div>
                   </div>

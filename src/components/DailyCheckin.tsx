@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flame, Trophy, Calendar, Shield, Eye, Target, ThumbsUp, UserX, Crosshair, Pencil } from "lucide-react";
+import { Flame, Trophy, Calendar, Shield, Target, UserX, Crosshair, Pencil } from "lucide-react";
 import { createClient, signInWithGoogle } from "@/lib/supabase-browser";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -43,9 +43,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const [submitting, setSubmitting] = useState(false);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
 
-  const [flowOpportunities, setFlowOpportunities] = useState(0);
   const [flowApproaches, setFlowApproaches] = useState(0);
-  const [flowSuccesses, setFlowSuccesses] = useState(0);
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState(false);
@@ -80,11 +78,9 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   // Sync flow counters with saved data when loaded
   useEffect(() => {
     if (data?.checkedInToday) {
-      setFlowOpportunities(data.opportunitiesCount);
       setFlowApproaches(data.approachesCount);
-      setFlowSuccesses(data.successesCount);
     }
-  }, [data?.checkedInToday, data?.opportunitiesCount, data?.approachesCount, data?.successesCount]);
+  }, [data?.checkedInToday, data?.approachesCount]);
 
   const submitCheckin = async (talked: boolean, opportunities: number, approaches: number, successes: number) => {
     setSubmitting(true);
@@ -141,7 +137,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
             {greeting && <h1 className="text-[28px] font-bold tracking-tight leading-[1.2] mb-1">{greeting}</h1>}
             <p className="text-text-muted text-[13px] font-medium uppercase tracking-wide mb-1">{todayDate}</p>
             <p className="text-text-muted text-[14px] leading-relaxed">
-              Track how many girls you saw, approached, and how many went well. Build the habit — check in every day.
+              Track how many girls you talked to. Build the habit — check in every day.
             </p>
           </div>
 
@@ -159,23 +155,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
             <div className="space-y-4 mb-5">
               <div>
-                <p className="text-[13px] text-white/50 mb-2">Girls you saw</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={triggerSignIn} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">0</span>
-                  <button onClick={triggerSignIn} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Girls you approached</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={triggerSignIn} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">0</span>
-                  <button onClick={triggerSignIn} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Went well</p>
+                <p className="text-[13px] text-white/50 mb-2">Girls you talked to</p>
                 <div className="flex items-center gap-4">
                   <button onClick={triggerSignIn} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
                   <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">0</span>
@@ -199,37 +179,13 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           {/* All-time stats (zeroed, disabled) */}
           <div className="bg-bg-card border border-border rounded-2xl px-5 py-4 opacity-50">
             <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">All-time stats</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
-                  <span className="font-display text-[22px] font-bold">0</span>
-                </div>
-                <p className="text-[11px] text-text-muted">Opportunities</p>
-              </div>
+            <div className="grid grid-cols-1 gap-3">
               <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Target size={14} strokeWidth={1.5} className="text-blue-500" />
                   <span className="font-display text-[22px] font-bold">0</span>
                 </div>
-                <p className="text-[11px] text-text-muted">Approaches</p>
-              </div>
-              <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
-                  <span className="font-display text-[22px] font-bold">0</span>
-                </div>
-                <p className="text-[11px] text-text-muted">Went well</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
-                <span className="font-display text-[18px] font-bold text-blue-500">0%</span>
-                <p className="text-[10px] text-text-muted">Approach rate</p>
-              </div>
-              <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
-                <span className="font-display text-[18px] font-bold text-green-500">0%</span>
-                <p className="text-[10px] text-text-muted">Success rate</p>
+                <p className="text-[11px] text-text-muted">Talked to</p>
               </div>
             </div>
           </div>
@@ -297,39 +253,13 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const approachStatsSection = (
     <div className="bg-bg-card border border-border rounded-2xl px-5 py-4">
       <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">All-time stats</h3>
-
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Eye size={14} strokeWidth={1.5} className="text-purple-500" />
-            <span className="font-display text-[22px] font-bold">{data.totalOpportunities}</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Opportunities</p>
-        </div>
+      <div className="grid grid-cols-1 gap-3">
         <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Target size={14} strokeWidth={1.5} className="text-blue-500" />
             <span className="font-display text-[22px] font-bold">{data.totalApproaches}</span>
           </div>
-          <p className="text-[11px] text-text-muted">Approaches</p>
-        </div>
-        <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <ThumbsUp size={14} strokeWidth={1.5} className="text-green-500" />
-            <span className="font-display text-[22px] font-bold">{data.totalSuccesses}</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Went well</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
-          <span className="font-display text-[18px] font-bold text-blue-500">{data.approachConversionRate}%</span>
-          <p className="text-[10px] text-text-muted">Approach rate</p>
-        </div>
-        <div className="bg-bg-card-hover rounded-xl px-2 py-2.5 text-center">
-          <span className="font-display text-[18px] font-bold text-green-500">{data.successRate}%</span>
-          <p className="text-[10px] text-text-muted">Success rate</p>
+          <p className="text-[11px] text-text-muted">Girls talked to</p>
         </div>
       </div>
     </div>
@@ -343,7 +273,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
         <p className="text-text-muted text-[13px] font-medium uppercase tracking-wide mb-1">{todayDate}</p>
         {!data.checkedInToday ? (
           <p className="text-text-muted text-[14px] leading-relaxed">
-            Track how many girls you saw, approached, and how many went well. Build the habit — check in every day.
+            Track how many girls you talked to. Build the habit — check in every day.
           </p>
         ) : (
           <p className="text-text-muted text-[14px] leading-relaxed">
@@ -389,38 +319,18 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
             <div className="space-y-4 mb-5">
               <div>
-                <p className="text-[13px] text-white/50 mb-2">Girls you saw</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => guardPro(() => setFlowOpportunities(Math.max(0, flowOpportunities - 1)))}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{flowOpportunities}</span>
-                  <button onClick={() => guardPro(() => setFlowOpportunities(flowOpportunities + 1))}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Girls you approached</p>
+                <p className="text-[13px] text-white/50 mb-2">Girls you talked to</p>
                 <div className="flex items-center gap-4">
                   <button onClick={() => guardPro(() => setFlowApproaches(Math.max(0, flowApproaches - 1)))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
                   <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{flowApproaches}</span>
-                  <button onClick={() => guardPro(() => setFlowApproaches(Math.min(flowOpportunities, flowApproaches + 1)))}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-white/50 mb-2">Went well</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => guardPro(() => setFlowSuccesses(Math.max(0, flowSuccesses - 1)))}
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">−</button>
-                  <span className="font-display text-[36px] font-extrabold leading-none w-12 text-center">{flowSuccesses}</span>
-                  <button onClick={() => guardPro(() => setFlowSuccesses(Math.min(flowApproaches, flowSuccesses + 1)))}
+                  <button onClick={() => guardPro(() => setFlowApproaches(flowApproaches + 1))}
                     className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[18px] font-bold press">+</button>
                 </div>
               </div>
             </div>
 
-            {data.checkedInToday && flowOpportunities === 0 && flowApproaches === 0 && flowSuccesses === 0 ? (
+            {data.checkedInToday && flowApproaches === 0 ? (
               <div className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/10 text-white/60 text-[14px] font-medium">
                 <span className="text-green-400">✓</span> Checked in — no approaches today
               </div>
@@ -432,7 +342,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
                     {submitting ? "..." : "No approaches today"}
                   </button>
                 )}
-                <button onClick={() => guardPro(() => submitCheckin(true, flowOpportunities, flowApproaches, flowSuccesses))}
+                <button onClick={() => guardPro(() => submitCheckin(true, flowApproaches, flowApproaches, 0))}
                   disabled={submitting}
                   className="flex-1 py-3.5 rounded-xl bg-white text-[#1a1a1a] text-[14px] font-semibold press disabled:opacity-60">
                   {submitting ? "..." : data.checkedInToday ? "Update" : "Save"}
