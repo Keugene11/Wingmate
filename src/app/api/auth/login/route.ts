@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function GET(request: NextRequest) {
-  const origin = request.headers.get("origin") || request.nextUrl.origin;
+  const origin = request.nextUrl.origin;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

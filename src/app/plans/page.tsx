@@ -34,9 +34,13 @@ export default function PlansPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
     fetch("/api/stripe/status")
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok) setIsLoggedIn(true);
+        return res.json();
+      })
       .then((data) => {
         if (data.subscription) setSubscription(data.subscription);
         setLoaded(true);
@@ -45,12 +49,6 @@ export default function PlansPage() {
   }, []);
 
   const [error, setError] = useState<string | null>(null);
-
-  const redirectToLogin = (plan: string) => {
-    localStorage.setItem("pending-checkout-plan", plan);
-    // Use server-side redirect to avoid client-side JS navigation issues
-    window.location.href = `/api/auth/login`;
-  };
 
   const handleCheckout = async (plan: "monthly" | "yearly") => {
     setLoading(plan);
@@ -62,11 +60,6 @@ export default function PlansPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
-      if (res.status === 401) {
-        // Not logged in or session expired — redirect to sign in
-        await redirectToLogin(plan);
-        return;
-      }
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -177,13 +170,23 @@ export default function PlansPage() {
           </div>
           <p className="text-text-muted text-[12px] mb-5">Cancel anytime</p>
           {!isActive && (
-            <button
-              onClick={() => handleCheckout("monthly")}
-              disabled={!!loading}
-              className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
-            >
-              {loading === "monthly" ? "Redirecting..." : "Subscribe monthly"}
-            </button>
+            isLoggedIn ? (
+              <button
+                onClick={() => handleCheckout("monthly")}
+                disabled={!!loading}
+                className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+              >
+                {loading === "monthly" ? "Redirecting..." : "Subscribe monthly"}
+              </button>
+            ) : (
+              <a
+                href="/api/auth/login"
+                onClick={() => localStorage.setItem("pending-checkout-plan", "monthly")}
+                className="block w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press text-center mb-5"
+              >
+                Subscribe monthly
+              </a>
+            )
           )}
           <div className="space-y-3">
             {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
@@ -215,13 +218,23 @@ export default function PlansPage() {
           </div>
           <p className="text-text-muted text-[12px] mb-5">$120 billed annually</p>
           {!isActive && (
-            <button
-              onClick={() => handleCheckout("yearly")}
-              disabled={!!loading}
-              className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
-            >
-              {loading === "yearly" ? "Redirecting..." : "Subscribe yearly"}
-            </button>
+            isLoggedIn ? (
+              <button
+                onClick={() => handleCheckout("yearly")}
+                disabled={!!loading}
+                className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+              >
+                {loading === "yearly" ? "Redirecting..." : "Subscribe yearly"}
+              </button>
+            ) : (
+              <a
+                href="/api/auth/login"
+                onClick={() => localStorage.setItem("pending-checkout-plan", "yearly")}
+                className="block w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press text-center mb-5"
+              >
+                Subscribe yearly
+              </a>
+            )
           )}
           <div className="space-y-3">
             {["Unlimited AI coaching", "Daily check-ins & streaks", "Approach tracking & stats", "Community posts & comments"].map((f) => (
