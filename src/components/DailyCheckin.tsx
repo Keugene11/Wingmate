@@ -454,7 +454,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
                     : isToday ? "border-2 border-dashed border-text-muted/30 text-[14px]"
                     : "bg-bg-card-hover text-[14px]"
                 } ${justCheckedIn && isToday ? "streak-pop" : ""}`}>
-                  {day.talked !== null ? (day.approaches > 0 ? day.approaches : "✓") : null}
+                  {day.talked !== null ? (day.approaches > 0 ? day.approaches : "0") : null}
                 </div>
               </div>
             );
