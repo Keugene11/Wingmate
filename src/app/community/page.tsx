@@ -114,15 +114,37 @@ export default function CommunityPage() {
           </Link>
           <h1 className="font-display text-[20px] font-bold tracking-tight">Community</h1>
         </div>
-        <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-[48px] mb-4">🔒</p>
-          <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Community is a Pro feature. Upgrade to connect with other guys on the same path.</p>
-          <Link
-            href="/?tab=plans"
-            className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
-          >
-            View plans
-          </Link>
+        <div className="relative">
+          <div className="space-y-3 blur-[6px] select-none pointer-events-none" aria-hidden>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl px-4 py-3.5">
+                <div className="flex flex-col items-center gap-0.5 shrink-0 pt-0.5">
+                  <div className="w-5 h-5 rounded bg-border" />
+                  <div className="w-4 h-4 rounded bg-border" />
+                  <div className="w-5 h-5 rounded bg-border" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="h-4 bg-border rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-border/60 rounded w-full mb-1.5" />
+                  <div className="h-3 bg-border/60 rounded w-2/3 mb-3" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 bg-border/40 rounded w-16" />
+                    <div className="h-3 bg-border/40 rounded w-10" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="text-[48px] mb-4">🔒</p>
+            <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Community is a Pro feature. Upgrade to connect with other guys on the same path.</p>
+            <Link
+              href="/?tab=plans"
+              className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
+            >
+              View plans
+            </Link>
+          </div>
         </div>
       </main>
     );
