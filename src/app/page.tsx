@@ -448,6 +448,17 @@ function HomeInner() {
                 Sign in with Google
               </a>
             </div>
+          ) : !isPro ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <p className="text-[48px] mb-4">🔒</p>
+              <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Community is a Pro feature. Upgrade to connect with other guys on the same path.</p>
+              <button
+                onClick={() => handleTabChange("plans")}
+                className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
+              >
+                View plans
+              </button>
+            </div>
           ) : <div>
           <div className="flex items-center justify-end mb-4 -mt-2 gap-2">
             <button
@@ -619,7 +630,7 @@ function HomeInner() {
                 </button>
               )}
               <div className="space-y-3">
-                {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Weekly goal setting"].map((f) => (
+                {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Community access"].map((f) => (
                   <div key={f} className="flex items-center gap-3">
                     <Check size={16} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
                     <span className="text-[14px]">{f}</span>
@@ -653,7 +664,7 @@ function HomeInner() {
                 </button>
               )}
               <div className="space-y-3">
-                {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Weekly goal setting"].map((f) => (
+                {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Community access"].map((f) => (
                   <div key={f} className="flex items-center gap-3">
                     <Check size={16} strokeWidth={2.5} className="text-text-muted shrink-0" />
                     <span className="text-[14px]">{f}</span>

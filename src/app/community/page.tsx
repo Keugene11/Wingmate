@@ -19,6 +19,7 @@ export default function CommunityPage() {
   const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,8 +71,15 @@ export default function CommunityPage() {
   };
 
   useEffect(() => {
-    fetchPosts(sort, 0, search);
-  }, [sort]);
+    fetch("/api/stripe/status")
+      .then((res) => res.json())
+      .then((d) => setIsPro(!!d.subscribed))
+      .catch(() => setIsPro(false));
+  }, []);
+
+  useEffect(() => {
+    if (isPro) fetchPosts(sort, 0, search);
+  }, [sort, isPro]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -88,6 +96,37 @@ export default function CommunityPage() {
     setLoading(true);
     fetchPosts(sort, 0, "");
   };
+
+  if (isPro === null) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <main className="min-h-screen max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
+        <div className="flex items-center gap-3 mb-6">
+          <Link href="/" className="p-1 -ml-1 press">
+            <ArrowLeft size={20} strokeWidth={1.5} />
+          </Link>
+          <h1 className="font-display text-[20px] font-bold tracking-tight">Community</h1>
+        </div>
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-[48px] mb-4">🔒</p>
+          <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Community is a Pro feature. Upgrade to connect with other guys on the same path.</p>
+          <Link
+            href="/?tab=plans"
+            className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
+          >
+            View plans
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">

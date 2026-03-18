@@ -20,8 +20,19 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    fetch("/api/stripe/status")
+      .then((res) => res.json())
+      .then((d) => {
+        if (!d.subscribed) router.replace("/?tab=plans");
+        else setIsPro(true);
+      })
+      .catch(() => router.replace("/?tab=plans"));
+  }, [router]);
 
   useEffect(() => {
     const load = async () => {
@@ -134,6 +145,14 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
           <ArrowLeft size={20} strokeWidth={1.5} />
         </Link>
         <p className="text-center text-text-muted text-[14px] py-20">Loading...</p>
+      </main>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
       </main>
     );
   }

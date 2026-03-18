@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 import PostCard from "@/components/PostCard";
 
@@ -17,8 +18,20 @@ export default function UserPostsPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
 
+  const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    fetch("/api/stripe/status")
+      .then((res) => res.json())
+      .then((d) => {
+        if (!d.subscribed) router.replace("/?tab=plans");
+        else setIsPro(true);
+      })
+      .catch(() => router.replace("/?tab=plans"));
+  }, [router]);
 
   const fetchPosts = async (offset = 0) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -66,6 +79,14 @@ export default function UserPostsPage({ params }: { params: Promise<{ id: string
   useEffect(() => {
     fetchPosts();
   }, [profileUserId]);
+
+  if (!isPro) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">

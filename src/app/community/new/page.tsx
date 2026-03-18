@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,8 +10,19 @@ export default function NewPostPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    fetch("/api/stripe/status")
+      .then((res) => res.json())
+      .then((d) => {
+        if (!d.subscribed) router.replace("/?tab=plans");
+        else setIsPro(true);
+      })
+      .catch(() => router.replace("/?tab=plans"));
+  }, [router]);
 
   const canSubmit = title.trim().length > 0 && body.trim().length > 0 && !submitting;
 
@@ -40,6 +51,14 @@ export default function NewPostPage() {
 
     router.push("/");
   };
+
+  if (!isPro) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">

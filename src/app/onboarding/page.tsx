@@ -252,7 +252,7 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="space-y-2 mb-4">
-              {["AI coach for in-the-moment help", "Daily check-ins & streak tracker", "Community of cold approachers"].map((f) => (
+              {["AI coach for in-the-moment help", "Daily check-ins & streak tracker", "Community access"].map((f) => (
                 <div key={f} className="flex items-center gap-2">
                   <Check size={14} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
                   <span className="text-[13px]">{f}</span>
