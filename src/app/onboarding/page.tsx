@@ -32,7 +32,7 @@ const GOALS = [
   },
 ];
 
-const STEPS = ["remember", "regret", "aicoach", "community", "goals", "pitch", "motivation"] as const;
+const STEPS = ["ask", "response", "aicoach", "community", "goals", "pitch", "motivation"] as const;
 type Step = (typeof STEPS)[number];
 
 function ProgressBar({ step }: { step: Step }) {
@@ -72,7 +72,8 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [customGoal, setCustomGoal] = useState("");
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState<Step>("remember");
+  const [step, setStep] = useState<Step>("ask");
+  const [answerYes, setAnswerYes] = useState<boolean | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [stepKey, setStepKey] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -123,43 +124,69 @@ export default function OnboardingPage() {
     .filter(Boolean) as string[];
   if (customGoal.trim()) selectedGoalLabels.push(customGoal.trim());
 
-  if (step === "remember") {
+  // Step 1: The question
+  if (step === "ask") {
     return (
       <main key={stepKey} className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12">
         <ProgressBar step={step} />
         <div className="text-center mb-12">
-          <p className="text-[48px] mb-6 onb-emoji">💭</p>
-          <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
-            Remember that girl you couldn&apos;t stop thinking about?
+          <p className="text-[48px] mb-6 onb-emoji">🤔</p>
+          <h1 className="font-display text-[22px] font-extrabold tracking-tight leading-[1.25] mb-8 onb-title">
+            Ask yourself if there&apos;s been an opportunity in the past 30 days where you had the chance to approach a smoking hot girl but you didn&apos;t because you had approach anxiety
           </h1>
-          <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
-            Your heart raced every time you saw her. You imagined what it&apos;d be like to talk to her, make her laugh, get to know her. But you never walked up — because the fear was louder than the desire.
-          </p>
-          <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
-            That ends now.
-          </p>
         </div>
 
-        <DelayedButton onClick={() => goToStep("regret")} label="Next" />
+        <div className="space-y-3 onb-goals">
+          <button
+            onClick={() => { setAnswerYes(true); goToStep("response"); }}
+            className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press"
+          >
+            Yeah, that&apos;s happened to me
+          </button>
+          <button
+            onClick={() => { setAnswerYes(false); goToStep("response"); }}
+            className="w-full bg-bg-card border-2 border-border text-text py-3.5 rounded-2xl font-semibold text-[15px] press"
+          >
+            No, not really
+          </button>
+        </div>
       </main>
     );
   }
 
-  if (step === "regret") {
+  // Step 2: Response based on answer
+  if (step === "response") {
     return (
       <main key={stepKey} className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12">
         <ProgressBar step={step} />
         <div className="text-center mb-12">
-          <p className="text-[48px] mb-6 onb-emoji">😔</p>
-          <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
-            Then someone else walked up to her instead.
-          </h1>
-          <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
-            Some other guy had the courage you didn&apos;t. He walked over, made her smile, and you just stood there — watching your chance disappear. You knew you could&apos;ve been that guy.
-          </p>
-          <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
-            Never again.
-          </p>
+          {answerYes ? (
+            <>
+              <p className="text-[48px] mb-6 onb-emoji">😤</p>
+              <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
+                That&apos;s exactly why Wingmate exists.
+              </h1>
+              <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
+                That moment where your heart&apos;s pounding but your feet won&apos;t move — we&apos;re here to make sure you never let it pass again.
+              </p>
+              <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
+                Next time, you&apos;re walking over.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-[48px] mb-6 onb-emoji">💪</p>
+              <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
+                Good — but imagine being even better.
+              </h1>
+              <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
+                Whether you&apos;re already approaching or want to level up your game, Wingmate gives you a coach in your pocket for every situation.
+              </p>
+              <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
+                Let&apos;s make you unstoppable.
+              </p>
+            </>
+          )}
         </div>
 
         <DelayedButton onClick={() => goToStep("aicoach")} label="Next" />
