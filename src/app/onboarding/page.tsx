@@ -27,14 +27,19 @@ function DelayedButton({ onClick, label, delay = 5000 }: { onClick: () => void; 
   }, [delay]);
 
   return (
-    <button
-      onClick={onClick}
-      className={`w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press transition-all duration-500 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
+    <div
+      className={`transition-all duration-700 ease-out ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none"
       }`}
+      style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
     >
-      {label}
-    </button>
+      <button
+        onClick={onClick}
+        className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[15px] press"
+      >
+        {label}
+      </button>
+    </div>
   );
 }
 
@@ -50,11 +55,12 @@ export default function OnboardingPage() {
   // Step 1: The question
   if (step === "ask") {
     return (
-      <main key={stepKey} className="min-h-screen max-w-md mx-auto px-8 flex flex-col justify-center py-16">
+      <main key={stepKey} className="min-h-screen max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-12">
         <ProgressBar step={step} />
-        <div className="mb-16">
-          <p className="text-[48px] mb-8 onb-emoji">🤔</p>
-          <p className="text-[17px] leading-[1.7] text-text onb-title">
+
+        <div>
+          <p className="text-[40px] mb-10 onb-emoji">🤔</p>
+          <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
             Ask yourself if there&apos;s been an opportunity in the past 30 days where you had the chance to approach a smoking hot girl but you didn&apos;t because you had approach anxiety.
           </p>
         </div>
@@ -66,20 +72,21 @@ export default function OnboardingPage() {
 
   // Step 2: The value proposition → sign in
   return (
-    <main key={stepKey} className="min-h-screen max-w-md mx-auto px-8 flex flex-col justify-center py-16">
+    <main key={stepKey} className="min-h-screen max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-12">
       <ProgressBar step={step} />
-      <div className="mb-16">
-        <p className="text-[48px] mb-8 onb-emoji">💰</p>
-        <p className="text-[17px] leading-[1.7] text-text onb-title">
+
+      <div>
+        <p className="text-[40px] mb-10 onb-emoji">💰</p>
+        <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
           Let&apos;s say you buy a Wingmate subscription for $15 a month.
         </p>
-        <p className="text-[17px] leading-[1.7] text-text mt-5 onb-body">
+        <p className="text-[17px] leading-[1.65] text-text-muted mt-6 onb-body">
           Since you&apos;re now financially committed to talking to more girls, you&apos;re going to talk to 1 more girl per week and 4 more girls per month.
         </p>
-        <p className="text-[17px] leading-[1.7] text-text mt-5 onb-body-2">
+        <p className="text-[17px] leading-[1.65] text-text-muted mt-5 onb-body-2">
           This will improve your rizz skills, create more fun memories, make more valuable connections, and maybe even have sex more often.
         </p>
-        <p className="text-[17px] leading-[1.7] text-text mt-5 font-semibold onb-body-2">
+        <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-semibold mt-8 onb-body-2">
           All of this is definitely worth $15.
         </p>
       </div>
