@@ -135,14 +135,12 @@ function HomeInner() {
           }
         } catch {}
       } else {
-        setIsLoggedIn(false);
-        setGreeting(getGreeting());
-        if (!tabParam) setActiveTab("checkin");
+        router.replace("/onboarding");
+        return;
       }
     }).catch(() => {
-      setIsLoggedIn(false);
-      setGreeting(getGreeting());
-      if (!tabParam) setActiveTab("checkin");
+      router.replace("/onboarding");
+      return;
     });
 
     const isPostCheckout = searchParams.get("checkout") === "success";
