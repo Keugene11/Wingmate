@@ -32,7 +32,7 @@ const GOALS = [
   },
 ];
 
-const STEPS = ["ask", "response", "aicoach", "community", "goals", "pitch", "motivation"] as const;
+const STEPS = ["ask", "value", "aicoach", "community", "goals", "pitch", "motivation"] as const;
 type Step = (typeof STEPS)[number];
 
 function ProgressBar({ step }: { step: Step }) {
@@ -73,7 +73,6 @@ export default function OnboardingPage() {
   const [customGoal, setCustomGoal] = useState("");
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<Step>("ask");
-  const [answerYes, setAnswerYes] = useState<boolean | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [stepKey, setStepKey] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -131,62 +130,26 @@ export default function OnboardingPage() {
         <ProgressBar step={step} />
         <div className="text-center mb-12">
           <p className="text-[48px] mb-6 onb-emoji">🤔</p>
-          <h1 className="font-display text-[22px] font-extrabold tracking-tight leading-[1.25] mb-8 onb-title">
+          <h1 className="font-display text-[22px] font-extrabold tracking-tight leading-[1.25] onb-title">
             Ask yourself if there&apos;s been an opportunity in the past 30 days where you had the chance to approach a smoking hot girl but you didn&apos;t because you had approach anxiety
           </h1>
         </div>
 
-        <div className="space-y-3 onb-goals">
-          <button
-            onClick={() => { setAnswerYes(true); goToStep("response"); }}
-            className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press"
-          >
-            Yeah, that&apos;s happened to me
-          </button>
-          <button
-            onClick={() => { setAnswerYes(false); goToStep("response"); }}
-            className="w-full bg-bg-card border-2 border-border text-text py-3.5 rounded-2xl font-semibold text-[15px] press"
-          >
-            No, not really
-          </button>
-        </div>
+        <DelayedButton onClick={() => goToStep("value")} label="Next" />
       </main>
     );
   }
 
-  // Step 2: Response based on answer
-  if (step === "response") {
+  // Step 2: The value proposition
+  if (step === "value") {
     return (
       <main key={stepKey} className="min-h-screen max-w-md mx-auto px-6 flex flex-col justify-center py-12">
         <ProgressBar step={step} />
         <div className="text-center mb-12">
-          {answerYes ? (
-            <>
-              <p className="text-[48px] mb-6 onb-emoji">😤</p>
-              <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
-                That&apos;s exactly why Wingmate exists.
-              </h1>
-              <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
-                That moment where your heart&apos;s pounding but your feet won&apos;t move — we&apos;re here to make sure you never let it pass again.
-              </p>
-              <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
-                Next time, you&apos;re walking over.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-[48px] mb-6 onb-emoji">💪</p>
-              <h1 className="font-display text-[28px] font-extrabold tracking-tight leading-[1.15] mb-4 onb-title">
-                Good — but imagine being even better.
-              </h1>
-              <p className="text-text-muted text-[16px] leading-relaxed max-w-[340px] mx-auto onb-body">
-                Whether you&apos;re already approaching or want to level up your game, Wingmate gives you a coach in your pocket for every situation.
-              </p>
-              <p className="text-text text-[16px] leading-relaxed max-w-[340px] mx-auto mt-4 font-medium onb-body-2">
-                Let&apos;s make you unstoppable.
-              </p>
-            </>
-          )}
+          <p className="text-[48px] mb-6 onb-emoji">💰</p>
+          <h1 className="font-display text-[22px] font-extrabold tracking-tight leading-[1.25] onb-title">
+            Let&apos;s say you buy a Wingmate subscription for $15 a month. Since you&apos;re now financially committed to talking to more girls, you&apos;re going to talk to 1 more girl per week and 4 more girls per month. This will improve your rizz skills, create more fun memories, make more valuable connections, and maybe even have sex more often. All of this is definitely worth $15.
+          </h1>
         </div>
 
         <DelayedButton onClick={() => goToStep("aicoach")} label="Next" />
