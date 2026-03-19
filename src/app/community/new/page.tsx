@@ -90,14 +90,14 @@ export default function NewPostPage() {
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value.slice(0, 120))}
-          className="w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-[16px] font-medium placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors"
+          className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-[16px] font-medium placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors"
         />
         <textarea
           placeholder="Share your experience..."
           value={body}
           onChange={(e) => setBody(e.target.value.slice(0, 2000))}
           rows={8}
-          className="w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-[15px] leading-relaxed placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors resize-none"
+          className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-[15px] leading-relaxed placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors resize-none"
         />
         <p className="text-[12px] text-text-muted text-right">{body.length}/2000</p>
       </div>

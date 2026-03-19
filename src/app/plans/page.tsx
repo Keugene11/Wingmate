@@ -155,7 +155,7 @@ export default function PlansPage() {
         )}
 
         {/* Monthly Pro */}
-        <div className="bg-bg-card border border-border rounded-2xl p-6">
+        <div className="bg-bg-card border border-border rounded-2xl shadow-card p-6">
           <div className="flex items-start justify-between mb-2">
             <div>
               <h3 className="font-display text-[18px] font-bold mb-1">Pro Monthly</h3>

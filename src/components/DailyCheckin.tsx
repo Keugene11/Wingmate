@@ -177,7 +177,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           </div>
 
           {/* All-time stats (zeroed, disabled) */}
-          <div className="bg-bg-card border border-border rounded-2xl px-5 py-4 opacity-50">
+          <div className="bg-bg-card border border-border rounded-2xl shadow-card px-5 py-4 opacity-50">
             <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">All-time stats</h3>
             <div className="grid grid-cols-1 gap-3">
               <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
@@ -191,7 +191,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           </div>
 
           {/* 7-day dots (empty) */}
-          <div className="bg-bg-card border border-border rounded-2xl px-5 py-5 opacity-50">
+          <div className="bg-bg-card border border-border rounded-2xl shadow-card px-5 py-5 opacity-50">
             <div className="flex justify-between px-1">
               {emptyLast7.map((day, i) => {
                 const dayOfWeek = new Date(day.date + "T00:00:00").getDay();
@@ -212,21 +212,21 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
           {/* Quick stats (zeroed) */}
           <div className="grid grid-cols-3 gap-3 opacity-50">
-            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+            <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Trophy size={13} strokeWidth={1.5} className="text-orange-500" />
                 <span className="font-display text-[20px] font-bold">0</span>
               </div>
               <p className="text-[11px] text-text-muted">Best streak</p>
             </div>
-            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+            <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Calendar size={13} strokeWidth={1.5} className="text-text-muted" />
                 <span className="font-display text-[20px] font-bold">0</span>
               </div>
               <p className="text-[11px] text-text-muted">Total days</p>
             </div>
-            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+            <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <UserX size={13} strokeWidth={1.5} className="text-text-muted" />
                 <span className="font-display text-[20px] font-bold">0</span>
@@ -239,9 +239,9 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
     }
     return (
       <div className="space-y-4">
-        <div className="bg-bg-card border border-border rounded-2xl h-48 animate-pulse" />
+        <div className="bg-bg-card border border-border rounded-2xl shadow-card h-48 animate-pulse" />
         <div className="grid grid-cols-3 gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="bg-bg-card border border-border rounded-xl h-20 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card h-20 animate-pulse" />)}
         </div>
       </div>
     );
@@ -251,7 +251,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const todayDate = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   const approachStatsSection = (
-    <div className="bg-bg-card border border-border rounded-2xl px-5 py-4">
+    <div className="bg-bg-card border border-border rounded-2xl shadow-card px-5 py-4">
       <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-3">All-time stats</h3>
       <div className="grid grid-cols-1 gap-3">
         <div className="bg-bg-card-hover rounded-xl px-2 py-3 text-center">
@@ -352,7 +352,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       </div>
 
       {/* Weekly approach goal */}
-      <div className="bg-bg-card border border-border rounded-2xl px-5 py-4">
+      <div className="bg-bg-card border border-border rounded-2xl shadow-card px-5 py-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide">Weekly goal</h3>
           {!editingGoal && data.weeklyApproachGoal > 0 && (
@@ -436,7 +436,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       {data.checkedInToday && approachStatsSection}
 
       {/* 7-day history */}
-      <div className="bg-bg-card border border-border rounded-2xl px-5 py-5">
+      <div className="bg-bg-card border border-border rounded-2xl shadow-card px-5 py-5">
 
         {/* 7-day dots */}
         <div className="flex justify-between px-1">
@@ -477,21 +477,21 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
       {/* Quick stats row */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Trophy size={13} strokeWidth={1.5} className="text-orange-500" />
             <span className="font-display text-[20px] font-bold">{data.bestStreak}</span>
           </div>
           <p className="text-[11px] text-text-muted">Best streak</p>
         </div>
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Calendar size={13} strokeWidth={1.5} className="text-text-muted" />
             <span className="font-display text-[20px] font-bold">{data.totalCheckins}</span>
           </div>
           <p className="text-[11px] text-text-muted">Total days</p>
         </div>
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <UserX size={13} strokeWidth={1.5} className="text-text-muted" />
             <span className="font-display text-[20px] font-bold">{data.totalDidntApproach}</span>

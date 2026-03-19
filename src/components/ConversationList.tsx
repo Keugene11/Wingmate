@@ -56,7 +56,7 @@ export default function ConversationList({
         {loading ? (
           <div className="space-y-3 pt-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-bg-card border border-border rounded-2xl h-[72px] animate-pulse" />
+              <div key={i} className="bg-bg-card border border-border rounded-2xl shadow-card h-[72px] animate-pulse" />
             ))}
           </div>
         ) : conversations.length === 0 ? (
@@ -81,7 +81,7 @@ export default function ConversationList({
               <button
                 key={convo.id}
                 onClick={() => onSelectConversation(convo.id)}
-                className="w-full flex items-center gap-3 bg-bg-card border border-border rounded-2xl px-4 py-3.5 text-left press"
+                className="w-full flex items-center gap-3 bg-bg-card border border-border rounded-2xl shadow-card px-4 py-3.5 text-left press"
               >
                 <div className="w-10 h-10 rounded-full bg-bg-card-hover flex items-center justify-center shrink-0">
                   <MessageCircle size={18} strokeWidth={1.5} className="text-text-muted" />

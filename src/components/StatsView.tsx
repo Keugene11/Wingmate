@@ -190,9 +190,9 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="bg-bg-card border border-border rounded-2xl h-80 animate-pulse" />
+        <div className="bg-bg-card border border-border rounded-2xl shadow-card h-80 animate-pulse" />
         <div className="grid grid-cols-3 gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="bg-bg-card border border-border rounded-xl h-20 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card h-20 animate-pulse" />)}
         </div>
       </div>
     );
@@ -238,7 +238,7 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
 
       {/* Calendar grid */}
       {mode === "month" && (
-        <div className="bg-bg-card border border-border rounded-2xl px-3 py-4">
+        <div className="bg-bg-card border border-border rounded-2xl shadow-card px-3 py-4">
           <div className="grid grid-cols-7 mb-2">
             {DAY_HEADERS.map((d, i) => (
               <div key={i} className="text-center text-[11px] font-medium text-text-muted py-1">{d}</div>
@@ -355,14 +355,14 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
 
       {/* Main stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-bg-card border border-border rounded-xl px-2 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-2 py-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Target size={14} strokeWidth={1.5} className="text-blue-500" />
             <span className="font-display text-[22px] font-bold">{stats.approaches}</span>
           </div>
           <p className="text-[11px] text-text-muted">Talked to</p>
         </div>
-        <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Calendar size={14} strokeWidth={1.5} className="text-text-muted" />
             <span className="font-display text-[22px] font-bold">{stats.daysActive}</span>
@@ -375,14 +375,14 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
       {mode === "all-time" && (
         <>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+            <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1.5 mb-1">
                 <Flame size={14} strokeWidth={1.5} className="text-orange-500" />
                 <span className="font-display text-[22px] font-bold">{allTimeStats.streak}</span>
               </div>
               <p className="text-[11px] text-text-muted">Current streak</p>
             </div>
-            <div className="bg-bg-card border border-border rounded-xl px-3 py-3 text-center">
+            <div className="bg-bg-card border border-border rounded-xl shadow-card px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1.5 mb-1">
                 <Flame size={14} strokeWidth={1.5} className="text-red-500" />
                 <span className="font-display text-[22px] font-bold">{allTimeStats.bestStreak}</span>
@@ -398,7 +398,7 @@ export default function StatsView({ isPro = true }: { isPro?: boolean }) {
               </h3>
               <div className="space-y-2">
                 {allTimeStats.monthlyBreakdown.map((m) => (
-                  <div key={m.month} className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
+                  <div key={m.month} className="bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5">
                     <p className="text-[14px] font-semibold mb-2.5">{m.label}</p>
                     <div className="flex gap-2">
                       <div className="flex-1 bg-bg-card-hover rounded-lg px-2 py-2 text-center">

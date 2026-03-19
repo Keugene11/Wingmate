@@ -208,7 +208,7 @@ export default function OnboardingPage() {
           </div>
 
           {/* Monthly */}
-          <div className="bg-bg-card border border-border rounded-2xl p-5">
+          <div className="bg-bg-card border border-border rounded-2xl shadow-card p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-display text-[16px] font-bold">Pro Monthly</h3>
               <div className="flex items-baseline gap-1">

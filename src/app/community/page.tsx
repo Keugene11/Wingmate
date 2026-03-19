@@ -117,7 +117,7 @@ export default function CommunityPage() {
         <div className="relative">
           <div className="space-y-3 blur-[6px] select-none pointer-events-none" aria-hidden>
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl px-4 py-3.5">
+              <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5">
                 <div className="flex flex-col items-center gap-0.5 shrink-0 pt-0.5">
                   <div className="w-5 h-5 rounded bg-border" />
                   <div className="w-4 h-4 rounded bg-border" />

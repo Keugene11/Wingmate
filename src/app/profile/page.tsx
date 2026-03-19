@@ -291,21 +291,21 @@ export default function ProfilePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-bg-card border border-border rounded-xl px-4 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-4 py-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Flame size={16} strokeWidth={1.5} className="text-orange-500" />
             <span className="font-display text-[22px] font-bold">{streak}</span>
           </div>
           <p className="text-[12px] text-text-muted">Day streak</p>
         </div>
-        <div className="bg-bg-card border border-border rounded-xl px-4 py-3 text-center">
+        <div className="bg-bg-card border border-border rounded-xl shadow-card px-4 py-3 text-center">
           <span className="font-display text-[22px] font-bold">{totalCheckins}</span>
           <p className="text-[12px] text-text-muted">Check-ins this week</p>
         </div>
       </div>
 
       {/* Goals */}
-      <div className="bg-bg-card border border-border rounded-xl px-4 py-4 mb-3">
+      <div className="bg-bg-card border border-border rounded-xl shadow-card px-4 py-4 mb-3">
         <div className="flex items-center justify-between mb-2">
           <p className="text-[12px] font-semibold text-text-muted uppercase tracking-wide">
             Your Goals
@@ -389,7 +389,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Subscription */}
-      <div className="bg-bg-card border border-border rounded-xl px-4 py-4 mb-3">
+      <div className="bg-bg-card border border-border rounded-xl shadow-card px-4 py-4 mb-3">
         <p className="text-[12px] font-semibold text-text-muted uppercase tracking-wide mb-2">
           Subscription
         </p>
@@ -416,7 +416,7 @@ export default function ProfilePage() {
       <div className="space-y-2 mt-4">
         <Link
           href="/plans"
-          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-left press"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-left press"
         >
           <CreditCard size={18} strokeWidth={1.5} className="text-text-muted shrink-0" />
           <span className="flex-1 font-medium text-[15px]">
@@ -427,7 +427,7 @@ export default function ProfilePage() {
 
         <Link
           href="/delete-account"
-          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-left press"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-left press"
         >
           <Trash2 size={18} strokeWidth={1.5} className="text-red-400 shrink-0" />
           <span className="flex-1 font-medium text-[15px] text-red-500">Delete account</span>
@@ -437,7 +437,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSignOut}
           disabled={loggingOut}
-          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl px-4 py-3.5 text-left press disabled:opacity-60"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-left press disabled:opacity-60"
         >
           <LogOut size={18} strokeWidth={1.5} className="text-text-muted shrink-0" />
           <span className="flex-1 font-medium text-[15px]">

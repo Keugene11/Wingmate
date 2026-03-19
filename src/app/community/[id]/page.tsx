@@ -204,13 +204,13 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value.slice(0, 120))}
-                  className="w-full bg-bg-card border border-border rounded-xl px-4 py-2.5 text-[16px] font-bold outline-none focus:border-text-muted transition-colors"
+                  className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-2.5 text-[16px] font-bold outline-none focus:border-text-muted transition-colors"
                 />
                 <textarea
                   value={editBody}
                   onChange={(e) => setEditBody(e.target.value.slice(0, 2000))}
                   rows={4}
-                  className="w-full bg-bg-card border border-border rounded-xl px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-text-muted transition-colors resize-none"
+                  className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-text-muted transition-colors resize-none"
                 />
                 <div className="flex items-center gap-2">
                   <button

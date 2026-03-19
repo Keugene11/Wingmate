@@ -56,7 +56,7 @@ export default function PostCard({
 
   return (
     <Link href={`/community/${id}`} className="block">
-      <div className="flex gap-3 bg-bg-card border border-border rounded-xl px-4 py-3.5 press">
+      <div className="flex gap-3 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press">
         <div className="flex flex-col items-center gap-0.5 shrink-0 pt-0.5">
           <button
             onClick={(e) => handleVote(e, 1)}

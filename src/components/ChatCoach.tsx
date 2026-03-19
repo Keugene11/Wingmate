@@ -376,13 +376,13 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
             {messages.map((msg, i) =>
               msg.role === "user" ? (
                 <div key={i} className="flex justify-end msg-in">
-                  <div className="max-w-[82%] bg-[#1a1a1a] text-white rounded-2xl rounded-br-sm px-4 py-3 shadow-sm">
+                  <div className="max-w-[82%] bg-[#1a1a1a] text-white rounded-2xl rounded-br-sm px-4 py-3 shadow-card">
                     <p className="text-[15px] leading-[1.55] whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
               ) : (
                 <div key={i} className="msg-in">
-                  <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-4 py-3.5 shadow-sm max-w-[92%]">
+                  <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-4 py-3.5 shadow-card max-w-[92%]">
                     {msg.content.split("\n").map((line, j) => {
                       const trimmed = line.trim();
                       const isTitle =
@@ -433,7 +433,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
           <div className="px-4 py-2">
             <form
               onSubmit={handleSubmit}
-              className="flex items-end gap-2 bg-bg-card border border-border rounded-2xl pl-4 pr-2 py-2 shadow-sm"
+              className="flex items-end gap-2 bg-bg-card border border-border rounded-2xl shadow-card pl-4 pr-2 py-2"
             >
               <textarea
                 ref={inputRef}

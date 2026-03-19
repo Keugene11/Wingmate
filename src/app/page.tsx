@@ -426,14 +426,14 @@ function HomeInner() {
                 {/* Stat cards row */}
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-bg-card border border-border rounded-xl p-4">
+                    <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card p-4">
                       <div className="h-3 bg-border/60 rounded w-2/3 mb-2" />
                       <div className="h-7 bg-border rounded w-1/2" />
                     </div>
                   ))}
                 </div>
                 {/* Calendar skeleton */}
-                <div className="bg-bg-card border border-border rounded-xl p-4 mb-4">
+                <div className="bg-bg-card border border-border rounded-xl shadow-card p-4 mb-4">
                   <div className="h-4 bg-border rounded w-1/3 mb-4" />
                   <div className="grid grid-cols-7 gap-2">
                     {Array.from({ length: 35 }).map((_, i) => (
@@ -444,7 +444,7 @@ function HomeInner() {
                 {/* Monthly breakdown */}
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-bg-card border border-border rounded-xl p-4">
+                    <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card p-4">
                       <div className="h-3 bg-border/60 rounded w-1/2 mb-2" />
                       <div className="h-5 bg-border rounded w-1/4" />
                     </div>
@@ -481,7 +481,7 @@ function HomeInner() {
               {/* Blurred skeleton posts */}
               <div className="space-y-3 blur-[6px] select-none pointer-events-none" aria-hidden>
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl px-4 py-3.5">
+                  <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5">
                     <div className="flex flex-col items-center gap-0.5 shrink-0 pt-0.5">
                       <div className="w-5 h-5 rounded bg-border" />
                       <div className="w-4 h-4 rounded bg-border" />
@@ -692,7 +692,7 @@ function HomeInner() {
             </div>
 
             {/* Monthly Pro */}
-            <div className="bg-bg-card border border-border rounded-2xl p-6">
+            <div className="bg-bg-card border border-border rounded-2xl shadow-card p-6">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h3 className="font-display text-[18px] font-bold mb-1">Pro Monthly</h3>
