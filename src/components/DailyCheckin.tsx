@@ -49,6 +49,24 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState(0);
   const [savingGoal, setSavingGoal] = useState(false);
+  const [editingDay, setEditingDay] = useState<string | null>(null);
+  const [editDayCount, setEditDayCount] = useState(0);
+  const [savingDay, setSavingDay] = useState(false);
+
+  const saveDayEdit = async () => {
+    if (!editingDay) return;
+    setSavingDay(true);
+    try {
+      await fetch("/api/checkin", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: editingDay, opportunities: editDayCount, approaches: editDayCount, successes: 0 }),
+      });
+      await refreshData();
+    } catch {}
+    setSavingDay(false);
+    setEditingDay(null);
+  };
 
   const getLocalDate = () => {
     const now = new Date();
@@ -443,23 +461,58 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           {data.last7.map((day, i) => {
             const dayOfWeek = new Date(day.date + "T00:00:00").getDay();
             const isToday = i === data.last7.length - 1;
+            const isEditing = editingDay === day.date;
             return (
               <div key={day.date} className="flex flex-col items-center gap-1.5">
                 <span className={`text-[10px] font-medium ${isToday ? "text-text" : "text-text-muted"}`}>
                   {DAY_LABELS[dayOfWeek]}
                 </span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${
-                  day.talked === true ? "bg-green-500 text-white text-[14px]"
+                <button
+                  onClick={() => {
+                    if (isEditing) { setEditingDay(null); return; }
+                    setEditingDay(day.date);
+                    setEditDayCount(day.approaches || 0);
+                  }}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${
+                    isEditing ? "ring-2 ring-blue-500 bg-blue-50 text-blue-600 text-[14px]"
+                    : day.talked === true ? "bg-green-500 text-white text-[14px]"
                     : day.talked === false ? "bg-orange-100 text-orange-600 text-[12px]"
                     : isToday ? "border-2 border-dashed border-text-muted/30 text-[14px]"
                     : "bg-bg-card-hover text-[14px]"
-                } ${justCheckedIn && isToday ? "streak-pop" : ""}`}>
+                  } ${justCheckedIn && isToday ? "streak-pop" : ""} press`}
+                >
                   {day.talked !== null ? (day.approaches > 0 ? day.approaches : "0") : null}
-                </div>
+                </button>
               </div>
             );
           })}
         </div>
+
+        {/* Inline day editor */}
+        {editingDay && (
+          <div className="mt-4 pt-4 border-t border-border animate-fade-in">
+            <p className="text-[12px] text-text-muted text-center mb-3">
+              {new Date(editingDay + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+            </p>
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <button
+                onClick={() => setEditDayCount(Math.max(0, editDayCount - 1))}
+                className="w-9 h-9 rounded-full bg-bg-card-hover flex items-center justify-center text-[16px] font-bold press"
+              >−</button>
+              <span className="font-display text-[28px] font-extrabold leading-none w-10 text-center">{editDayCount}</span>
+              <button
+                onClick={() => setEditDayCount(editDayCount + 1)}
+                className="w-9 h-9 rounded-full bg-bg-card-hover flex items-center justify-center text-[16px] font-bold press"
+              >+</button>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setEditingDay(null)} className="flex-1 py-2 rounded-xl bg-bg-card-hover border border-border text-[13px] font-medium press">Cancel</button>
+              <button onClick={saveDayEdit} disabled={savingDay} className="flex-1 py-2 rounded-xl bg-[#1a1a1a] text-white text-[13px] font-semibold press disabled:opacity-60">
+                {savingDay ? "..." : "Save"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Streak freeze indicator */}
         {data.streakFreezes > 0 && (
