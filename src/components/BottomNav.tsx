@@ -25,7 +25,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-bg/80 backdrop-blur-lg border-t border-border z-50 shadow-nav">
-      <p className="text-center text-text-muted/50 text-[9px] pt-1.5">A Keugene Lee production</p>
+      <p className="text-center text-text text-[12px] font-bold tracking-wide pt-2.5">A Keugene Lee production</p>
       <div className="max-w-md mx-auto flex items-center justify-around py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {tabs.map(({ id, label, icon: Icon }) => {
           const isActive = !isProfilePage && active === id;

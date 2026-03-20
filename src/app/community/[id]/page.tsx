@@ -20,7 +20,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
-  const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
   const router = useRouter();
   const supabase = createClient();
 

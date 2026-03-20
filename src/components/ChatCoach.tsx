@@ -415,7 +415,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
 
       {/* Paywall */}
       {limitReached ? (
-        <div className="px-5 py-6 shrink-0 bg-bg-card border-t border-border text-center animate-fade-in">
+        <div className="mx-4 mb-4 px-5 py-6 shrink-0 bg-bg-card border border-border rounded-2xl text-center animate-fade-in">
           <Lock size={18} strokeWidth={1.5} className="mx-auto text-text-muted mb-2" />
           <p className="font-display font-bold text-[16px] mb-1">Pro feature</p>
           <p className="text-text-muted text-[13px] mb-4">

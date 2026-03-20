@@ -51,7 +51,7 @@ function HomeInner() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [greeting, setGreeting] = useState("");
-  const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [checkoutPending, setCheckoutPending] = useState(false);
 
@@ -615,7 +615,7 @@ function HomeInner() {
 
       {/* ===== PLANS TAB ===== */}
       {activeTab === "plans" && (
-        <div className="px-5 pt-14 pb-10 animate-fade-in">
+        <div className="px-5 pt-14 pb-32 animate-fade-in">
           <div className="text-center mb-10">
             <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-3">
               {isPro ? "Your plan" : "Unlock everything"}

@@ -10,7 +10,7 @@ export default function NewPostPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
   const router = useRouter();
   const supabase = createClient();
 
