@@ -62,7 +62,7 @@ function HomeInner() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [greeting, setGreeting] = useState("");
-  const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [checkoutPending, setCheckoutPending] = useState(false);
 
@@ -399,16 +399,58 @@ function HomeInner() {
       {/* ===== CHECK-IN TAB ===== */}
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          <DailyCheckin
-            greeting={greeting}
-            onTalkAboutIt={(talked) => {
-              setCheckinTalked(talked);
-              updateState("checkin-chat");
-            }}
-            isLoggedIn={isLoggedIn === true}
-            isPro={isPro === true}
-          />
-
+          {!isPro ? (
+            <div>
+              <div className="mb-2 animate-slide-up">
+                {greeting && <h1 className="text-[28px] font-bold tracking-tight leading-[1.2] mb-1">{greeting}</h1>}
+                <p className="text-text-muted text-[14px] leading-relaxed">
+                  Track how many girls you talked to. Build the habit — check in every day.
+                </p>
+              </div>
+              <div className="relative mt-4">
+                {/* Blurred skeleton */}
+                <div className="blur-[6px] select-none pointer-events-none space-y-4" aria-hidden>
+                  <div className="rounded-2xl bg-[#1a1a1a] px-5 py-6 h-52" />
+                  <div className="bg-bg-card border border-border rounded-2xl shadow-card px-5 py-5">
+                    <div className="flex justify-between px-1">
+                      {Array.from({ length: 7 }).map((_, i) => (
+                        <div key={i} className="flex flex-col items-center gap-1.5">
+                          <div className="w-4 h-3 bg-border/60 rounded" />
+                          <div className="w-8 h-8 rounded-full bg-border/40" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card h-20" />
+                    ))}
+                  </div>
+                </div>
+                {/* Overlay */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <p className="text-[48px] mb-4">🔒</p>
+                  <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Tracking & check-ins is a Pro feature. Upgrade to log approaches, build streaks, and track your progress.</p>
+                  <button
+                    onClick={() => handleTabChange("plans")}
+                    className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
+                  >
+                    View plans
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <DailyCheckin
+              greeting={greeting}
+              onTalkAboutIt={(talked) => {
+                setCheckinTalked(talked);
+                updateState("checkin-chat");
+              }}
+              isLoggedIn={isLoggedIn === true}
+              isPro={isPro === true}
+            />
+          )}
         </div>
       )}
 

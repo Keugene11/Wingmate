@@ -19,7 +19,7 @@ export default function CommunityPage() {
   const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
