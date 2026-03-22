@@ -142,7 +142,7 @@ export default function OnboardingPage() {
             </button>
             <p className="text-[40px] mb-10 onb-emoji">💰</p>
             <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
-              Let&apos;s say you buy a Wingmate subscription for $15 a month.
+              Let&apos;s say you buy a Wingmate subscription for $20 a month.
             </p>
             <p className="text-[17px] leading-[1.65] text-text-muted mt-6 onb-body">
               Since you&apos;re now financially committed to talking to more girls, you&apos;re going to talk to 1 more girl per week and 4 more girls per month.
@@ -151,7 +151,7 @@ export default function OnboardingPage() {
               This will improve your rizz skills, create more fun memories, make more valuable connections, and maybe even have sex more often.
             </p>
             <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-semibold mt-8 onb-body-2">
-              All of this is definitely worth $15.
+              All of this is definitely worth $20.
             </p>
           </div>
 
@@ -192,8 +192,8 @@ export default function OnboardingPage() {
             <div className="flex items-center justify-between mb-3 mt-1">
               <h3 className="font-display text-[16px] font-bold">Pro Yearly</h3>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-text-muted text-[16px] font-bold line-through">$15</span>
-                <span className="font-display text-[22px] font-extrabold">$10</span>
+                <span className="text-text-muted text-[16px] font-bold line-through">$20</span>
+                <span className="font-display text-[22px] font-extrabold">$15</span>
                 <span className="text-text-muted text-[13px]">/mo</span>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function OnboardingPage() {
               disabled={!!checkoutLoading}
               className="w-full bg-[#1a1a1a] text-white py-2.5 rounded-xl font-semibold text-[14px] press disabled:opacity-60"
             >
-              {checkoutLoading === "yearly" ? "Redirecting..." : "Get started — $10/mo"}
+              {checkoutLoading === "yearly" ? "Redirecting..." : "Get started — $15/mo"}
             </button>
           </div>
 
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-display text-[16px] font-bold">Pro Monthly</h3>
               <div className="flex items-baseline gap-1">
-                <span className="font-display text-[22px] font-extrabold">$15</span>
+                <span className="font-display text-[22px] font-extrabold">$20</span>
                 <span className="text-text-muted text-[13px]">/mo</span>
               </div>
             </div>
