@@ -18,3 +18,6 @@ android-twa/.bundle/
 ios/App/Pods/
 ios/App/App/public/
 ios/App/output/
+
+# Apple signing (NEVER commit)
+.apple-signing/
