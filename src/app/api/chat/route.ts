@@ -5,13 +5,12 @@ import { Redis } from "@upstash/redis";
 export const runtime = "edge";
 
 // Rate limiter: 30 requests per 1 hour per user
+const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const ratelimit =
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  redisUrl && redisToken
     ? new Ratelimit({
-        redis: new Redis({
-          url: process.env.UPSTASH_REDIS_REST_URL,
-          token: process.env.UPSTASH_REDIS_REST_TOKEN,
-        }),
+        redis: new Redis({ url: redisUrl, token: redisToken }),
         limiter: Ratelimit.slidingWindow(30, "1 h"),
         analytics: true,
       })
