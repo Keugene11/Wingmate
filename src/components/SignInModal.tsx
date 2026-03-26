@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { signInWithGoogle, signInWithApple } from "@/lib/supabase-browser";
-import { isNativeAndroid } from "@/lib/platform";
+import { isApplePlatform } from "@/lib/platform";
 
 export default function SignInModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
@@ -29,7 +29,7 @@ export default function SignInModal({ open, onClose }: { open: boolean; onClose:
             </svg>
             Continue with Google
           </button>
-          {!isNativeAndroid() && (
+          {isApplePlatform() && (
             <button
               onClick={() => signInWithApple()}
               className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press"

@@ -6,7 +6,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { signInWithGoogle, signInWithApple } from "@/lib/supabase-browser";
 import { createClient } from "@/lib/supabase-browser";
 import SignInModal from "@/components/SignInModal";
-import { isNativeiOS, isNativeAndroid } from "@/lib/platform";
+import { isNativeiOS, isApplePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage } from "@/lib/purchases";
 
 const STEPS = ["ask", "value", "features"] as const;
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
           Sign in with Google
         </button>
 
-        {!isNativeAndroid() && (
+        {isApplePlatform() && (
           <button
             onClick={handleAppleSignIn}
             className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-3.5 rounded-2xl font-semibold text-[15px] press mt-2"

@@ -34,3 +34,11 @@ export function isNativePlatform(): boolean {
     !!window.Capacitor?.isNativePlatform()
   );
 }
+
+/** True when running on an Apple device (native iOS or macOS browser). */
+export function isApplePlatform(): boolean {
+  if (typeof window === "undefined") return false;
+  if (isNativeiOS()) return true;
+  const ua = navigator.userAgent || navigator.vendor || "";
+  return /Mac|iPhone|iPad|iPod/i.test(ua);
+}
