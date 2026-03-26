@@ -8,6 +8,7 @@ drop policy if exists "Anyone can view profiles" on profiles;
 drop policy if exists "Public profiles are viewable by everyone." on profiles;
 
 -- Create a new SELECT policy: only authenticated users can read profiles
+drop policy if exists "Authenticated users can view profiles" on profiles;
 create policy "Authenticated users can view profiles"
   on profiles for select
   to authenticated
