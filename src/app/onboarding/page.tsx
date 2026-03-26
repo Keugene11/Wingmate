@@ -6,7 +6,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { signInWithGoogle, signInWithApple } from "@/lib/supabase-browser";
 import { createClient } from "@/lib/supabase-browser";
 import SignInModal from "@/components/SignInModal";
-import { isNativeiOS } from "@/lib/platform";
+import { isNativeiOS, isNativeAndroid } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage } from "@/lib/purchases";
 
 const STEPS = ["ask", "value", "features"] as const;
@@ -291,15 +291,17 @@ export default function OnboardingPage() {
           Sign in with Google
         </button>
 
-        <button
-          onClick={handleAppleSignIn}
-          className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-3.5 rounded-2xl font-semibold text-[15px] press mt-2"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-            <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
-          </svg>
-          Sign in with Apple
-        </button>
+        {!isNativeAndroid() && (
+          <button
+            onClick={handleAppleSignIn}
+            className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-3.5 rounded-2xl font-semibold text-[15px] press mt-2"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
+            </svg>
+            Sign in with Apple
+          </button>
+        )}
 
         <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
       </main>
