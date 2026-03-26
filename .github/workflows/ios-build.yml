@@ -80,7 +80,6 @@ jobs:
             -scheme App \
             -archivePath $RUNNER_TEMP/Wingmate.xcarchive \
             -destination "generic/platform=iOS" \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
             -skipPackagePluginValidation
 
