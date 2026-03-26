@@ -15,7 +15,7 @@ export async function GET() {
 
     const { data: subscription } = await admin
       .from("subscriptions")
-      .select("*")
+      .select("status, price_id, current_period_start, current_period_end, cancel_at_period_end")
       .eq("user_id", user.id)
       .in("status", ["active", "trialing"])
       .single();

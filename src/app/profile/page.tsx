@@ -124,8 +124,29 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
 
+    // Client-side validation (server enforces these too via bucket config)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image must be under 2MB");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      alert("Only JPEG, PNG, WebP, and GIF images are allowed");
+      return;
+    }
+
     setUploadingAvatar(true);
-    const ext = file.name.split(".").pop() || "jpg";
+
+    // Delete old avatar files before uploading new one
+    const { data: existingFiles } = await supabase.storage
+      .from("avatars")
+      .list(profile.id);
+    if (existingFiles && existingFiles.length > 0) {
+      await supabase.storage
+        .from("avatars")
+        .remove(existingFiles.map((f) => `${profile.id}/${f.name}`));
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z]/g, "") || "jpg";
     const path = `${profile.id}/avatar.${ext}`;
 
     const { error: uploadError } = await supabase.storage
