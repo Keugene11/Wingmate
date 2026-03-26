@@ -1,6 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 export const runtime = "edge";
+
+// Rate limiter: 30 requests per 1 hour per user
+const ratelimit =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Ratelimit({
+        redis: new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        }),
+        limiter: Ratelimit.slidingWindow(30, "1 h"),
+        analytics: true,
+      })
+    : null;
 
 function createSupabase(req: Request) {
   return createServerClient(
@@ -128,6 +143,14 @@ export async function POST(req: Request) {
     const user = await getUser(req);
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limit: 30 AI requests per hour per user
+    if (ratelimit) {
+      const { success } = await ratelimit.limit(user.id);
+      if (!success) {
+        return Response.json({ error: "Slow down — too many requests. Try again in a few minutes." }, { status: 429 });
+      }
     }
 
     const { messages, mode } = await req.json();
