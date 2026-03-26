@@ -95,10 +95,7 @@ function HomeInner() {
     setHydrated(true);
 
     supabase.auth.getUser().then(({ data }) => {
-      const meta = data.user?.user_metadata;
-      const full = meta?.full_name || meta?.name || "";
-      const first = full.split(" ")[0] || undefined;
-      setGreeting(getGreeting(first));
+      setGreeting(getGreeting());
       if (data.user) {
         setUserId(data.user.id);
         setIsLoggedIn(true);
