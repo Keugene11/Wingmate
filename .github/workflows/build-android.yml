@@ -35,6 +35,25 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
+      - name: Verify signing key matches assetlinks.json
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          # Extract SHA-256 fingerprint from the CI keystore
+          FINGERPRINT=$(keytool -list -v -keystore /tmp/keystore.jks -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | grep "SHA256:" | sed 's/.*SHA256: //')
+          echo "::notice::Upload key SHA-256: $FINGERPRINT"
+
+          # Check it exists in assetlinks.json
+          if grep -qi "$(echo "$FINGERPRINT" | tr '[:lower:]' '[:upper:]')" ../public/.well-known/assetlinks.json; then
+            echo "✓ Signing key fingerprint found in assetlinks.json"
+          else
+            echo "::error::Signing key fingerprint NOT in assetlinks.json! TWA will show Chrome URL bar."
+            echo "::error::Add this fingerprint to public/.well-known/assetlinks.json:"
+            echo "::error::$FINGERPRINT"
+            exit 1
+          fi
+
       - name: Copy icon into Android resources
         run: |
           mkdir -p app/src/main/res/mipmap-xxxhdpi
