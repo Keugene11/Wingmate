@@ -10,7 +10,6 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "automatic",
-    preferredContentMode: "mobile",
     scheme: "Wingmate",
   },
   plugins: {

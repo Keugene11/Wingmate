@@ -21,3 +21,5 @@ ios/App/output/
 
 # Apple signing (NEVER commit)
 .apple-signing/
+
+.env*.local
