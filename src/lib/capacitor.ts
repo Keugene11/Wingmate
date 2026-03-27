@@ -23,7 +23,7 @@ export async function openInAppBrowser(url: string) {
   }
   try {
     const { Browser } = await import("@capacitor/browser");
-    await Browser.open({ url, presentationStyle: "popover" });
+    await Browser.open({ url, presentationStyle: "fullscreen" });
   } catch {
     window.location.href = url;
   }

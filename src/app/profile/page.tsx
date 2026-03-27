@@ -46,6 +46,14 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Goals
+  // Toast
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  // Goals
   const [editingGoals, setEditingGoals] = useState(false);
   const [goalSelection, setGoalSelection] = useState<Set<string>>(new Set());
   const [customGoalInput, setCustomGoalInput] = useState("");
@@ -126,11 +134,11 @@ export default function ProfilePage() {
 
     // Client-side validation (server enforces these too via bucket config)
     if (file.size > 2 * 1024 * 1024) {
-      alert("Image must be under 2MB");
+      showToast("Image must be under 2MB");
       return;
     }
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
-      alert("Only JPEG, PNG, WebP, and GIF images are allowed");
+      showToast("Only JPEG, PNG, WebP, and GIF images are allowed");
       return;
     }
 
@@ -480,7 +488,7 @@ export default function ProfilePage() {
         <button
           onClick={() => {
             navigator.clipboard.writeText("wingmatesupport@gmail.com");
-            alert("Support email copied!\n\nwingmatesupport@gmail.com");
+            showToast("Support email copied!");
           }}
           className="text-[12px] text-text-muted underline"
         >
@@ -489,6 +497,13 @@ export default function ProfilePage() {
       </div>
 
       <BottomNav />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[100] bg-[#1a1a1a] text-white text-[13px] font-medium px-5 py-2.5 rounded-full shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
     </main>
   );
 }
