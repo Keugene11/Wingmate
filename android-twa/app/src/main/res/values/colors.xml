@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#FF1a1a1a</color>
-    <color name="colorSplashBackground">#FFfafafa</color>
+    <color name="colorSplashBackground">#FF1a1a1a</color>
 </resources>
