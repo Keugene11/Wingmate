@@ -11,16 +11,10 @@ export function createClient() {
 
 /**
  * Triggers Apple OAuth sign-in via Supabase.
- * Uses in-app browser on native Capacitor, popup on standalone PWA,
- * and full redirect on regular web.
+ * Uses in-app browser on native Capacitor, full redirect on web.
  */
 export async function signInWithApple() {
   const supabase = createClient();
-
-  const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as unknown as { standalone?: boolean }).standalone ===
-      true;
 
   // Native Capacitor: open OAuth in SFSafariViewController
   if (isNativePlatform()) {
@@ -35,23 +29,6 @@ export async function signInWithApple() {
     if (error) return { error };
     if (data?.url) {
       await openInAppBrowser(data.url);
-    }
-    return { error: null };
-  }
-
-  if (isStandalone) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "apple",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/complete`,
-        skipBrowserRedirect: true,
-      },
-    });
-
-    if (error) return { error };
-    if (data?.url) {
-      localStorage.setItem("auth-pending-popup", "1");
-      window.open(data.url, "_blank", "popup,width=500,height=600");
     }
     return { error: null };
   }
@@ -68,11 +45,6 @@ export async function signInWithApple() {
 export async function signInWithGoogle() {
   const supabase = createClient();
 
-  const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as unknown as { standalone?: boolean }).standalone ===
-      true;
-
   // Native Capacitor: open OAuth in SFSafariViewController
   if (isNativePlatform()) {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -87,24 +59,6 @@ export async function signInWithGoogle() {
     if (error) return { error };
     if (data?.url) {
       await openInAppBrowser(data.url);
-    }
-    return { error: null };
-  }
-
-  if (isStandalone) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/complete`,
-        queryParams: { prompt: "select_account" },
-        skipBrowserRedirect: true,
-      },
-    });
-
-    if (error) return { error };
-    if (data?.url) {
-      localStorage.setItem("auth-pending-popup", "1");
-      window.open(data.url, "_blank", "popup,width=500,height=600");
     }
     return { error: null };
   }

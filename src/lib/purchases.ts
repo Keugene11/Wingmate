@@ -67,8 +67,8 @@ export async function purchasePackage(packageToPurchase: any) {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     const result = await Purchases.purchasePackage({ aPackage: packageToPurchase });
     // Check if the user now has an active entitlement
-    const entitlements = result.customerInfo.entitlements.active;
-    return Object.keys(entitlements).length > 0;
+    const entitlements = result?.customerInfo?.entitlements?.active;
+    return !!entitlements && Object.keys(entitlements).length > 0;
   } catch (e: unknown) {
     const error = e as { code?: number; userCancelled?: boolean };
     if (error.userCancelled) return false;
@@ -87,8 +87,8 @@ export async function restorePurchases() {
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     const result = await Purchases.restorePurchases();
-    const entitlements = result.customerInfo.entitlements.active;
-    return Object.keys(entitlements).length > 0;
+    const entitlements = result?.customerInfo?.entitlements?.active;
+    return !!entitlements && Object.keys(entitlements).length > 0;
   } catch (e) {
     console.error("Restore failed:", e);
     return false;
@@ -104,8 +104,8 @@ export async function checkSubscription() {
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     const info = await Purchases.getCustomerInfo();
-    const entitlements = info.customerInfo.entitlements.active;
-    return Object.keys(entitlements).length > 0;
+    const entitlements = info?.customerInfo?.entitlements?.active;
+    return !!entitlements && Object.keys(entitlements).length > 0;
   } catch (e) {
     console.error("Failed to check subscription:", e);
     return false;

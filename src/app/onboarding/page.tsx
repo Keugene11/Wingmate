@@ -93,14 +93,6 @@ export default function OnboardingPage() {
       });
     }
 
-    // Listen for auth completion from PWA popup
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === "auth-complete" && e.newValue) {
-        router.replace("/");
-      }
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
   }, [router]);
 
   const goToStep = (s: Step) => {

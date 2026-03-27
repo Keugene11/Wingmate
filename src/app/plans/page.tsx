@@ -8,6 +8,7 @@ import SignInModal from "@/components/SignInModal";
 import { isNativeiOS } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage, restorePurchases } from "@/lib/purchases";
 import { createClient } from "@/lib/supabase-browser";
+import { openInAppBrowser } from "@/lib/capacitor";
 
 type Subscription = {
   status: string;
@@ -147,7 +148,7 @@ export default function PlansPage() {
   const handleManageBilling = async () => {
     if (isiOS) {
       // On iOS, direct user to iOS Settings for subscription management
-      window.open("https://apps.apple.com/account/subscriptions", "_blank");
+      openInAppBrowser("https://apps.apple.com/account/subscriptions");
       return;
     }
     setLoadingPortal(true);

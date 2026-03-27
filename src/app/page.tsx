@@ -204,16 +204,6 @@ function HomeInner() {
 
   }, []);
 
-  // Fallback: if this page loaded inside the auth popup (next param was lost),
-  // signal the PWA and close instead of showing the full app in the popup.
-  useEffect(() => {
-    if (window.opener && localStorage.getItem("auth-pending-popup")) {
-      localStorage.removeItem("auth-pending-popup");
-      localStorage.setItem("auth-complete", Date.now().toString());
-      window.close();
-    }
-  }, [isLoggedIn]);
-
   // Load community posts when tab switches to community
   const fetchPosts = useCallback(async (mode: "new" | "top", offset = 0, query = "") => {
     const { data: { user } } = await supabase.auth.getUser();
