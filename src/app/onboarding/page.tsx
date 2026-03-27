@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase-browser";
 import SignInModal from "@/components/SignInModal";
 import { isNativeiOS, isApplePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage } from "@/lib/purchases";
+import { hideSplash } from "@/lib/capacitor";
 
 const STEPS = ["ask", "value", "features"] as const;
 type Step = (typeof STEPS)[number];
@@ -68,9 +69,12 @@ export default function OnboardingPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
+      hideSplash();
       if (data.user) {
         router.replace("/");
       }
+    }).catch(() => {
+      hideSplash();
     });
 
     // Init IAP on iOS

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { initPurchases, identifyUser } from "@/lib/purchases";
 import { isNativeiOS } from "@/lib/platform";
+import { hideSplash, openInAppBrowser } from "@/lib/capacitor";
 
 import ChatCoach from "@/components/ChatCoach";
 import ConversationList from "@/components/ConversationList";
@@ -99,6 +100,7 @@ function HomeInner() {
       if (data.user) {
         setUserId(data.user.id);
         setIsLoggedIn(true);
+        hideSplash();
         // Initialize RevenueCat on iOS
         initPurchases().then(() => identifyUser(data.user.id));
         // Check if onboarding is needed, and save pending goals from pre-auth onboarding
@@ -145,7 +147,7 @@ function HomeInner() {
                       body: JSON.stringify({ plan: pendingPlan }),
                     })
                       .then((r) => r.json())
-                      .then((d) => { if (d.url) window.location.href = d.url; });
+                      .then((d) => { if (d.url) openInAppBrowser(d.url); });
                   }
                 })
                 .catch(() => {});
@@ -160,10 +162,12 @@ function HomeInner() {
           }
         } catch {}
       } else {
+        hideSplash();
         router.replace("/onboarding");
         return;
       }
     }).catch(() => {
+      hideSplash();
       router.replace("/onboarding");
       return;
     });
@@ -297,7 +301,7 @@ function HomeInner() {
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) openInAppBrowser(data.url);
       else setCheckoutLoading(null);
     } catch {
       setCheckoutLoading(null);
@@ -651,7 +655,7 @@ function HomeInner() {
                   try {
                     const res = await fetch("/api/stripe/portal", { method: "POST" });
                     const data = await res.json();
-                    if (data.url) window.location.href = data.url;
+                    if (data.url) openInAppBrowser(data.url);
                   } catch {}
                 }}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-bg-input text-[14px] font-semibold press"

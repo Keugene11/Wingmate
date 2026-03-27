@@ -1,4 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { isNativePlatform } from "./platform";
+import { openInAppBrowser } from "./capacitor";
 
 export function createClient() {
   return createBrowserClient(
@@ -8,12 +10,9 @@ export function createClient() {
 }
 
 /**
- * Triggers Google OAuth sign-in via standard PKCE flow.
- * In standalone PWA mode, uses a popup to avoid crashing the PWA window.
- */
-/**
  * Triggers Apple OAuth sign-in via Supabase.
- * Same PWA popup logic as Google.
+ * Uses in-app browser on native Capacitor, popup on standalone PWA,
+ * and full redirect on regular web.
  */
 export async function signInWithApple() {
   const supabase = createClient();
@@ -22,6 +21,23 @@ export async function signInWithApple() {
     window.matchMedia("(display-mode: standalone)").matches ||
     (window.navigator as unknown as { standalone?: boolean }).standalone ===
       true;
+
+  // Native Capacitor: open OAuth in SFSafariViewController
+  if (isNativePlatform()) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: true,
+      },
+    });
+
+    if (error) return { error };
+    if (data?.url) {
+      await openInAppBrowser(data.url);
+    }
+    return { error: null };
+  }
 
   if (isStandalone) {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -57,6 +73,24 @@ export async function signInWithGoogle() {
     (window.navigator as unknown as { standalone?: boolean }).standalone ===
       true;
 
+  // Native Capacitor: open OAuth in SFSafariViewController
+  if (isNativePlatform()) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { prompt: "select_account" },
+        skipBrowserRedirect: true,
+      },
+    });
+
+    if (error) return { error };
+    if (data?.url) {
+      await openInAppBrowser(data.url);
+    }
+    return { error: null };
+  }
+
   if (isStandalone) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -69,7 +103,6 @@ export async function signInWithGoogle() {
 
     if (error) return { error };
     if (data?.url) {
-      // Flag so any page can detect it's inside an auth popup
       localStorage.setItem("auth-pending-popup", "1");
       window.open(data.url, "_blank", "popup,width=500,height=600");
     }
