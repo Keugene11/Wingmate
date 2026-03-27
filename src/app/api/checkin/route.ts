@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { applyXp, computeLevelFromTotal, getLevelInfo, getXpToNextLevel } from "@/lib/levels";
 // Auth client — uses anon key + user cookies to identify the user
 async function getAuthSupabase() {
   const cookieStore = await cookies();
@@ -152,9 +153,14 @@ export async function GET(req: Request) {
 
   const stats = await getFullStats(supabase, user.id, today);
 
-  // Get profile for freezes and weekly goal
+  // Get profile for freezes, weekly goal, and level
   const { data: profile } = await supabase
-    .from("profiles").select("streak_freezes, weekly_approach_goal").eq("id", user.id).single();
+    .from("profiles").select("streak_freezes, weekly_approach_goal, level, xp").eq("id", user.id).single();
+
+  const level = profile?.level ?? 1;
+  const xp = profile?.xp ?? 0;
+  const levelInfo = getLevelInfo(level);
+  const xpToNextLevel = getXpToNextLevel(level);
 
   return NextResponse.json({
     checkedInToday: !!todayCheckin,
@@ -180,6 +186,10 @@ export async function GET(req: Request) {
     weeklyApproaches: stats.last7.reduce((sum: number, d: { approaches: number }) => sum + d.approaches, 0),
     weeklyApproachGoal: profile?.weekly_approach_goal ?? 0,
     streakFreezes: profile?.streak_freezes ?? 0,
+    level,
+    xp,
+    levelName: levelInfo.name,
+    xpToNextLevel,
   });
 }
 
@@ -215,7 +225,7 @@ export async function POST(req: Request) {
 
   // Check if this is a new check-in or update
   const { data: existing } = await supabase
-    .from("checkins").select("id").eq("user_id", user.id).eq("checked_in_at", today).single();
+    .from("checkins").select("id, approaches_count").eq("user_id", user.id).eq("checked_in_at", today).single();
   const isNew = !existing;
 
   let error: any = null;
@@ -246,16 +256,16 @@ export async function POST(req: Request) {
 
   const stats = await getFullStats(supabase, user.id, today);
 
-  // Get profile for streak freezes
+  // Get profile for streak freezes and level
   let { data: profile } = await supabase
     .from("profiles")
-    .select("streak_freezes")
+    .select("streak_freezes, level, xp")
     .eq("id", user.id)
     .single();
 
   if (!profile) {
-    await supabase.from("profiles").upsert({ id: user.id, username: "", streak_freezes: 0 });
-    profile = { streak_freezes: 0 };
+    await supabase.from("profiles").upsert({ id: user.id, username: "", streak_freezes: 0, level: 1, xp: 0 });
+    profile = { streak_freezes: 0, level: 1, xp: 0 };
   }
 
   let currentFreezes = profile.streak_freezes || 0;
@@ -263,11 +273,38 @@ export async function POST(req: Request) {
   // Award streak freeze every 7 days (only for new check-ins)
   if (isNew && stats.streak > 0 && stats.streak % 7 === 0) {
     currentFreezes = Math.min(currentFreezes + 1, 3);
-    await supabase
-      .from("profiles")
-      .update({ streak_freezes: currentFreezes })
-      .eq("id", user.id);
   }
+
+  // Compute XP delta: 1 XP per approach
+  const previousApproaches = existing?.approaches_count ?? 0;
+  const approachDelta = appr - previousApproaches;
+
+  let currentLevel = profile.level || 1;
+  let currentXp = profile.xp || 0;
+  let leveledUp = false;
+  let newLevelName: string | null = null;
+
+  if (approachDelta > 0) {
+    const result = applyXp(currentLevel, currentXp, approachDelta);
+    currentLevel = result.level;
+    currentXp = result.xp;
+    leveledUp = result.leveledUp;
+    newLevelName = result.newLevelName;
+  } else if (approachDelta < 0) {
+    // User reduced approaches — recompute from total
+    const recomputed = computeLevelFromTotal(stats.totalApproaches);
+    currentLevel = recomputed.level;
+    currentXp = recomputed.xp;
+  }
+
+  // Save profile updates
+  await supabase
+    .from("profiles")
+    .update({ streak_freezes: currentFreezes, level: currentLevel, xp: currentXp })
+    .eq("id", user.id);
+
+  const levelInfo = getLevelInfo(currentLevel);
+  const xpToNextLevel = getXpToNextLevel(currentLevel);
 
   return NextResponse.json({
     success: true,
@@ -284,6 +321,12 @@ export async function POST(req: Request) {
     successRate: stats.successRate,
     approachConversionRate: stats.approachConversionRate,
     streakFreezes: currentFreezes,
+    level: currentLevel,
+    xp: currentXp,
+    levelName: levelInfo.name,
+    xpToNextLevel,
+    leveledUp,
+    newLevelName,
   });
 }
 
@@ -338,6 +381,17 @@ export async function PATCH(req: Request) {
     }
 
     const stats = await getFullStats(supabase, user.id, date);
+
+    // Recompute level from total approaches after edit
+    const recomputed = computeLevelFromTotal(stats.totalApproaches);
+    await supabase
+      .from("profiles")
+      .update({ level: recomputed.level, xp: recomputed.xp })
+      .eq("id", user.id);
+
+    const levelInfo = getLevelInfo(recomputed.level);
+    const xpToNextLevel = getXpToNextLevel(recomputed.level);
+
     return NextResponse.json({
       totalOpportunities: stats.totalOpportunities,
       totalApproaches: stats.totalApproaches,
@@ -349,6 +403,10 @@ export async function PATCH(req: Request) {
       totalTalked: stats.totalTalked,
       approachRate: stats.approachRate,
       history: stats.history,
+      level: recomputed.level,
+      xp: recomputed.xp,
+      levelName: levelInfo.name,
+      xpToNextLevel,
     });
   }
 

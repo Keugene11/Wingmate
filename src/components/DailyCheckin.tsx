@@ -5,6 +5,7 @@ import { Flame, Trophy, Calendar, Shield, Target, UserX, Crosshair, Pencil } fro
 import { createClient } from "@/lib/supabase-browser";
 import UpgradeModal from "@/components/UpgradeModal";
 import SignInModal from "@/components/SignInModal";
+import LevelBadge from "@/components/LevelBadge";
 
 interface CheckinData {
   checkedInToday: boolean;
@@ -29,6 +30,10 @@ interface CheckinData {
   streakFreezes: number;
   weeklyApproaches: number;
   weeklyApproachGoal: number;
+  level: number;
+  xp: number;
+  levelName: string;
+  xpToNextLevel: number;
 }
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -45,6 +50,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
   const [justCheckedIn, setJustCheckedIn] = useState(false);
 
   const [flowApproaches, setFlowApproaches] = useState(0);
+  const [levelUpName, setLevelUpName] = useState<string | null>(null);
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState(false);
@@ -58,11 +64,15 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
     if (!editingDay) return;
     setSavingDay(true);
     try {
-      await fetch("/api/checkin", {
+      const res = await fetch("/api/checkin", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: editingDay, opportunities: editDayCount, approaches: editDayCount, successes: 0 }),
       });
+      const result = await res.json();
+      if (result.level !== undefined && data) {
+        setData({ ...data, level: result.level, xp: result.xp, levelName: result.levelName, xpToNextLevel: result.xpToNextLevel });
+      }
       await refreshData();
     } catch {}
     setSavingDay(false);
@@ -116,6 +126,11 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
         setSaveError(`Save failed (${res.status})`);
         setSubmitting(false);
         return;
+      }
+      const result = await res.json();
+      if (result.leveledUp && result.newLevelName) {
+        setLevelUpName(result.newLevelName);
+        setTimeout(() => setLevelUpName(null), 5000);
       }
       await refreshData();
       setJustCheckedIn(true);
@@ -303,6 +318,23 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
           </p>
         )}
       </div>
+
+      {/* Level badge */}
+      <LevelBadge
+        level={data.level}
+        xp={data.xp}
+        xpToNextLevel={data.xpToNextLevel}
+        levelName={data.levelName}
+      />
+
+      {/* Level-up banner */}
+      {levelUpName && (
+        <div className="bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-center animate-fade-in">
+          <p className="text-[14px] font-semibold">
+            Level up! You&apos;re now a {levelUpName}
+          </p>
+        </div>
+      )}
 
       {/* Success banner */}
       {justCheckedIn && (
