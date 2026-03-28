@@ -85,8 +85,9 @@ export default function LevelBadge({ level, xp, xpToNextLevel, xpForCurrentLevel
             </div>
 
             {/* Scrollable content */}
+            <div className="relative flex-1 min-h-0">
             <div
-              className="overflow-y-auto overscroll-contain px-5 pb-10"
+              className="overflow-y-auto overscroll-contain px-5 pb-10 h-full"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {/* Explainer */}
@@ -183,6 +184,9 @@ export default function LevelBadge({ level, xp, xpToNextLevel, xpForCurrentLevel
                   <p>1 approach = 1 XP</p>
                 </div>
               </div>
+            </div>
+            {/* Bottom fade to hint at scrollable content */}
+            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-bg to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
