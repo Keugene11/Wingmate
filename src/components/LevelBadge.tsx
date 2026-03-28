@@ -70,8 +70,9 @@ export default function LevelBadge({ level, xp, xpToNextLevel, xpForCurrentLevel
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
           <div
             ref={sheetRef}
-            className="relative w-full max-w-md bg-bg border-t border-border rounded-t-2xl animate-slide-up overflow-hidden flex flex-col"
+            className="relative w-full max-w-md bg-bg border-t border-border rounded-t-2xl animate-slide-up flex flex-col overflow-hidden"
             style={{ maxHeight: "90vh" }}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             {/* Fixed header */}
             <div className="px-5 pt-5 pb-3 shrink-0">
@@ -85,10 +86,10 @@ export default function LevelBadge({ level, xp, xpToNextLevel, xpForCurrentLevel
             </div>
 
             {/* Scrollable content */}
-            <div className="relative flex-1 min-h-0">
+            <div className="relative flex-1 min-h-0 overflow-hidden">
             <div
               className="overflow-y-auto overscroll-contain px-5 pb-10 h-full"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
             >
               {/* Explainer */}
               <p className="text-[14px] text-text-muted leading-relaxed mb-5">
