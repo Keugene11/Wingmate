@@ -27,6 +27,19 @@ platform :android do
     )
   end
 
+  desc "Promote internal to closed testing"
+  lane :promote_to_closed do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "alpha",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed",
+      version_code: ENV["VERSION_CODE"] || nil
+    )
+  end
+
   desc "Promote internal to production"
   lane :promote_to_production do
     upload_to_play_store(

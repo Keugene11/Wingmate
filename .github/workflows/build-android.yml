@@ -127,6 +127,7 @@ jobs:
           echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > play-store-key.json
           export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE="$(pwd)/play-store-key.json"
           bundle exec fastlane internal
+          bundle exec fastlane promote_to_closed
           rm -f play-store-key.json
 
       - name: Clean up secrets
