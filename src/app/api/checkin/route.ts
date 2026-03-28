@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { applyXp, computeLevelFromTotal, getLevelInfo, getXpToNextLevel } from "@/lib/levels";
+import { applyXp, computeLevelFromTotal, getLevelInfo, getXpToNextLevel, getXpForCurrentLevel } from "@/lib/levels";
 // Auth client — uses anon key + user cookies to identify the user
 async function getAuthSupabase() {
   const cookieStore = await cookies();
@@ -157,10 +157,12 @@ export async function GET(req: Request) {
   const { data: profile } = await supabase
     .from("profiles").select("streak_freezes, weekly_approach_goal, level, xp").eq("id", user.id).single();
 
-  const level = profile?.level ?? 1;
-  const xp = profile?.xp ?? 0;
+  // XP is cumulative (total approaches). Derive level from it.
+  const totalXp = profile?.xp ?? 0;
+  const { level } = computeLevelFromTotal(totalXp);
   const levelInfo = getLevelInfo(level);
   const xpToNextLevel = getXpToNextLevel(level);
+  const xpForCurrentLevel = getXpForCurrentLevel(level);
 
   return NextResponse.json({
     checkedInToday: !!todayCheckin,
@@ -187,9 +189,10 @@ export async function GET(req: Request) {
     weeklyApproachGoal: profile?.weekly_approach_goal ?? 0,
     streakFreezes: profile?.streak_freezes ?? 0,
     level,
-    xp,
+    xp: totalXp,
     levelName: levelInfo.name,
     xpToNextLevel,
+    xpForCurrentLevel,
   });
 }
 
@@ -305,6 +308,7 @@ export async function POST(req: Request) {
 
   const levelInfo = getLevelInfo(currentLevel);
   const xpToNextLevel = getXpToNextLevel(currentLevel);
+  const xpForCurrentLevel = getXpForCurrentLevel(currentLevel);
 
   return NextResponse.json({
     success: true,
@@ -325,6 +329,7 @@ export async function POST(req: Request) {
     xp: currentXp,
     levelName: levelInfo.name,
     xpToNextLevel,
+    xpForCurrentLevel,
     leveledUp,
     newLevelName,
   });
@@ -391,6 +396,7 @@ export async function PATCH(req: Request) {
 
     const levelInfo = getLevelInfo(recomputed.level);
     const xpToNextLevel = getXpToNextLevel(recomputed.level);
+    const xpForCurrentLevel = getXpForCurrentLevel(recomputed.level);
 
     return NextResponse.json({
       totalOpportunities: stats.totalOpportunities,
@@ -407,6 +413,7 @@ export async function PATCH(req: Request) {
       xp: recomputed.xp,
       levelName: levelInfo.name,
       xpToNextLevel,
+      xpForCurrentLevel,
     });
   }
 

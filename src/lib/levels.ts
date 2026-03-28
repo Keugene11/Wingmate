@@ -1,10 +1,10 @@
 export const LEVELS = [
-  { level: 1, name: "Noob", xpRequired: 0 },
-  { level: 2, name: "Beginner", xpRequired: 3 },
-  { level: 3, name: "Novice", xpRequired: 7 },
-  { level: 4, name: "Casual Cold Approacher", xpRequired: 10 },
-  { level: 5, name: "Advanced Cold Approacher", xpRequired: 30 },
-  { level: 6, name: "God Cold Approacher", xpRequired: 50 },
+  { level: 1, name: "Noob", totalRequired: 0 },
+  { level: 2, name: "Beginner", totalRequired: 3 },
+  { level: 3, name: "Novice", totalRequired: 10 },
+  { level: 4, name: "Casual Cold Approacher", totalRequired: 20 },
+  { level: 5, name: "Advanced Cold Approacher", totalRequired: 50 },
+  { level: 6, name: "God Cold Approacher", totalRequired: 100 },
 ] as const;
 
 export const MAX_LEVEL = 6;
@@ -14,62 +14,55 @@ export function getLevelInfo(level: number) {
   return LEVELS.find((l) => l.level === level) ?? LEVELS[0];
 }
 
-/** XP needed to reach the next level from the current one. 0 if max. */
+/**
+ * Compute level and progress from total XP (total approaches).
+ * XP is cumulative — it never resets.
+ */
+export function computeLevelFromTotal(totalXp: number): { level: number; xp: number } {
+  let level = 1;
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (totalXp >= LEVELS[i].totalRequired) {
+      level = LEVELS[i].level;
+      break;
+    }
+  }
+  return { level, xp: totalXp };
+}
+
+/**
+ * XP needed to reach the next level (cumulative threshold).
+ * Returns 0 if already at max level.
+ */
 export function getXpToNextLevel(level: number): number {
   const next = LEVELS.find((l) => l.level === level + 1);
-  return next ? next.xpRequired : 0;
+  return next ? next.totalRequired : 0;
 }
 
 /**
- * Given a total number of approaches, compute current level and XP within that level.
- * Used for backfill and for computing level from scratch.
+ * XP threshold for the current level (where this level starts).
  */
-export function computeLevelFromTotal(totalApproaches: number): { level: number; xp: number } {
-  let remaining = totalApproaches;
-
-  for (let i = 1; i < LEVELS.length; i++) {
-    const needed = LEVELS[i].xpRequired;
-    if (remaining < needed) {
-      return { level: LEVELS[i - 1].level, xp: remaining };
-    }
-    remaining -= needed;
-  }
-
-  // Max level — xp is capped at the last level's requirement
-  return { level: MAX_LEVEL, xp: LEVELS[LEVELS.length - 1].xpRequired };
+export function getXpForCurrentLevel(level: number): number {
+  const info = LEVELS.find((l) => l.level === level);
+  return info ? info.totalRequired : 0;
 }
 
 /**
- * Apply an XP delta (from new approaches) to the current level/xp.
- * Returns new level, xp, and whether a level-up occurred.
+ * Apply an XP delta to the current total XP.
+ * Returns new level, total xp, and whether a level-up occurred.
  */
 export function applyXp(
   currentLevel: number,
   currentXp: number,
   delta: number
 ): { level: number; xp: number; leveledUp: boolean; newLevelName: string | null } {
-  if (delta <= 0 || currentLevel >= MAX_LEVEL) {
+  if (delta <= 0) {
     return { level: currentLevel, xp: currentXp, leveledUp: false, newLevelName: null };
   }
 
-  let level = currentLevel;
-  let xp = currentXp + delta;
-  let leveledUp = false;
-  let newLevelName: string | null = null;
+  const newXp = currentXp + delta;
+  const { level: newLevel } = computeLevelFromTotal(newXp);
+  const leveledUp = newLevel > currentLevel;
+  const newLevelName = leveledUp ? getLevelInfo(newLevel).name : null;
 
-  while (level < MAX_LEVEL) {
-    const needed = getXpToNextLevel(level);
-    if (needed === 0 || xp < needed) break;
-    xp -= needed;
-    level++;
-    leveledUp = true;
-    newLevelName = getLevelInfo(level).name;
-  }
-
-  // Cap XP at max level's requirement
-  if (level >= MAX_LEVEL) {
-    xp = Math.min(xp, LEVELS[LEVELS.length - 1].xpRequired);
-  }
-
-  return { level, xp, leveledUp, newLevelName };
+  return { level: newLevel, xp: newXp, leveledUp, newLevelName };
 }

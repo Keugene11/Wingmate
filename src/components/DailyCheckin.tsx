@@ -34,6 +34,7 @@ interface CheckinData {
   xp: number;
   levelName: string;
   xpToNextLevel: number;
+  xpForCurrentLevel?: number;
 }
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -324,6 +325,7 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
         level={data.level}
         xp={data.xp}
         xpToNextLevel={data.xpToNextLevel}
+        xpForCurrentLevel={data.xpForCurrentLevel ?? 0}
         levelName={data.levelName}
       />
 

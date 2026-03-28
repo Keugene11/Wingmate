@@ -8,21 +8,19 @@ interface LevelBadgeProps {
   level: number;
   xp: number;
   xpToNextLevel: number;
+  xpForCurrentLevel?: number;
   levelName: string;
 }
 
-// Cumulative approaches needed to reach each level
-const CUMULATIVE = LEVELS.map((_, i) => {
-  let total = 0;
-  for (let j = 1; j <= i; j++) total += LEVELS[j].xpRequired;
-  return total;
-});
-// [0, 3, 8, 18, 38, 88]
-
-export default function LevelBadge({ level, xp, xpToNextLevel, levelName }: LevelBadgeProps) {
+export default function LevelBadge({ level, xp, xpToNextLevel, xpForCurrentLevel = 0, levelName }: LevelBadgeProps) {
   const [showModal, setShowModal] = useState(false);
   const isMaxLevel = level >= MAX_LEVEL;
-  const progress = isMaxLevel ? 100 : xpToNextLevel > 0 ? (xp / xpToNextLevel) * 100 : 0;
+
+  // Progress within current level band
+  const levelRange = xpToNextLevel - xpForCurrentLevel;
+  const levelProgress = xp - xpForCurrentLevel;
+  const progress = isMaxLevel ? 100 : levelRange > 0 ? (levelProgress / levelRange) * 100 : 0;
+
   const sheetRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -93,7 +91,7 @@ export default function LevelBadge({ level, xp, xpToNextLevel, levelName }: Leve
             >
               {/* Explainer */}
               <p className="text-[14px] text-text-muted leading-relaxed mb-5">
-                Every girl you talk to and log in your check-in earns you <span className="text-text font-semibold">1 XP</span>. Collect enough XP and you level up. Your XP resets to 0 each time you hit a new level.
+                Every girl you talk to and log in your check-in earns you <span className="text-text font-semibold">1 XP</span>. Your XP is your total number of approaches — it never resets. Hit the threshold and you level up.
               </p>
 
               {/* Level list */}
@@ -101,8 +99,10 @@ export default function LevelBadge({ level, xp, xpToNextLevel, levelName }: Leve
                 {LEVELS.map((lvl, i) => {
                   const isCurrent = lvl.level === level;
                   const isCompleted = lvl.level < level;
-                  const isLocked = lvl.level > level;
-                  const xpForThisLevel = i < LEVELS.length - 1 ? LEVELS[i + 1].xpRequired : null;
+                  const nextLvl = LEVELS[i + 1];
+                  const lvlRange = nextLvl ? nextLvl.totalRequired - lvl.totalRequired : 0;
+                  const lvlProgress = isCurrent ? xp - lvl.totalRequired : 0;
+                  const lvlPercent = lvlRange > 0 ? (lvlProgress / lvlRange) * 100 : 0;
 
                   return (
                     <div
@@ -134,13 +134,13 @@ export default function LevelBadge({ level, xp, xpToNextLevel, levelName }: Leve
                           <p className={`text-[12px] mt-0.5 ${isCurrent ? "text-white/60" : "text-text-muted"}`}>
                             {lvl.level === 1
                               ? "Where everyone starts"
-                              : `Unlocks at ${CUMULATIVE[i]} total approaches`
+                              : `${lvl.totalRequired} approaches to unlock`
                             }
                           </p>
                         </div>
                         {isCurrent && !isMaxLevel && (
                           <span className="text-[11px] font-semibold bg-white/20 px-2.5 py-1 rounded-full whitespace-nowrap">
-                            {xp}/{xpToNextLevel} XP
+                            {xp}/{nextLvl!.totalRequired} XP
                           </span>
                         )}
                         {isCurrent && isMaxLevel && (
@@ -154,16 +154,16 @@ export default function LevelBadge({ level, xp, xpToNextLevel, levelName }: Leve
                       </div>
 
                       {/* Progress bar for current level */}
-                      {isCurrent && !isMaxLevel && (
+                      {isCurrent && !isMaxLevel && nextLvl && (
                         <div className="mt-3">
                           <div className="h-1.5 bg-white/15 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-white rounded-full transition-all duration-500"
-                              style={{ width: `${Math.min(100, (xp / xpToNextLevel) * 100)}%` }}
+                              style={{ width: `${Math.min(100, lvlPercent)}%` }}
                             />
                           </div>
                           <p className="text-[11px] text-white/40 mt-1.5">
-                            {xpToNextLevel - xp} more approach{xpToNextLevel - xp !== 1 ? "es" : ""} to level {level + 1}
+                            {nextLvl.totalRequired - xp} more approach{nextLvl.totalRequired - xp !== 1 ? "es" : ""} to level {level + 1}
                           </p>
                         </div>
                       )}
@@ -182,8 +182,8 @@ export default function LevelBadge({ level, xp, xpToNextLevel, levelName }: Leve
                 <p className="text-[13px] font-semibold mb-2">Quick breakdown</p>
                 <div className="space-y-1 text-[13px] text-text-muted">
                   <p>1 approach = 1 XP</p>
+                  <p>Your XP = your total approaches (never resets)</p>
                   <p>100 total approaches to reach max level</p>
-                  <p>XP resets each time you level up</p>
                 </div>
               </div>
             </div>
