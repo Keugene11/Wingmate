@@ -47,6 +47,8 @@ export async function setupAuthDeepLinkListener() {
 
 /**
  * Open a URL in an in-app browser (SFSafariViewController on iOS).
+ * Also listens for the browser to close, and if the user is now
+ * authenticated (e.g. deep link set the session), reloads the page.
  * Falls back to window.open on web.
  */
 export async function openInAppBrowser(url: string) {
@@ -56,6 +58,15 @@ export async function openInAppBrowser(url: string) {
   }
   try {
     const { Browser } = await import("@capacitor/browser");
+    // Listen for browser close to handle auth completion
+    Browser.addListener("browserFinished", async () => {
+      // Check if the deep link handler already set the session
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        window.location.href = "/";
+      }
+    });
     await Browser.open({ url, presentationStyle: "fullscreen" });
   } catch {
     window.location.href = url;
