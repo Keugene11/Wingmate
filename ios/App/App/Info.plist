@@ -64,6 +64,10 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>WKAppBoundDomains</key>
+	<array>
+		<string>wingmate.live</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
