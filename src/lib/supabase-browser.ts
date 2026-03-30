@@ -21,7 +21,7 @@ export async function signInWithApple() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?native=1`,
         skipBrowserRedirect: true,
       },
     });
@@ -50,7 +50,7 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?native=1`,
         queryParams: { prompt: "select_account" },
         skipBrowserRedirect: true,
       },

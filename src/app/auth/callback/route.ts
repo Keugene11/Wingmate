@@ -29,7 +29,22 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error && data.session) {
+      // Check if this request came from a native app
+      // SFSafariViewController on iOS sends a mobile Safari user-agent
+      // We detect native by checking for a "native" query param added by the app
+      const isNative = searchParams.get("native") === "1";
+
+      if (isNative) {
+        // Redirect to custom URL scheme so Capacitor's WKWebView gets the tokens
+        const scheme = `wingmate://auth/callback?access_token=${data.session.access_token}&refresh_token=${data.session.refresh_token}`;
+        return NextResponse.redirect(scheme);
+      }
+
+      return response;
+    }
 
     if (!error) {
       return response;
