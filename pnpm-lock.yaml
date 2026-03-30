@@ -14,6 +14,9 @@ importers:
       '@ai-sdk/openai':
         specifier: ^3.0.41
         version: 3.0.41(zod@4.3.6)
+      '@capacitor/android':
+        specifier: ^8.3.0
+        version: 8.3.0(@capacitor/core@8.2.0)
       '@capacitor/app':
         specifier: ^8.1.0
         version: 8.1.0(@capacitor/core@8.2.0)
@@ -151,6 +154,11 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  '@capacitor/android@8.3.0':
+    resolution: {integrity: sha512-EQy6ByUuKayQBJmMm/e0byJiHavqsQHrvW23BuT2GNVQvenAvipqwaePiJHzrv2PZr7A0T0+se4kgDCeROj0mQ==}
+    peerDependencies:
+      '@capacitor/core': ^8.3.0
 
   '@capacitor/app@8.1.0':
     resolution: {integrity: sha512-MlmttTOWHDedr/G4SrhNRxsXMqY+R75S4MM4eIgzsgCzOYhb/MpCkA5Q3nuOCfL1oHm26xjUzqZ5aupbOwdfYg==}
@@ -1543,6 +1551,10 @@ snapshots:
       json-schema: 0.4.0
 
   '@alloc/quick-lru@5.2.0': {}
+
+  '@capacitor/android@8.3.0(@capacitor/core@8.2.0)':
+    dependencies:
+      '@capacitor/core': 8.2.0
 
   '@capacitor/app@8.1.0(@capacitor/core@8.2.0)':
     dependencies:

@@ -1,0 +1,67 @@
+default_platform(:android)
+
+platform :android do
+  desc "Deploy to Google Play internal testing track"
+  lane :internal do
+    # Clear any orphaned draft edits first
+    begin
+      require 'supply'
+      require 'supply/client'
+      Supply.config = {
+        json_key: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE"],
+        package_name: ENV["ANDROID_PACKAGE_ID"] || "com.approachai.twa"
+      }
+      client = Supply::Client.make_from_config
+      client.abort_current_edit rescue nil
+    rescue => e
+      UI.message("Draft cleanup skipped: #{e.message}")
+    end
+
+    upload_to_play_store(
+      track: "internal",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed"
+    )
+  end
+
+  desc "Promote internal to closed testing"
+  lane :promote_to_closed do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "alpha",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed",
+      version_code: ENV["VERSION_CODE"] || nil
+    )
+  end
+
+  desc "Promote internal to production"
+  lane :promote_to_production do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed",
+      version_code: ENV["VERSION_CODE"] || nil
+    )
+  end
+
+  desc "Upload directly to production track"
+  lane :production do
+    upload_to_play_store(
+      track: "production",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed"
+    )
+  end
+end

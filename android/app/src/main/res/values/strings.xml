@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Wingmate</string>
+    <string name="title_activity_main">Wingmate</string>
+    <string name="package_name">com.approachai.twa</string>
+    <string name="custom_url_scheme">com.approachai.twa</string>
+</resources>

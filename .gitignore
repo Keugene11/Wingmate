@@ -13,11 +13,15 @@ out
 # Fastlane / Ruby
 android-twa/vendor/
 android-twa/.bundle/
+android/vendor/
+android/.bundle/
 
 # Capacitor
 ios/App/Pods/
 ios/App/App/public/
 ios/App/output/
+android/app/src/main/assets/public/
+android/app/build/
 
 # Apple signing (NEVER commit)
 .apple-signing/
