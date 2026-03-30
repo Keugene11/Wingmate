@@ -98,7 +98,7 @@ export default function PlansPage() {
     setLoading(plan);
     setError(null);
 
-    // iOS In-App Purchase
+    // iOS In-App Purchase — no sign-in required (Apple Guideline 5.1.1(v))
     if (isiOS) {
       const pkg = plan === "monthly" ? iapPackages.monthly : iapPackages.yearly;
       if (!pkg) {
@@ -108,6 +108,11 @@ export default function PlansPage() {
       }
 
       try {
+        // Identify user if logged in, but don't require it
+        if (session?.user?.id) {
+          await identifyUser(session.user.id);
+        }
+
         const success = await purchasePackage(pkg as unknown as Parameters<typeof purchasePackage>[0]);
         if (success) {
           // Refresh subscription status
@@ -115,6 +120,11 @@ export default function PlansPage() {
           const data = await res.json();
           if (data.subscription) setSubscription(data.subscription);
           setError(null);
+
+          // If not logged in, prompt optional sign-in to sync subscription
+          if (!isLoggedIn) {
+            setShowSignIn(true);
+          }
         }
       } catch {
         setError("Purchase failed. Please try again.");
@@ -123,7 +133,14 @@ export default function PlansPage() {
       return;
     }
 
-    // Web/Android Stripe checkout
+    // Web/Android Stripe checkout (requires sign-in)
+    if (!isLoggedIn) {
+      localStorage.setItem("pending-checkout-plan", plan);
+      setShowSignIn(true);
+      setLoading(null);
+      return;
+    }
+
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -270,22 +287,13 @@ export default function PlansPage() {
             <p className="text-text-muted text-[12px] mb-4">{planCounts.monthly} {planCounts.monthly === 1 ? "person" : "people"} on this plan</p>
           )}
           {!isActive && (
-            isLoggedIn ? (
-              <button
-                onClick={() => handleCheckout("monthly")}
-                disabled={!!loading}
-                className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
-              >
-                {loading === "monthly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe monthly"}
-              </button>
-            ) : (
-              <button
-                onClick={() => { localStorage.setItem("pending-checkout-plan", "monthly"); setShowSignIn(true); }}
-                className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press text-center mb-5"
-              >
-                Subscribe monthly
-              </button>
-            )
+            <button
+              onClick={() => handleCheckout("monthly")}
+              disabled={!!loading}
+              className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+            >
+              {loading === "monthly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe monthly"}
+            </button>
           )}
           <div className="space-y-3">
             {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Community access"].map((f) => (
@@ -320,22 +328,13 @@ export default function PlansPage() {
             <p className="text-text-muted text-[12px] mb-4">{planCounts.yearly} {planCounts.yearly === 1 ? "person" : "people"} on this plan</p>
           )}
           {!isActive && (
-            isLoggedIn ? (
-              <button
-                onClick={() => handleCheckout("yearly")}
-                disabled={!!loading}
-                className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
-              >
-                {loading === "yearly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe yearly"}
-              </button>
-            ) : (
-              <button
-                onClick={() => { localStorage.setItem("pending-checkout-plan", "yearly"); setShowSignIn(true); }}
-                className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press text-center mb-5"
-              >
-                Subscribe yearly
-              </button>
-            )
+            <button
+              onClick={() => handleCheckout("yearly")}
+              disabled={!!loading}
+              className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
+            >
+              {loading === "yearly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe yearly"}
+            </button>
           )}
           <div className="space-y-3">
             {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Community access"].map((f) => (

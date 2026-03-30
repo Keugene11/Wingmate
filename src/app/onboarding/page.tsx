@@ -106,22 +106,22 @@ export default function OnboardingPage() {
   };
 
   const handleCheckout = async (plan: "monthly" | "yearly") => {
-    if (!session?.user) {
-      try { sessionStorage.setItem("wingmate-checkout-plan", plan); } catch {}
-      setShowSignIn(true);
-      return;
-    }
     setCheckoutLoading(plan);
 
-    // iOS In-App Purchase
+    // iOS In-App Purchase — no sign-in required (Apple Guideline 5.1.1(v))
     if (isiOS) {
       const pkg = iapPackages[plan];
       if (pkg) {
         try {
-          await identifyUser(session.user.id!);
+          // Identify user if logged in, but don't require it
+          if (session?.user?.id) {
+            await identifyUser(session.user.id);
+          }
           const success = await purchasePackage(pkg as Parameters<typeof purchasePackage>[0]);
           if (success) {
-            router.replace("/");
+            // After successful IAP, prompt optional sign-in to link subscription
+            setShowSignIn(true);
+            setCheckoutLoading(null);
             return;
           }
         } catch {}
@@ -130,7 +130,14 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Web/Android Stripe checkout
+    // Web/Android Stripe checkout (requires sign-in)
+    if (!session?.user) {
+      try { sessionStorage.setItem("wingmate-checkout-plan", plan); } catch {}
+      setShowSignIn(true);
+      setCheckoutLoading(null);
+      return;
+    }
+
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
