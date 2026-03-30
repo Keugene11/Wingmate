@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase-browser";
 import SignInModal from "@/components/SignInModal";
 import { isNativeiOS, isApplePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage } from "@/lib/purchases";
-import { hideSplash } from "@/lib/capacitor";
+import { hideSplash, setupAuthDeepLinkListener } from "@/lib/capacitor";
 
 const STEPS = ["ask", "value", "features"] as const;
 type Step = (typeof STEPS)[number];
@@ -28,21 +28,26 @@ function ProgressBar({ step }: { step: Step }) {
 
 function DelayedButton({ onClick, label, delay = 5000 }: { onClick: () => void; label: string; delay?: number }) {
   const [visible, setVisible] = useState(false);
+  const [animated, setAnimated] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), delay);
+    const t = setTimeout(() => {
+      setVisible(true);
+      // Remove transition after animation completes to prevent vibration
+      setTimeout(() => setAnimated(true), 700);
+    }, delay);
     return () => clearTimeout(t);
   }, [delay]);
 
   return (
     <div
-      className={`transition-all duration-700 ease-out ${
+      className={animated ? "" : `transition-[opacity,transform] duration-700 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none"
       }`}
-      style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+      style={animated ? undefined : { transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
     >
       <button
         onClick={onClick}
-        className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[15px] press"
+        className={`w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[15px] press ${!visible ? "pointer-events-none" : ""}`}
       >
         {label}
       </button>
@@ -67,6 +72,9 @@ export default function OnboardingPage() {
 
   // Redirect to home if user is already logged in + init IAP
   useEffect(() => {
+    // Listen for OAuth deep link callbacks on native
+    setupAuthDeepLinkListener();
+
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       hideSplash();
