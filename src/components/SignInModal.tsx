@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { signInWithGoogle, signInWithApple } from "@/lib/supabase-browser";
+import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { isApplePlatform } from "@/lib/platform";
 
 export default function SignInModal({ open, onClose }: { open: boolean; onClose: () => void }) {

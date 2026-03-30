@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 
 async function generateTitle(
   messages: { role: string; content: string }[]
@@ -39,25 +40,21 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   // Verify ownership
-  const { data: convo } = await supabase
-    .from("conversations")
-    .select("id")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  const convoRows = await sql`
+    SELECT id FROM conversations WHERE id = ${id} AND user_id = ${userId} LIMIT 1
+  `;
+  if (!convoRows[0]) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!convo) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const { data } = await supabase
-    .from("messages")
-    .select("role, content")
-    .eq("conversation_id", id)
-    .order("created_at", { ascending: true });
+  const data = await sql`
+    SELECT role, content FROM messages
+    WHERE conversation_id = ${id}
+    ORDER BY created_at ASC
+  `;
 
   return NextResponse.json({ messages: data || [] });
 }
@@ -67,18 +64,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   // Verify ownership
-  const { data: convo } = await supabase
-    .from("conversations")
-    .select("id, preview")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
+  const convoRows = await sql`
+    SELECT id, preview FROM conversations WHERE id = ${id} AND user_id = ${userId} LIMIT 1
+  `;
+  const convo = convoRows[0];
   if (!convo) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { messages } = await req.json();
@@ -87,31 +81,34 @@ export async function POST(
   }
 
   // Insert messages
-  const rows = messages.map((m: { role: string; content: string }) => ({
-    conversation_id: id,
-    role: m.role,
-    content: m.content,
-  }));
-
-  const { error } = await supabase.from("messages").insert(rows);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  for (const m of messages as { role: string; content: string }[]) {
+    await sql`
+      INSERT INTO messages (conversation_id, role, content)
+      VALUES (${id}, ${m.role}, ${m.content})
+    `;
+  }
 
   // Update conversation preview and timestamp
-  const updates: Record<string, string> = { updated_at: new Date().toISOString() };
   const firstUserMsg = messages.find((m: { role: string }) => m.role === "user");
 
   if (!convo.preview && firstUserMsg) {
     // Try to generate AI title, fall back to first message
     const allMsgs = messages.filter((m: { role: string; content: string }) => m.content);
+    let preview: string;
     if (allMsgs.length >= 2) {
       const title = await generateTitle(allMsgs);
-      updates.preview = title || firstUserMsg.content.slice(0, 100);
+      preview = title || firstUserMsg.content.slice(0, 100);
     } else {
-      updates.preview = firstUserMsg.content.slice(0, 100);
+      preview = firstUserMsg.content.slice(0, 100);
     }
+    await sql`
+      UPDATE conversations SET updated_at = now(), preview = ${preview} WHERE id = ${id}
+    `;
+  } else {
+    await sql`
+      UPDATE conversations SET updated_at = now() WHERE id = ${id}
+    `;
   }
-
-  await supabase.from("conversations").update(updates).eq("id", id);
 
   return NextResponse.json({ success: true });
 }

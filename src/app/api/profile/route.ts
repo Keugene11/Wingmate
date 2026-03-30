@@ -1,6 +1,6 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 
 const ADJECTIVES = [
   "Bold","Brave","Chill","Cool","Daring","Epic","Fierce","Grand",
@@ -23,48 +23,26 @@ function generateUsername(): string {
   return `${adj}${animal}${num}`;
 }
 
-async function getSupabase() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-}
-
 // GET — fetch profile
 export async function GET() {
-  const supabase = await getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const rows = await sql`SELECT * FROM profiles WHERE id = ${userId} LIMIT 1`;
+  const profile = rows[0] || null;
 
   // If no profile yet, create one
   if (!profile) {
-    const meta = user.user_metadata;
     const username = generateUsername();
-    const { data: newProfile } = await supabase
-      .from("profiles")
-      .upsert({ id: user.id, username, avatar_url: meta?.avatar_url || meta?.picture || null })
-      .select()
-      .single();
-    return NextResponse.json({ profile: newProfile });
+    const avatarUrl = session.user.image || null;
+    const newRows = await sql`
+      INSERT INTO profiles (id, username, avatar_url)
+      VALUES (${userId}, ${username}, ${avatarUrl})
+      ON CONFLICT (id) DO UPDATE SET username = profiles.username
+      RETURNING *
+    `;
+    return NextResponse.json({ profile: newRows[0] });
   }
 
   return NextResponse.json({ profile });
@@ -72,12 +50,12 @@ export async function GET() {
 
 // PATCH — update profile
 export async function PATCH(req: Request) {
-  const supabase = await getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   const body = await req.json();
-  const updates: Record<string, string> = { updated_at: new Date().toISOString() };
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
   if (body.username !== undefined) {
     const username = body.username.trim().slice(0, 30);
@@ -109,19 +87,35 @@ export async function PATCH(req: Request) {
 
   if (body.weekly_approach_goal !== undefined) {
     const goal = Math.min(999, Math.max(0, Math.round(Number(body.weekly_approach_goal) || 0)));
-    (updates as Record<string, unknown>).weekly_approach_goal = goal;
+    updates.weekly_approach_goal = goal;
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(updates)
-    .eq("id", user.id)
-    .select()
-    .single();
+  try {
+    // Build dynamic update using sql
+    const setClauses: string[] = [];
+    const values: unknown[] = [];
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    for (const [key, value] of Object.entries(updates)) {
+      setClauses.push(key);
+      values.push(value);
+    }
+
+    // Use a single query with all possible fields
+    const rows = await sql`
+      UPDATE profiles SET
+        updated_at = ${updates.updated_at},
+        username = COALESCE(${updates.username ?? null}, username),
+        avatar_url = COALESCE(${updates.avatar_url ?? null}, avatar_url),
+        goal = COALESCE(${updates.goal ?? null}, goal),
+        custom_goal = COALESCE(${updates.custom_goal ?? null}, custom_goal),
+        weekly_approach_goal = COALESCE(${updates.weekly_approach_goal ?? null}, weekly_approach_goal)
+      WHERE id = ${userId}
+      RETURNING *
+    `;
+
+    return NextResponse.json({ profile: rows[0] });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ profile: data });
 }

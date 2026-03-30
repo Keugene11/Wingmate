@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Flame, Trophy, Calendar, Shield, Target, UserX, Crosshair, Pencil } from "lucide-react";
-import { createClient } from "@/lib/supabase-browser";
+
 import UpgradeModal from "@/components/UpgradeModal";
 import SignInModal from "@/components/SignInModal";
 import LevelBadge from "@/components/LevelBadge";

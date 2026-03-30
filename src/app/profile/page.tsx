@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, LogOut, CreditCard, Camera, Check, ChevronRight, Trash2, Flame, Heart, Sparkles, PartyPopper, Pencil, X } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-browser";
+import { useSession, signOut } from "next-auth/react";
 import SignInModal from "@/components/SignInModal";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
@@ -31,8 +31,7 @@ const GOAL_OPTIONS = [
 
 export default function ProfilePage() {
   const router = useRouter();
-  const supabase = createClient();
-  const [email, setEmail] = useState("");
+  const { data: session, status } = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription>(null);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -62,17 +61,12 @@ export default function ProfilePage() {
   // Stats
   const [streak, setStreak] = useState(0);
   const [totalCheckins, setTotalCheckins] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  const isLoggedIn = status === "loading" ? null : status === "authenticated";
+  const email = session?.user?.email || "";
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setEmail(user.email || "");
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    });
+    if (status !== "authenticated") return;
 
     fetch("/api/profile")
       .then((res) => res.json())
@@ -99,12 +93,11 @@ export default function ProfilePage() {
         setTotalCheckins(checked);
       })
       .catch(() => {});
-  }, []);
+  }, [status]);
 
   const handleSignOut = async () => {
     setLoggingOut(true);
-    await supabase.auth.signOut();
-    router.push("/");
+    await signOut({ redirectTo: "/" });
   };
 
   const saveUsername = async () => {
@@ -144,38 +137,15 @@ export default function ProfilePage() {
 
     setUploadingAvatar(true);
 
-    // Delete old avatar files before uploading new one
-    const { data: existingFiles } = await supabase.storage
-      .from("avatars")
-      .list(profile.id);
-    if (existingFiles && existingFiles.length > 0) {
-      await supabase.storage
-        .from("avatars")
-        .remove(existingFiles.map((f) => `${profile.id}/${f.name}`));
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/profile/avatar", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.profile) setProfile(data.profile);
+    } catch {
+      showToast("Failed to upload avatar");
     }
-
-    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z]/g, "") || "jpg";
-    const path = `${profile.id}/avatar.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, file, { upsert: true });
-
-    if (uploadError) {
-      setUploadingAvatar(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    const avatar_url = urlData.publicUrl + "?t=" + Date.now();
-
-    const res = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatar_url }),
-    });
-    const data = await res.json();
-    if (data.profile) setProfile(data.profile);
     setUploadingAvatar(false);
   };
 

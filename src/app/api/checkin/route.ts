@@ -1,40 +1,7 @@
-import { createServerClient } from "@supabase/ssr";
-import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 import { applyXp, computeLevelFromTotal, getLevelInfo, getXpToNextLevel, getXpForCurrentLevel } from "@/lib/levels";
-// Auth client — uses anon key + user cookies to identify the user
-async function getAuthSupabase() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // setAll can throw in certain contexts — safe to ignore if middleware handles refresh
-          }
-        },
-      },
-    }
-  );
-}
-
-// Admin client — bypasses RLS for reads/writes
-function getSupabase() {
-  return createSupabaseAdmin(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 function computeStreak(dates: string[], clientToday?: string): number {
   if (dates.length === 0) return 0;
@@ -69,7 +36,7 @@ function computeBestStreak(dates: string[]): number {
   return best;
 }
 
-function computeConsecutiveApproaches(checkins: { talked: boolean }[]): number {
+function computeConsecutiveApproaches(checkins: { talked: boolean }[] | any[]): number {
   let count = 0;
   for (const c of checkins) {
     if (c.talked) count++;
@@ -78,12 +45,13 @@ function computeConsecutiveApproaches(checkins: { talked: boolean }[]): number {
   return count;
 }
 
-async function getFullStats(supabase: any, userId: string, clientToday?: string) {
-  const { data: allCheckins } = await supabase
-    .from("checkins")
-    .select("checked_in_at, talked, opportunities_count, approaches_count, successes_count")
-    .eq("user_id", userId)
-    .order("checked_in_at", { ascending: false });
+async function getFullStats(userId: string, clientToday?: string) {
+  const allCheckins = await sql`
+    SELECT checked_in_at, talked, opportunities_count, approaches_count, successes_count
+    FROM checkins
+    WHERE user_id = ${userId}
+    ORDER BY checked_in_at DESC
+  `;
 
   const checkins = allCheckins || [];
   const dates = checkins.map((c: any) => c.checked_in_at);
@@ -141,21 +109,25 @@ async function getFullStats(supabase: any, userId: string, clientToday?: string)
 
 // GET
 export async function GET(req: Request) {
-  const authClient = await getAuthSupabase();
-  const { data: { user } } = await authClient.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const supabase = getSupabase();
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   const url = new URL(req.url);
   const today = url.searchParams.get("today") || new Date().toISOString().split("T")[0];
-  const { data: todayCheckin } = await supabase
-    .from("checkins").select("*").eq("user_id", user.id).eq("checked_in_at", today).single();
 
-  const stats = await getFullStats(supabase, user.id, today);
+  const todayRows = await sql`
+    SELECT * FROM checkins WHERE user_id = ${userId} AND checked_in_at = ${today} LIMIT 1
+  `;
+  const todayCheckin = todayRows[0] || null;
+
+  const stats = await getFullStats(userId, today);
 
   // Get profile for freezes, weekly goal, and level
-  const { data: profile } = await supabase
-    .from("profiles").select("streak_freezes, weekly_approach_goal, level, xp").eq("id", user.id).single();
+  const profileRows = await sql`
+    SELECT streak_freezes, weekly_approach_goal, level, xp FROM profiles WHERE id = ${userId} LIMIT 1
+  `;
+  const profile = profileRows[0] || null;
 
   // XP is cumulative (total approaches). Derive level from it.
   const totalXp = profile?.xp ?? 0;
@@ -198,10 +170,9 @@ export async function GET(req: Request) {
 
 // POST
 export async function POST(req: Request) {
-  const authClient = await getAuthSupabase();
-  const { data: { user } } = await authClient.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const supabase = getSupabase();
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   const body = await req.json();
   const { talked, opportunitiesCount, approachesCount, successesCount, clientDate } = body;
@@ -227,47 +198,48 @@ export async function POST(req: Request) {
   const succ = Math.min(appr, Math.max(0, successesCount ?? 0));
 
   // Check if this is a new check-in or update
-  const { data: existing } = await supabase
-    .from("checkins").select("id, approaches_count").eq("user_id", user.id).eq("checked_in_at", today).single();
+  const existingRows = await sql`
+    SELECT id, approaches_count FROM checkins WHERE user_id = ${userId} AND checked_in_at = ${today} LIMIT 1
+  `;
+  const existing = existingRows[0] || null;
   const isNew = !existing;
 
-  let error: any = null;
-  if (existing) {
-    const res = await supabase.from("checkins").update({
-      talked,
-      note: note || null,
-      opportunities_count: opps,
-      approaches_count: appr,
-      successes_count: succ,
-    }).eq("user_id", user.id).eq("checked_in_at", today);
-    error = res.error;
-    if (res.error) console.error("[POST] update error:", res.error);
-  } else {
-    const res = await supabase.from("checkins").insert({
-      user_id: user.id,
-      talked,
-      note: note || null,
-      checked_in_at: today,
-      opportunities_count: opps,
-      approaches_count: appr,
-      successes_count: succ,
-    });
-    error = res.error;
-    if (res.error) console.error("[POST] insert error:", res.error);
+  try {
+    if (existing) {
+      await sql`
+        UPDATE checkins SET
+          talked = ${talked},
+          note = ${note},
+          opportunities_count = ${opps},
+          approaches_count = ${appr},
+          successes_count = ${succ}
+        WHERE user_id = ${userId} AND checked_in_at = ${today}
+      `;
+    } else {
+      await sql`
+        INSERT INTO checkins (user_id, talked, note, checked_in_at, opportunities_count, approaches_count, successes_count)
+        VALUES (${userId}, ${talked}, ${note}, ${today}, ${opps}, ${appr}, ${succ})
+      `;
+    }
+  } catch (err: any) {
+    console.error("[POST] checkin error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const stats = await getFullStats(supabase, user.id, today);
+  const stats = await getFullStats(userId, today);
 
   // Get profile for streak freezes and level
-  let { data: profile } = await supabase
-    .from("profiles")
-    .select("streak_freezes, level, xp")
-    .eq("id", user.id)
-    .single();
+  const profileRows = await sql`
+    SELECT streak_freezes, level, xp FROM profiles WHERE id = ${userId} LIMIT 1
+  `;
+  let profile = profileRows[0] || null;
 
   if (!profile) {
-    await supabase.from("profiles").upsert({ id: user.id, username: "", streak_freezes: 0, level: 1, xp: 0 });
+    await sql`
+      INSERT INTO profiles (id, username, streak_freezes, level, xp)
+      VALUES (${userId}, '', 0, 1, 0)
+      ON CONFLICT (id) DO NOTHING
+    `;
     profile = { streak_freezes: 0, level: 1, xp: 0 };
   }
 
@@ -301,10 +273,10 @@ export async function POST(req: Request) {
   }
 
   // Save profile updates
-  await supabase
-    .from("profiles")
-    .update({ streak_freezes: currentFreezes, level: currentLevel, xp: currentXp })
-    .eq("id", user.id);
+  await sql`
+    UPDATE profiles SET streak_freezes = ${currentFreezes}, level = ${currentLevel}, xp = ${currentXp}
+    WHERE id = ${userId}
+  `;
 
   const levelInfo = getLevelInfo(currentLevel);
   const xpToNextLevel = getXpToNextLevel(currentLevel);
@@ -337,10 +309,9 @@ export async function POST(req: Request) {
 
 // PATCH — edit stats for a specific day, or adjust totals
 export async function PATCH(req: Request) {
-  const authClient = await getAuthSupabase();
-  const { data: { user } } = await authClient.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const supabase = getSupabase();
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   const body = await req.json();
 
@@ -356,43 +327,40 @@ export async function PATCH(req: Request) {
     const appr = Math.min(opps, Math.max(0, approaches ?? 0));
     const succ = Math.min(appr, Math.max(0, successes ?? 0));
 
-    const { data: existing } = await supabase
-      .from("checkins").select("id").eq("user_id", user.id).eq("checked_in_at", date).single();
+    const existingRows = await sql`
+      SELECT id FROM checkins WHERE user_id = ${userId} AND checked_in_at = ${date} LIMIT 1
+    `;
+    const existing = existingRows[0] || null;
 
-    if (existing) {
-      const { error: updateErr } = await supabase.from("checkins").update({
-        opportunities_count: opps,
-        approaches_count: appr,
-        successes_count: succ,
-        talked: appr > 0,
-      }).eq("user_id", user.id).eq("checked_in_at", date);
-      if (updateErr) {
-        console.error("[PATCH] update error:", updateErr);
-        return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    try {
+      if (existing) {
+        await sql`
+          UPDATE checkins SET
+            opportunities_count = ${opps},
+            approaches_count = ${appr},
+            successes_count = ${succ},
+            talked = ${appr > 0}
+          WHERE user_id = ${userId} AND checked_in_at = ${date}
+        `;
+      } else {
+        await sql`
+          INSERT INTO checkins (user_id, checked_in_at, talked, opportunities_count, approaches_count, successes_count)
+          VALUES (${userId}, ${date}, ${appr > 0}, ${opps}, ${appr}, ${succ})
+        `;
       }
-    } else {
-      const { error: insertErr } = await supabase.from("checkins").insert({
-        user_id: user.id,
-        checked_in_at: date,
-        talked: appr > 0,
-        opportunities_count: opps,
-        approaches_count: appr,
-        successes_count: succ,
-      });
-      if (insertErr) {
-        console.error("[PATCH] insert error:", insertErr);
-        return NextResponse.json({ error: insertErr.message }, { status: 500 });
-      }
+    } catch (err: any) {
+      console.error("[PATCH] checkin error:", err);
+      return NextResponse.json({ error: err.message }, { status: 500 });
     }
 
-    const stats = await getFullStats(supabase, user.id, date);
+    const stats = await getFullStats(userId, date);
 
     // Recompute level from total approaches after edit
     const recomputed = computeLevelFromTotal(stats.totalApproaches);
-    await supabase
-      .from("profiles")
-      .update({ level: recomputed.level, xp: recomputed.xp })
-      .eq("id", user.id);
+    await sql`
+      UPDATE profiles SET level = ${recomputed.level}, xp = ${recomputed.xp}
+      WHERE id = ${userId}
+    `;
 
     const levelInfo = getLevelInfo(recomputed.level);
     const xpToNextLevel = getXpToNextLevel(recomputed.level);

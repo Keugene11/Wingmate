@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "Wingmate",
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="antialiased">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <Analytics />
         <ServiceWorkerRegister />
       </body>

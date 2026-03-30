@@ -7,7 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import SignInModal from "@/components/SignInModal";
 import { isNativeiOS } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage, restorePurchases } from "@/lib/purchases";
-import { createClient } from "@/lib/supabase-browser";
+import { useSession } from "next-auth/react";
 import { openInAppBrowser } from "@/lib/capacitor";
 
 type Subscription = {
@@ -42,18 +42,20 @@ const FAQ = [
 
 export default function PlansPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [subscription, setSubscription] = useState<Subscription>(null);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [isiOS, setIsiOS] = useState(false);
   const [iapPackages, setIapPackages] = useState<{ monthly?: IAPPackage; yearly?: IAPPackage }>({});
   const [restoringPurchases, setRestoringPurchases] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planCounts, setPlanCounts] = useState<{ monthly: number; yearly: number } | null>(null);
+
+  const isLoggedIn = status === "authenticated";
 
   // Initialize IAP on iOS
   const initIAP = useCallback(async () => {
@@ -63,10 +65,8 @@ export default function PlansPage() {
     await initPurchases();
 
     // Identify user if logged in
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await identifyUser(user.id);
+    if (session?.user?.id) {
+      await identifyUser(session.user.id);
     }
 
     // Get offerings
@@ -79,14 +79,11 @@ export default function PlansPage() {
       }
       setIapPackages(pkgs);
     }
-  }, []);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     fetch("/api/stripe/status")
-      .then((res) => {
-        if (res.ok) setIsLoggedIn(true);
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         if (data.subscription) setSubscription(data.subscription);
         setLoaded(true);

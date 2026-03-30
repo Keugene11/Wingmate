@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { Plus, Search, X, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-browser";
+import { useSession } from "next-auth/react";
 import { initPurchases, identifyUser } from "@/lib/purchases";
 import { isNativeiOS } from "@/lib/platform";
 import { hideSplash, openInAppBrowser, checkForUpdate } from "@/lib/capacitor";
@@ -86,7 +86,7 @@ function HomeInner() {
   const communityDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const communitySearchRef = useRef<HTMLInputElement>(null);
 
-  const supabase = createClient();
+  const { data: session, status: sessionStatus } = useSession();
 
   useEffect(() => {
     const tabParam = searchParams.get("tab") as Tab | null;
@@ -103,84 +103,80 @@ function HomeInner() {
       if (needsUpdate) setUpdateAvailable(true);
     });
 
-    supabase.auth.getUser().then(({ data }) => {
-      const firstName = data.user?.user_metadata?.full_name?.split(" ")[0]
-        || data.user?.user_metadata?.name?.split(" ")[0];
-      setGreeting(getGreeting(firstName));
-      if (data.user) {
-        setUserId(data.user.id);
-        setIsLoggedIn(true);
-        hideSplash();
-        // Initialize RevenueCat on iOS
-        initPurchases().then(() => identifyUser(data.user.id));
-        // Check if onboarding is needed, and save pending goals from pre-auth onboarding
-        fetch("/api/profile")
-          .then((r) => r.json())
-          .then(async (d) => {
-            if (d.profile && !d.profile.goal) {
-              try {
-                const pending = sessionStorage.getItem("wingmate-onboarding-goals");
-                if (pending) {
-                  const goalData = JSON.parse(pending);
-                  await fetch("/api/profile", {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(goalData),
-                  });
-                  sessionStorage.removeItem("wingmate-onboarding-goals");
-                  return; // goals saved, no need for onboarding
-                }
-              } catch {}
-              // onboarding temporarily disabled
-            }
-          })
-          .catch(() => {});
-        // If there's a pending checkout plan from onboarding, check sub status first
-        try {
-          const pendingPlan = sessionStorage.getItem("wingmate-checkout-plan")
-            || localStorage.getItem("pending-checkout-plan");
-          if (pendingPlan) {
-            sessionStorage.removeItem("wingmate-checkout-plan");
-            localStorage.removeItem("pending-checkout-plan");
-            // On iOS, redirect to plans page for IAP checkout
-            if (isNativeiOS()) {
-              router.replace("/plans");
-            } else {
-              // Only redirect to Stripe checkout if not already subscribed
-              fetch("/api/stripe/status")
-                .then((r) => r.json())
-                .then((d) => {
-                  if (!d.subscribed) {
-                    return fetch("/api/stripe/checkout", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ plan: pendingPlan }),
-                    })
-                      .then((r) => r.json())
-                      .then((d) => { if (d.url) openInAppBrowser(d.url); });
-                  }
-                })
-                .catch(() => {});
-            }
-          }
-        } catch {}
-        // If there's a pending message from pre-auth, switch to coach tab
-        try {
-          if (sessionStorage.getItem("wingmate-pending-message")) {
-            setActiveTab("coach");
-            setState("chat");
-          }
-        } catch {}
-      } else {
-        hideSplash();
-        router.replace("/onboarding");
-        return;
-      }
-    }).catch(() => {
+    if (sessionStatus === "loading") return;
+
+    if (!session?.user) {
       hideSplash();
       router.replace("/onboarding");
       return;
-    });
+    }
+
+    const user = session.user;
+    const firstName = user.name?.split(" ")[0];
+    setGreeting(getGreeting(firstName));
+    setUserId(user.id!);
+    setIsLoggedIn(true);
+    hideSplash();
+    // Initialize RevenueCat on iOS
+    initPurchases().then(() => identifyUser(user.id!));
+    // Check if onboarding is needed, and save pending goals from pre-auth onboarding
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then(async (d) => {
+        if (d.profile && !d.profile.goal) {
+          try {
+            const pending = sessionStorage.getItem("wingmate-onboarding-goals");
+            if (pending) {
+              const goalData = JSON.parse(pending);
+              await fetch("/api/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(goalData),
+              });
+              sessionStorage.removeItem("wingmate-onboarding-goals");
+              return; // goals saved, no need for onboarding
+            }
+          } catch {}
+          // onboarding temporarily disabled
+        }
+      })
+      .catch(() => {});
+    // If there's a pending checkout plan from onboarding, check sub status first
+    try {
+      const pendingPlan = sessionStorage.getItem("wingmate-checkout-plan")
+        || localStorage.getItem("pending-checkout-plan");
+      if (pendingPlan) {
+        sessionStorage.removeItem("wingmate-checkout-plan");
+        localStorage.removeItem("pending-checkout-plan");
+        // On iOS, redirect to plans page for IAP checkout
+        if (isNativeiOS()) {
+          router.replace("/plans");
+        } else {
+          // Only redirect to Stripe checkout if not already subscribed
+          fetch("/api/stripe/status")
+            .then((r) => r.json())
+            .then((d) => {
+              if (!d.subscribed) {
+                return fetch("/api/stripe/checkout", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ plan: pendingPlan }),
+                })
+                  .then((r) => r.json())
+                  .then((d) => { if (d.url) openInAppBrowser(d.url); });
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    } catch {}
+    // If there's a pending message from pre-auth, switch to coach tab
+    try {
+      if (sessionStorage.getItem("wingmate-pending-message")) {
+        setActiveTab("coach");
+        setState("chat");
+      }
+    } catch {};
 
     const isPostCheckout = searchParams.get("checkout") === "success";
     if (isPostCheckout) setCheckoutPending(true);
@@ -211,55 +207,37 @@ function HomeInner() {
 
     checkStatus();
 
-  }, []);
+  }, [session, sessionStatus]);
 
   // Load community posts when tab switches to community
   const fetchPosts = useCallback(async (mode: "new" | "top", offset = 0, query = "") => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const sortParam = mode === "top" ? "hot" : "new";
+    const page = Math.floor(offset / PAGE_SIZE);
+    const params = new URLSearchParams({ sort: sortParam, page: String(page) });
+    if (query) params.set("search", query);
 
-    const order = mode === "top" ? "score" : "created_at";
-    let q = supabase
-      .from("posts")
-      .select("*")
-      .order(order, { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
+    try {
+      const res = await fetch(`/api/community/posts?${params}`);
+      if (!res.ok) { setCommunityLoading(false); return; }
+      const { posts: postList = [] } = await res.json();
 
-    if (query) {
-      // Sanitize: escape characters that could break PostgREST filter syntax
-      const safe = query.replace(/[%_(),.*\\]/g, "");
-      if (safe) {
-        q = q.or(`title.ilike.%${safe}%,body.ilike.%${safe}%,author_name.ilike.%${safe}%`);
+      if (postList.length > 0) {
+        const voteMap: Record<string, number> = {};
+        postList.forEach((p: any) => { if (p.user_vote != null) voteMap[p.id] = p.user_vote; });
+
+        if (offset === 0) {
+          setPosts(postList);
+          setVotes(voteMap);
+        } else {
+          setPosts((prev) => [...prev, ...postList]);
+          setVotes((prev) => ({ ...prev, ...voteMap }));
+        }
+      } else if (offset === 0) {
+        setPosts([]);
       }
-    }
 
-    const { data } = await q;
-
-    const postList = data || [];
-
-    if (postList.length > 0) {
-      const ids = postList.map((p: any) => p.id);
-      const { data: userVotes } = await supabase
-        .from("votes")
-        .select("post_id, direction")
-        .eq("user_id", user.id)
-        .in("post_id", ids);
-
-      const voteMap: Record<string, number> = {};
-      userVotes?.forEach((v: any) => { voteMap[v.post_id] = v.direction; });
-
-      if (offset === 0) {
-        setPosts(postList);
-        setVotes(voteMap);
-      } else {
-        setPosts((prev) => [...prev, ...postList]);
-        setVotes((prev) => ({ ...prev, ...voteMap }));
-      }
-    } else if (offset === 0) {
-      setPosts([]);
-    }
-
-    setHasMore(postList.length === PAGE_SIZE);
+      setHasMore(postList.length === PAGE_SIZE);
+    } catch {}
     setCommunityLoading(false);
   }, []);
 

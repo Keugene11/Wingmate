@@ -1,37 +1,18 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-async function getSupabase() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-}
-
 export async function GET() {
-  const supabase = await getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
-  const { data: allCheckins } = await supabase
-    .from("checkins")
-    .select("checked_in_at, talked, opportunities_count, approaches_count, successes_count")
-    .eq("user_id", user.id)
-    .order("checked_in_at", { ascending: false });
+  const allCheckins = await sql`
+    SELECT checked_in_at, talked, opportunities_count, approaches_count, successes_count
+    FROM checkins
+    WHERE user_id = ${userId}
+    ORDER BY checked_in_at DESC
+  `;
 
   const checkins = (allCheckins || []).map((c: any) => ({
     date: c.checked_in_at,

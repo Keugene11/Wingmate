@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check } from "lucide-react";
-import { signInWithGoogle, signInWithApple } from "@/lib/supabase-browser";
-import { createClient } from "@/lib/supabase-browser";
+import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
+import { useSession } from "next-auth/react";
 import SignInModal from "@/components/SignInModal";
 import { isNativeiOS, isApplePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage } from "@/lib/purchases";
@@ -57,6 +57,7 @@ function DelayedButton({ onClick, label, delay = 5000 }: { onClick: () => void; 
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>(() => {
     try {
       const saved = typeof window !== "undefined" && sessionStorage.getItem("wingmate-onboarding-step");
@@ -75,15 +76,10 @@ export default function OnboardingPage() {
     // Listen for OAuth deep link callbacks on native
     setupAuthDeepLinkListener();
 
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      hideSplash();
-      if (data.user) {
-        router.replace("/");
-      }
-    }).catch(() => {
-      hideSplash();
-    });
+    hideSplash();
+    if (status === "authenticated") {
+      router.replace("/");
+    }
 
     // Init IAP on iOS
     if (isNativeiOS()) {
@@ -101,7 +97,7 @@ export default function OnboardingPage() {
       });
     }
 
-  }, [router]);
+  }, [router, status]);
 
   const goToStep = (s: Step) => {
     setStep(s);
@@ -110,9 +106,7 @@ export default function OnboardingPage() {
   };
 
   const handleCheckout = async (plan: "monthly" | "yearly") => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    if (!session?.user) {
       try { sessionStorage.setItem("wingmate-checkout-plan", plan); } catch {}
       setShowSignIn(true);
       return;
@@ -124,7 +118,7 @@ export default function OnboardingPage() {
       const pkg = iapPackages[plan];
       if (pkg) {
         try {
-          await identifyUser(user.id);
+          await identifyUser(session.user.id!);
           const success = await purchasePackage(pkg as Parameters<typeof purchasePackage>[0]);
           if (success) {
             router.replace("/");

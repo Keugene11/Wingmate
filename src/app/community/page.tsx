@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-browser";
+import { useSession } from "next-auth/react";
 import PostCard from "@/components/PostCard";
 
 type SortMode = "new" | "top";
@@ -23,53 +23,38 @@ export default function CommunityPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const supabase = createClient();
+  const { data: session } = useSession();
 
   const fetchPosts = async (mode: SortMode, offset = 0, query = "") => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setUserId(user.id);
+    if (session?.user?.id) setUserId(session.user.id);
 
-    const order = mode === "top" ? "score" : "created_at";
-    let q = supabase
-      .from("posts")
-      .select("*")
-      .order(order, { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
+    const sortParam = mode === "top" ? "hot" : "new";
+    const page = Math.floor(offset / PAGE_SIZE);
+    const params = new URLSearchParams({ sort: sortParam, page: String(page) });
+    if (query) params.set("search", query);
 
-    if (query) {
-      const safe = query.replace(/[%_(),.*\\]/g, "");
-      if (safe) {
-        q = q.or(`title.ilike.%${safe}%,body.ilike.%${safe}%,author_name.ilike.%${safe}%`);
+    try {
+      const res = await fetch(`/api/community/posts?${params}`);
+      if (!res.ok) { setLoading(false); return; }
+      const { posts: postList = [] } = await res.json();
+
+      if (postList.length > 0) {
+        const voteMap: Record<string, number> = {};
+        postList.forEach((p: any) => { if (p.user_vote != null) voteMap[p.id] = p.user_vote; });
+
+        if (offset === 0) {
+          setPosts(postList);
+          setVotes(voteMap);
+        } else {
+          setPosts((prev) => [...prev, ...postList]);
+          setVotes((prev) => ({ ...prev, ...voteMap }));
+        }
+      } else if (offset === 0) {
+        setPosts([]);
       }
-    }
 
-    const { data } = await q;
-    const postList = data || [];
-
-    if (postList.length > 0) {
-      const ids = postList.map((p: any) => p.id);
-      const { data: userVotes } = await supabase
-        .from("votes")
-        .select("post_id, direction")
-        .eq("user_id", user.id)
-        .in("post_id", ids);
-
-      const voteMap: Record<string, number> = {};
-      userVotes?.forEach((v: any) => { voteMap[v.post_id] = v.direction; });
-
-      if (offset === 0) {
-        setPosts(postList);
-        setVotes(voteMap);
-      } else {
-        setPosts((prev) => [...prev, ...postList]);
-        setVotes((prev) => ({ ...prev, ...voteMap }));
-      }
-    } else if (offset === 0) {
-      setPosts([]);
-    }
-
-    setHasMore(postList.length === PAGE_SIZE);
+      setHasMore(postList.length === PAGE_SIZE);
+    } catch {}
     setLoading(false);
   };
 

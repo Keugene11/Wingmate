@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-browser";
 
 export default function NewPostPage() {
   const [title, setTitle] = useState("");
@@ -12,7 +11,6 @@ export default function NewPostPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
     fetch("/api/stripe/status")
@@ -30,30 +28,22 @@ export default function NewPostPage() {
     if (!canSubmit) return;
     setSubmitting(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const res = await fetch("/api/community/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), body: body.trim() }),
+      });
 
-    // Use profile username (never real name) for community posts
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("id", user.id)
-      .single();
-    const displayName = profile?.username || "user_" + user.id.slice(-6);
+      if (!res.ok) {
+        setSubmitting(false);
+        return;
+      }
 
-    const { error } = await supabase.from("posts").insert({
-      user_id: user.id,
-      author_name: displayName,
-      title: title.trim(),
-      body: body.trim(),
-    });
-
-    if (error) {
+      router.push("/");
+    } catch {
       setSubmitting(false);
-      return;
     }
-
-    router.push("/");
   };
 
   if (!isPro) {

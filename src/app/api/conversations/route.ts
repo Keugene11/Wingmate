@@ -1,34 +1,39 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
-  const { data } = await supabase
-    .from("conversations")
-    .select("id, preview, mode, created_at, updated_at")
-    .eq("user_id", user.id)
-    .order("updated_at", { ascending: false })
-    .limit(50);
+  const data = await sql`
+    SELECT id, preview, mode, created_at, updated_at
+    FROM conversations
+    WHERE user_id = ${userId}
+    ORDER BY updated_at DESC
+    LIMIT 50
+  `;
 
   return NextResponse.json({ conversations: data || [] });
 }
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
   const { mode } = await req.json();
 
-  const { data, error } = await supabase
-    .from("conversations")
-    .insert({ user_id: user.id, mode: mode || "general" })
-    .select("id")
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ id: data.id });
+  try {
+    const rows = await sql`
+      INSERT INTO conversations (user_id, mode)
+      VALUES (${userId}, ${mode || "general"})
+      RETURNING id
+    `;
+    return NextResponse.json({ id: rows[0].id });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

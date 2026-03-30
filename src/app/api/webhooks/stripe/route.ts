@@ -1,44 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
-import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
-
-function getAdminClient() {
-  return createSupabaseAdmin(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { sql } from "@/lib/db";
 
 async function upsertSubscription(
   supabaseUserId: string,
   stripeCustomerId: string,
   subscription: Stripe.Subscription
 ) {
-  const supabase = getAdminClient();
-
   const item = subscription.items.data[0];
 
-  const { error } = await supabase.from("subscriptions").upsert(
-    {
-      user_id: supabaseUserId,
-      stripe_customer_id: stripeCustomerId,
-      stripe_subscription_id: subscription.id,
-      status: subscription.status,
-      price_id: item?.price.id,
-      current_period_start: item
-        ? new Date(item.current_period_start * 1000).toISOString()
-        : null,
-      current_period_end: item
-        ? new Date(item.current_period_end * 1000).toISOString()
-        : null,
-      cancel_at_period_end: subscription.cancel_at_period_end,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" }
-  );
+  const currentPeriodStart = item
+    ? new Date(item.current_period_start * 1000).toISOString()
+    : null;
+  const currentPeriodEnd = item
+    ? new Date(item.current_period_end * 1000).toISOString()
+    : null;
+  const priceId = item?.price.id ?? null;
+  const now = new Date().toISOString();
 
-  if (error) console.error("Upsert subscription error:", error);
+  try {
+    await sql`
+      INSERT INTO subscriptions (
+        user_id, stripe_customer_id, stripe_subscription_id, status,
+        price_id, current_period_start, current_period_end,
+        cancel_at_period_end, updated_at
+      ) VALUES (
+        ${supabaseUserId}, ${stripeCustomerId}, ${subscription.id},
+        ${subscription.status}, ${priceId}, ${currentPeriodStart},
+        ${currentPeriodEnd}, ${subscription.cancel_at_period_end}, ${now}
+      )
+      ON CONFLICT (user_id) DO UPDATE SET
+        stripe_customer_id = EXCLUDED.stripe_customer_id,
+        stripe_subscription_id = EXCLUDED.stripe_subscription_id,
+        status = EXCLUDED.status,
+        price_id = EXCLUDED.price_id,
+        current_period_start = EXCLUDED.current_period_start,
+        current_period_end = EXCLUDED.current_period_end,
+        cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+        updated_at = EXCLUDED.updated_at
+    `;
+  } catch (error) {
+    console.error("Upsert subscription error:", error);
+  }
 }
 
 export async function POST(request: NextRequest) {

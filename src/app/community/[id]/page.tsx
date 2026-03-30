@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import { ArrowLeft, Heart, Send, Trash2, Pencil, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-browser";
+import { useSession } from "next-auth/react";
 import { timeAgo } from "@/lib/time";
 
 export default function PostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,8 +21,10 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
   const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState("");
   const router = useRouter();
-  const supabase = createClient();
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetch("/api/stripe/status")
@@ -35,44 +37,31 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   }, [router]);
 
   useEffect(() => {
+    if (session?.user?.id) {
+      setUserId(session.user.id);
+    }
+  }, [session]);
+
+  useEffect(() => {
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      setUserId(user.id);
-      // Use profile username (never real name) for community
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", user.id)
-        .single();
-      setUserName(profile?.username || "user_" + user.id.slice(-6));
+      try {
+        const res = await fetch(`/api/community/posts/${id}`);
+        if (!res.ok) return;
+        const data = await res.json();
 
-      const { data: postData } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (!postData) return;
-      setPost(postData);
-      setScore(postData.score);
-
-      const { data: voteData } = await supabase
-        .from("votes")
-        .select("direction")
-        .eq("post_id", id)
-        .eq("user_id", user.id)
-        .single();
-
-      if (voteData) setVote(voteData.direction);
-
-      const { data: commentData } = await supabase
-        .from("comments")
-        .select("*")
-        .eq("post_id", id)
-        .order("created_at", { ascending: true });
-
-      setComments(commentData || []);
+        if (data.post) {
+          setPost(data.post);
+          setScore(data.post.score);
+        }
+        if (data.userVote != null) setVote(data.userVote);
+        if (data.comments) setComments(data.comments);
+        // Get username from profile API
+        const profileRes = await fetch("/api/profile");
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData.profile?.username) setUserName(profileData.profile.username);
+        }
+      } catch {}
     };
     load();
   }, [id]);
@@ -83,15 +72,20 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
     if (liked) {
       setScore((s) => s - 1);
       setVote(null);
-      await supabase.from("votes").delete().eq("post_id", id).eq("user_id", userId);
+      await fetch(`/api/community/posts/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction: 0 }),
+      });
     } else {
       const adjustment = vote === -1 ? 2 : 1;
       setScore((s) => s + adjustment);
       setVote(1);
-      await supabase.from("votes").upsert(
-        { user_id: userId, post_id: id, direction: 1 },
-        { onConflict: "user_id,post_id" }
-      );
+      await fetch(`/api/community/posts/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction: 1 }),
+      });
     }
   };
 
@@ -99,26 +93,35 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
     if (!commentText.trim() || submitting) return;
     setSubmitting(true);
 
-    const { data, error } = await supabase
-      .from("comments")
-      .insert({
-        post_id: id,
-        user_id: userId,
-        author_name: userName,
-        body: commentText.trim(),
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      setComments((prev) => [...prev, data]);
-      setCommentText("");
-    }
+    try {
+      const res = await fetch(`/api/community/posts/${id}/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: commentText.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.comment) {
+          setComments((prev) => [...prev, data.comment]);
+        } else {
+          // Fallback: add optimistic comment
+          setComments((prev) => [...prev, {
+            id: Date.now().toString(),
+            post_id: id,
+            user_id: userId,
+            author_name: userName,
+            body: commentText.trim(),
+            created_at: new Date().toISOString(),
+          }]);
+        }
+        setCommentText("");
+      }
+    } catch {}
     setSubmitting(false);
   };
 
   const handleDelete = async () => {
-    await supabase.from("posts").delete().eq("id", id);
+    await fetch(`/api/community/posts/${id}`, { method: "DELETE" });
     router.push("/");
   };
 
@@ -130,19 +133,38 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
 
   const handleSaveEdit = async () => {
     if (!editTitle.trim() || !editBody.trim()) return;
-    const { error } = await supabase
-      .from("posts")
-      .update({ title: editTitle.trim(), body: editBody.trim(), updated_at: new Date().toISOString() })
-      .eq("id", id);
-    if (!error) {
-      setPost((prev: any) => ({ ...prev, title: editTitle.trim(), body: editBody.trim() }));
-      setEditing(false);
-    }
+    try {
+      const res = await fetch(`/api/community/posts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: editTitle.trim(), body: editBody.trim() }),
+      });
+      if (res.ok) {
+        setPost((prev: any) => ({ ...prev, title: editTitle.trim(), body: editBody.trim() }));
+        setEditing(false);
+      }
+    } catch {}
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    await supabase.from("comments").delete().eq("id", commentId);
+    await fetch(`/api/community/comments/${commentId}`, { method: "DELETE" });
     setComments((prev) => prev.filter((c) => c.id !== commentId));
+  };
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editCommentText.trim()) return;
+    try {
+      const res = await fetch(`/api/community/comments/${commentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editCommentText.trim() }),
+      });
+      if (res.ok) {
+        setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, body: editCommentText.trim() } : c));
+        setEditingCommentId(null);
+        setEditCommentText("");
+      }
+    } catch {}
   };
 
   if (!post) {

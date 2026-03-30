@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-browser";
+import { signOut } from "next-auth/react";
 
 export default function DeleteAccountPage() {
   const [confirmed, setConfirmed] = useState(false);
@@ -12,21 +12,17 @@ export default function DeleteAccountPage() {
 
   const handleDelete = async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Delete user data from all tables
-    await supabase.from("comments").delete().eq("user_id", user.id);
-    await supabase.from("votes").delete().eq("user_id", user.id);
-    await supabase.from("posts").delete().eq("user_id", user.id);
-    await supabase.from("checkins").delete().eq("user_id", user.id);
-    await supabase.from("profiles").delete().eq("id", user.id);
-    await supabase.from("usage").delete().eq("user_id", user.id);
-    await supabase.from("subscriptions").delete().eq("user_id", user.id);
-
-    // Sign out
-    await supabase.auth.signOut();
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      if (!res.ok) {
+        setLoading(false);
+        return;
+      }
+      await signOut({ redirectTo: "/" });
+    } catch {
+      setLoading(false);
+      return;
+    }
     setDeleted(true);
     setLoading(false);
   };

@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-browser";
+import { useSession } from "next-auth/react";
 import PostCard from "@/components/PostCard";
 
 const PAGE_SIZE = 20;
@@ -21,7 +21,7 @@ export default function UserPostsPage({ params }: { params: Promise<{ id: string
   const [isPro, setIsPro] = useState<boolean | null>(true); // TODO: temp override for demo
 
   const router = useRouter();
-  const supabase = createClient();
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetch("/api/stripe/status")
@@ -33,46 +33,41 @@ export default function UserPostsPage({ params }: { params: Promise<{ id: string
       .catch(() => router.replace("/?tab=plans"));
   }, [router]);
 
-  const fetchPosts = async (offset = 0) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setCurrentUserId(user.id);
-    setIsOwnProfile(user.id === profileUserId);
-
-    const { data } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("user_id", profileUserId)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
-
-    const postList = data || [];
-
-    if (postList.length > 0) {
-      if (!authorName) setAuthorName(postList[0].author_name);
-
-      const ids = postList.map((p: any) => p.id);
-      const { data: userVotes } = await supabase
-        .from("votes")
-        .select("post_id, direction")
-        .eq("user_id", user.id)
-        .in("post_id", ids);
-
-      const voteMap: Record<string, number> = {};
-      userVotes?.forEach((v: any) => { voteMap[v.post_id] = v.direction; });
-
-      if (offset === 0) {
-        setPosts(postList);
-        setVotes(voteMap);
-      } else {
-        setPosts((prev) => [...prev, ...postList]);
-        setVotes((prev) => ({ ...prev, ...voteMap }));
-      }
-    } else if (offset === 0) {
-      setPosts([]);
+  useEffect(() => {
+    if (session?.user?.id) {
+      setCurrentUserId(session.user.id);
+      setIsOwnProfile(session.user.id === profileUserId);
     }
+  }, [session, profileUserId]);
 
-    setHasMore(postList.length === PAGE_SIZE);
+  const fetchPosts = async (offset = 0) => {
+    const page = Math.floor(offset / PAGE_SIZE);
+    const params = new URLSearchParams({ sort: "new", page: String(page) });
+
+    try {
+      const res = await fetch(`/api/community/posts?${params}&user_id=${profileUserId}`);
+      if (!res.ok) { setLoading(false); return; }
+      const { posts: postList = [] } = await res.json();
+
+      if (postList.length > 0) {
+        if (!authorName) setAuthorName(postList[0].author_name);
+
+        const voteMap: Record<string, number> = {};
+        postList.forEach((p: any) => { if (p.user_vote != null) voteMap[p.id] = p.user_vote; });
+
+        if (offset === 0) {
+          setPosts(postList);
+          setVotes(voteMap);
+        } else {
+          setPosts((prev) => [...prev, ...postList]);
+          setVotes((prev) => ({ ...prev, ...voteMap }));
+        }
+      } else if (offset === 0) {
+        setPosts([]);
+      }
+
+      setHasMore(postList.length === PAGE_SIZE);
+    } catch {}
     setLoading(false);
   };
 

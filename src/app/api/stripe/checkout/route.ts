@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe, PRICES } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase-server";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    const session = await auth();
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
+    const userEmail = session.user.email || "";
 
     const { plan } = await request.json();
     const priceConfig = plan === "yearly" ? PRICES.yearly : PRICES.monthly;
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Find or create Stripe customer
     const existingCustomers = await getStripe().customers.list({
-      email: user.email,
+      email: userEmail,
       limit: 1,
     });
 
@@ -37,26 +37,26 @@ export async function POST(request: NextRequest) {
       customerId = existingCustomers.data[0].id;
     } else {
       const customer = await getStripe().customers.create({
-        email: user.email!,
-        metadata: { supabase_user_id: user.id },
+        email: userEmail!,
+        metadata: { supabase_user_id: userId },
       });
       customerId = customer.id;
     }
 
     const origin = request.headers.get("origin") || "http://localhost:3000";
 
-    const session = await getStripe().checkout.sessions.create({
+    const checkoutSession = await getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/?checkout=success`,
       cancel_url: `${origin}/plans?checkout=cancelled`,
       subscription_data: {
-        metadata: { supabase_user_id: user.id },
+        metadata: { supabase_user_id: userId },
       },
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json(

@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
-
-function getAdminClient() {
-  return createSupabaseAdmin(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { sql } from "@/lib/db";
 
 /**
  * RevenueCat webhook handler.
@@ -39,8 +32,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const supabase = getAdminClient();
-
   // Map RevenueCat event types to subscription status
   const eventType = event.type as string;
   let status: string;
@@ -70,22 +61,34 @@ export async function POST(request: NextRequest) {
     ? new Date(event.purchased_at_ms).toISOString()
     : null;
 
-  const { error } = await supabase.from("subscriptions").upsert(
-    {
-      user_id: appUserId,
-      stripe_customer_id: `rc_${appUserId}`,
-      stripe_subscription_id: `rc_${event.original_transaction_id || event.transaction_id || "unknown"}`,
-      status,
-      price_id: event.product_id || null,
-      current_period_start: purchaseDate,
-      current_period_end: expirationDate,
-      cancel_at_period_end: eventType === "CANCELLATION",
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" }
-  );
+  const stripeCustomerId = `rc_${appUserId}`;
+  const stripeSubscriptionId = `rc_${event.original_transaction_id || event.transaction_id || "unknown"}`;
+  const priceId = event.product_id || null;
+  const cancelAtPeriodEnd = eventType === "CANCELLATION";
+  const now = new Date().toISOString();
 
-  if (error) {
+  try {
+    await sql`
+      INSERT INTO subscriptions (
+        user_id, stripe_customer_id, stripe_subscription_id, status,
+        price_id, current_period_start, current_period_end,
+        cancel_at_period_end, updated_at
+      ) VALUES (
+        ${appUserId}, ${stripeCustomerId}, ${stripeSubscriptionId},
+        ${status}, ${priceId}, ${purchaseDate},
+        ${expirationDate}, ${cancelAtPeriodEnd}, ${now}
+      )
+      ON CONFLICT (user_id) DO UPDATE SET
+        stripe_customer_id = EXCLUDED.stripe_customer_id,
+        stripe_subscription_id = EXCLUDED.stripe_subscription_id,
+        status = EXCLUDED.status,
+        price_id = EXCLUDED.price_id,
+        current_period_start = EXCLUDED.current_period_start,
+        current_period_end = EXCLUDED.current_period_end,
+        cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+        updated_at = EXCLUDED.updated_at
+    `;
+  } catch (error) {
     console.error("RevenueCat webhook upsert error:", error);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }

@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, ArrowUp, Lock, List, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-browser";
+
+
 import SignInModal from "@/components/SignInModal";
 
 interface Message {

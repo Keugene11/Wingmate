@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-browser";
 import { timeAgo } from "@/lib/time";
 
 interface PostCardProps {
@@ -33,7 +32,6 @@ export default function PostCard({
 }: PostCardProps) {
   const [score, setScore] = useState(initialScore);
   const [liked, setLiked] = useState(initialVote === 1);
-  const supabase = createClient();
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -42,14 +40,19 @@ export default function PostCard({
     if (liked) {
       setScore((s) => s - 1);
       setLiked(false);
-      await supabase.from("votes").delete().eq("post_id", id).eq("user_id", currentUserId);
+      await fetch(`/api/community/posts/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction: 0 }),
+      });
     } else {
       setScore((s) => s + 1);
       setLiked(true);
-      await supabase.from("votes").upsert(
-        { user_id: currentUserId, post_id: id, direction: 1 },
-        { onConflict: "user_id,post_id" }
-      );
+      await fetch(`/api/community/posts/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction: 1 }),
+      });
     }
   };
 

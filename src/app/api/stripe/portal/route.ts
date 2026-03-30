@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase-server";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    const session = await auth();
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userEmail = session.user.email || "";
 
     const customers = await getStripe().customers.list({
-      email: user.email,
+      email: userEmail,
       limit: 1,
     });
 
@@ -25,12 +24,12 @@ export async function POST(request: NextRequest) {
 
     const origin = request.headers.get("origin") || "http://localhost:3000";
 
-    const session = await getStripe().billingPortal.sessions.create({
+    const portalSession = await getStripe().billingPortal.sessions.create({
       customer: customers.data[0].id,
       return_url: `${origin}/plans`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: portalSession.url });
   } catch (error) {
     console.error("Portal error:", error);
     return NextResponse.json(

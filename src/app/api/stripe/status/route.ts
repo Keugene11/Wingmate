@@ -1,28 +1,28 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
-import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ subscribed: false, subscription: null });
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ subscribed: false, subscription: null });
+    }
+    const userId = session.user.id;
 
-    const admin = createSupabaseAdmin(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const result = await sql`
+      SELECT status, price_id, current_period_start, current_period_end, cancel_at_period_end
+      FROM subscriptions
+      WHERE user_id = ${userId}
+        AND status IN ('active', 'trialing')
+      LIMIT 1
+    `;
 
-    const { data: subscription } = await admin
-      .from("subscriptions")
-      .select("status, price_id, current_period_start, current_period_end, cancel_at_period_end")
-      .eq("user_id", user.id)
-      .in("status", ["active", "trialing"])
-      .single();
+    const subscription = result[0] || null;
 
     return NextResponse.json({
       subscribed: !!subscription,
-      subscription: subscription || null,
+      subscription,
     });
   } catch {
     return NextResponse.json({ subscribed: false, subscription: null });

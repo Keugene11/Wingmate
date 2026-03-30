@@ -1,5 +1,4 @@
 import { isNativePlatform } from "./platform";
-import { createClient } from "./supabase-browser";
 
 /**
  * Hide the native splash screen once the web content is ready.
@@ -15,8 +14,8 @@ export async function hideSplash() {
 
 /**
  * Listen for deep link auth callbacks from OAuth.
- * When the native app receives a wingmate:// URL with the auth code,
- * exchange it in the WKWebView (which has the PKCE code_verifier cookie).
+ * When the native app receives a wingmate:// URL with the session token,
+ * set the Auth.js session cookie in the WKWebView via a POST to /api/auth/native/session.
  */
 export async function setupAuthDeepLinkListener() {
   if (!isNativePlatform()) return;
@@ -25,19 +24,26 @@ export async function setupAuthDeepLinkListener() {
     App.addListener("appUrlOpen", async ({ url }) => {
       if (!url.includes("auth/callback")) return;
       const params = new URL(url);
-      const code = params.searchParams.get("code");
-      if (code) {
-        const supabase = createClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        // Close the in-app browser
-        try {
-          const { Browser } = await import("@capacitor/browser");
-          await Browser.close();
-        } catch {}
-        if (!error) {
-          window.location.href = "/";
-        }
-      }
+      const sessionToken = params.searchParams.get("session_token");
+      const error = params.searchParams.get("error");
+
+      // Close the in-app browser
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.close();
+      } catch {}
+
+      if (error || !sessionToken) return;
+
+      // Set the Auth.js session cookie in the WKWebView
+      try {
+        await fetch("/api/auth/native/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: sessionToken }),
+        });
+        window.location.href = "/";
+      } catch {}
     });
   } catch {}
 }
@@ -51,7 +57,7 @@ export async function checkForUpdate(): Promise<boolean> {
   try {
     const { App } = await import("@capacitor/app");
     const info = await App.getInfo();
-    const currentBuild = info.build; // e.g. "202603300258"
+    const currentBuild = info.build;
     const res = await fetch("/api/version");
     const { minBuild } = await res.json();
     if (minBuild && currentBuild < minBuild) return true;
@@ -62,8 +68,8 @@ export async function checkForUpdate(): Promise<boolean> {
 /**
  * Open a URL in an in-app browser (SFSafariViewController on iOS).
  * Also listens for the browser to close, and if the user is now
- * authenticated (e.g. deep link set the session), reloads the page.
- * Falls back to window.open on web.
+ * authenticated (session cookie was set via deep link), reloads the page.
+ * Falls back to window.location on web.
  */
 export async function openInAppBrowser(url: string) {
   if (!isNativePlatform()) {
@@ -72,14 +78,15 @@ export async function openInAppBrowser(url: string) {
   }
   try {
     const { Browser } = await import("@capacitor/browser");
-    // Listen for browser close to handle auth completion
     Browser.addListener("browserFinished", async () => {
       // Check if the deep link handler already set the session
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        window.location.href = "/";
-      }
+      try {
+        const res = await fetch("/api/profile");
+        const data = await res.json();
+        if (data.profile) {
+          window.location.href = "/";
+        }
+      } catch {}
     });
     await Browser.open({ url, presentationStyle: "fullscreen" });
   } catch {

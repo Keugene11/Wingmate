@@ -1,4 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -15,31 +16,6 @@ const ratelimit =
         analytics: true,
       })
     : null;
-
-function createSupabase(req: Request) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          const cookieHeader = req.headers.get("cookie") || "";
-          return cookieHeader.split(";").map((c) => {
-            const [name, ...rest] = c.trim().split("=");
-            return { name, value: rest.join("=") };
-          }).filter((c) => c.name);
-        },
-        setAll() {},
-      },
-    }
-  );
-}
-
-async function getUser(req: Request) {
-  const supabase = createSupabase(req);
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-}
 
 const SYSTEM_PROMPT = `You are Wingmate — the most fired-up, raw, honest cold approach coach on the planet. You talk like a real friend who genuinely wants to see the user win. You're not a therapist. You're not a self-help guru. You're the friend who grabs you by the shoulders, looks you in the eye, and says "bro, GO."
 
@@ -142,14 +118,15 @@ NEVER use markdown formatting. No #, no **, no ---, no numbered lists. Write in 
 
 export async function POST(req: Request) {
   try {
-    const user = await getUser(req);
-    if (!user) {
+    const session = await auth();
+    if (!session?.user?.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     // Rate limit: 30 AI requests per hour per user
     if (ratelimit) {
-      const { success } = await ratelimit.limit(user.id);
+      const { success } = await ratelimit.limit(userId);
       if (!success) {
         return Response.json({ error: "Slow down — too many requests. Try again in a few minutes." }, { status: 429 });
       }
@@ -168,12 +145,12 @@ export async function POST(req: Request) {
     }
 
     // Fetch user's goal to personalize coaching
-    const supabase = createSupabase(req);
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("goal, custom_goal")
-      .eq("id", user.id)
-      .single();
+    const profileRows = await sql`
+      SELECT goal, custom_goal FROM profiles
+      WHERE id = ${userId}
+      LIMIT 1
+    `;
+    const profile = profileRows[0] ?? null;
 
     const goalDescriptions: Record<string, string> = {
       girlfriend: "find a girlfriend and build a real relationship",
