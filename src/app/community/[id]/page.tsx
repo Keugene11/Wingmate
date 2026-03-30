@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { ArrowLeft, ChevronUp, ChevronDown, Send, Trash2, Pencil, X, Check } from "lucide-react";
+import { ArrowLeft, Heart, Send, Trash2, Pencil, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -77,17 +77,19 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
     load();
   }, [id]);
 
-  const handleVote = async (direction: 1 | -1) => {
-    if (vote === direction) {
-      setScore((s) => s - direction);
+  const liked = vote === 1;
+
+  const handleLike = async () => {
+    if (liked) {
+      setScore((s) => s - 1);
       setVote(null);
       await supabase.from("votes").delete().eq("post_id", id).eq("user_id", userId);
     } else {
-      const adjustment = vote ? direction * 2 : direction;
+      const adjustment = vote === -1 ? 2 : 1;
       setScore((s) => s + adjustment);
-      setVote(direction);
+      setVote(1);
       await supabase.from("votes").upsert(
-        { user_id: userId, post_id: id, direction },
+        { user_id: userId, post_id: id, direction: 1 },
         { onConflict: "user_id,post_id" }
       );
     }
@@ -184,70 +186,69 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
 
       {/* Post */}
       <div className="mb-6">
-        <div className="flex gap-3">
-          <div className="flex flex-col items-center gap-0.5 shrink-0">
-            <button
-              onClick={() => handleVote(1)}
-              className={`p-0.5 rounded ${vote === 1 ? "text-orange-500" : "text-text-muted"}`}
-            >
-              <ChevronUp size={20} strokeWidth={2} />
-            </button>
-            <span className={`text-[14px] font-semibold tabular-nums ${score > 0 ? "text-orange-500" : score < 0 ? "text-blue-500" : "text-text-muted"}`}>
-              {score}
-            </span>
-            <button
-              onClick={() => handleVote(-1)}
-              className={`p-0.5 rounded ${vote === -1 ? "text-blue-500" : "text-text-muted"}`}
-            >
-              <ChevronDown size={20} strokeWidth={2} />
-            </button>
+        {/* Author */}
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-9 h-9 rounded-full bg-bg-input flex items-center justify-center text-[14px] font-bold text-text-muted">
+            {post.author_name?.charAt(0).toUpperCase()}
           </div>
-          <div className="flex-1">
-            {editing ? (
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value.slice(0, 120))}
-                  className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-2.5 text-[16px] font-bold outline-none focus:border-text-muted transition-colors"
-                />
-                <textarea
-                  value={editBody}
-                  onChange={(e) => setEditBody(e.target.value.slice(0, 2000))}
-                  rows={4}
-                  className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-text-muted transition-colors resize-none"
-                />
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleSaveEdit}
-                    disabled={!editTitle.trim() || !editBody.trim()}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-[#1a1a1a] text-white rounded-full text-[13px] font-medium press disabled:opacity-50"
-                  >
-                    <Check size={14} strokeWidth={2} /> Save
-                  </button>
-                  <button
-                    onClick={() => setEditing(false)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-text-muted text-[13px] press"
-                  >
-                    <X size={14} strokeWidth={2} /> Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <h2 className="font-display text-[20px] font-bold tracking-tight leading-snug mb-2">{post.title}</h2>
-                <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-3">{post.body}</p>
-                <p className="text-[12px] text-text-muted">
-                  <Link href={`/community/user/${post.user_id}`} className="hover:underline">
-                    {post.author_name}
-                  </Link>
-                  {" · "}
-                  {timeAgo(post.created_at)}
-                </p>
-              </>
-            )}
+          <div>
+            <Link href={`/community/user/${post.user_id}`} className="text-[15px] font-semibold hover:underline block leading-tight">
+              {post.author_name}
+            </Link>
+            <span className="text-[12px] text-text-muted">{timeAgo(post.created_at)}</span>
           </div>
         </div>
+
+        {editing ? (
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value.slice(0, 120))}
+              className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-2.5 text-[16px] font-bold outline-none focus:border-text-muted transition-colors"
+            />
+            <textarea
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value.slice(0, 2000))}
+              rows={4}
+              className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-text-muted transition-colors resize-none"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveEdit}
+                disabled={!editTitle.trim() || !editBody.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#1a1a1a] text-white rounded-full text-[13px] font-medium press disabled:opacity-50"
+              >
+                <Check size={14} strokeWidth={2} /> Save
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="flex items-center gap-1.5 px-4 py-2 text-text-muted text-[13px] press"
+              >
+                <X size={14} strokeWidth={2} /> Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2 className="font-display text-[20px] font-bold tracking-tight leading-snug mb-2">{post.title}</h2>
+            <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4">{post.body}</p>
+
+            {/* Like button */}
+            <div className="flex items-center gap-5 text-text-muted">
+              <button onClick={handleLike} className="flex items-center gap-1.5 press">
+                <Heart
+                  size={18}
+                  strokeWidth={1.5}
+                  className={liked ? "fill-red-500 text-red-500" : ""}
+                />
+                <span className={`text-[14px] font-medium ${liked ? "text-red-500" : ""}`}>
+                  {score > 0 ? score : ""}
+                </span>
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Divider */}

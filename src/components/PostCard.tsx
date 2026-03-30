@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronUp, ChevronDown, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { timeAgo } from "@/lib/time";
@@ -32,23 +32,22 @@ export default function PostCard({
   currentVote: initialVote,
 }: PostCardProps) {
   const [score, setScore] = useState(initialScore);
-  const [vote, setVote] = useState<number | null>(initialVote);
+  const [liked, setLiked] = useState(initialVote === 1);
   const supabase = createClient();
 
-  const handleVote = async (e: React.MouseEvent, direction: 1 | -1) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (vote === direction) {
-      setScore((s) => s - direction);
-      setVote(null);
+    if (liked) {
+      setScore((s) => s - 1);
+      setLiked(false);
       await supabase.from("votes").delete().eq("post_id", id).eq("user_id", currentUserId);
     } else {
-      const adjustment = vote ? direction * 2 : direction;
-      setScore((s) => s + adjustment);
-      setVote(direction);
+      setScore((s) => s + 1);
+      setLiked(true);
       await supabase.from("votes").upsert(
-        { user_id: currentUserId, post_id: id, direction },
+        { user_id: currentUserId, post_id: id, direction: 1 },
         { onConflict: "user_id,post_id" }
       );
     }
@@ -56,43 +55,45 @@ export default function PostCard({
 
   return (
     <Link href={`/community/${id}`} className="block">
-      <div className="flex gap-3 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press">
-        <div className="flex flex-col items-center gap-0.5 shrink-0 pt-0.5">
-          <button
-            onClick={(e) => handleVote(e, 1)}
-            className={`p-0.5 rounded ${vote === 1 ? "text-orange-500" : "text-text-muted"}`}
+      <div className="bg-bg-card border border-border rounded-2xl px-5 py-4 press">
+        {/* Author + time */}
+        <div className="flex items-center gap-2 mb-2.5">
+          <div className="w-7 h-7 rounded-full bg-bg-input flex items-center justify-center text-[12px] font-bold text-text-muted">
+            {authorName.charAt(0).toUpperCase()}
+          </div>
+          <Link
+            href={`/community/user/${userId}`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-[14px] font-semibold hover:underline"
           >
-            <ChevronUp size={18} strokeWidth={2} />
-          </button>
-          <span className={`text-[13px] font-semibold tabular-nums ${score > 0 ? "text-orange-500" : score < 0 ? "text-blue-500" : "text-text-muted"}`}>
-            {score}
-          </span>
-          <button
-            onClick={(e) => handleVote(e, -1)}
-            className={`p-0.5 rounded ${vote === -1 ? "text-blue-500" : "text-text-muted"}`}
-          >
-            <ChevronDown size={18} strokeWidth={2} />
-          </button>
+            {authorName}
+          </Link>
+          <span className="text-text-muted text-[13px]">· {timeAgo(createdAt)}</span>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-[15px] leading-snug mb-1 line-clamp-2">{title}</h3>
-          <p className="text-text-muted text-[13px] leading-relaxed line-clamp-2 mb-2">{body}</p>
-          <div className="flex items-center gap-3 text-[12px] text-text-muted">
-            <Link
-              href={`/community/user/${userId}`}
-              onClick={(e) => e.stopPropagation()}
-              className="hover:underline"
-            >
-              {authorName}
-            </Link>
-            <span>·</span>
-            <span>{timeAgo(createdAt)}</span>
-            <span className="ml-auto flex items-center gap-1">
-              <MessageCircle size={12} strokeWidth={1.5} />
-              {commentCount}
+        {/* Content */}
+        <h3 className="font-semibold text-[15px] leading-snug mb-1">{title}</h3>
+        <p className="text-text-muted text-[14px] leading-relaxed line-clamp-3 mb-3">{body}</p>
+
+        {/* Actions */}
+        <div className="flex items-center gap-5 text-text-muted">
+          <button
+            onClick={handleLike}
+            className="flex items-center gap-1.5 press"
+          >
+            <Heart
+              size={16}
+              strokeWidth={1.5}
+              className={liked ? "fill-red-500 text-red-500" : ""}
+            />
+            <span className={`text-[13px] font-medium ${liked ? "text-red-500" : ""}`}>
+              {score > 0 ? score : ""}
             </span>
-          </div>
+          </button>
+          <span className="flex items-center gap-1.5">
+            <MessageCircle size={16} strokeWidth={1.5} />
+            <span className="text-[13px] font-medium">{commentCount > 0 ? commentCount : ""}</span>
+          </span>
         </div>
       </div>
     </Link>

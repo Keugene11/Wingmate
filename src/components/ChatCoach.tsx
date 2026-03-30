@@ -256,7 +256,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
   };
 
   const sendMessage = async (content: string) => {
-    if (!content.trim() || isLoading || limitReached) return;
+    if (!content.trim() || content.trim().length < 2 || isLoading || limitReached) return;
 
     // If not logged in, save message and show sign-in modal
     if (!isLoggedIn) {
