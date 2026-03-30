@@ -51,6 +51,7 @@ jobs:
       - name: Build release AAB and APK
         working-directory: android
         env:
+          VERSION_CODE: ${{ github.run_number }}
           KEYSTORE_FILE: /tmp/keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
