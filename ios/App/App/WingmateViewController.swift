@@ -11,17 +11,26 @@ import Capacitor
  - runJavaScriptAlertPanel can fail to present if another modal is active,
    leaving the completion handler uncalled and the web view deadlocked.
 
- Since the WKUIDelegate is on WebViewDelegationHandler (not this VC), we fix this
- by injecting JavaScript that replaces window.alert/confirm with safe no-ops,
+ Since the WKUIDelegate lives on WebViewDelegationHandler (not this VC), we fix
+ this by injecting JavaScript that replaces window.alert/confirm with safe no-ops,
  preventing the buggy native dialog path from ever being triggered.
+
+ The script is injected in capacitorDidLoad() — after the web view is created but
+ BEFORE loadWebView() loads the remote URL — ensuring it's present for the very
+ first page load.
 */
 class WingmateViewController: CAPBridgeViewController {
 
-    override open func viewDidLoad() {
-        super.viewDidLoad()
+    // capacitorDidLoad is called in loadView() after the webView and bridge are
+    // fully set up, but BEFORE viewDidLoad() calls loadWebView(). This is the
+    // only correct injection point — viewDidLoad is too late.
+    override open func capacitorDidLoad() {
+        super.capacitorDidLoad()
 
-        // Inject safety scripts before any page content loads
-        bridge?.webView?.configuration.userContentController.addUserScript(
+        // self.webView is the correct accessor (public property on
+        // CAPBridgeViewController). Do NOT use bridge?.webView which goes
+        // through the protocol and may resolve differently.
+        self.webView?.configuration.userContentController.addUserScript(
             WKUserScript(
                 source: Self.safetyScript,
                 injectionTime: .atDocumentStart,
