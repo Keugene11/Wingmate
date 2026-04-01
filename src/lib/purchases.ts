@@ -1,27 +1,37 @@
 import { isNativeiOS } from "./platform";
 
 let initialized = false;
+let initPromise: Promise<void> | null = null;
 
 /**
  * Initialize RevenueCat. Call once on app load.
  * Only initializes on native iOS — web/Android use Stripe.
+ * Returns a promise that resolves when initialization is complete.
+ * Safe to call multiple times — deduplicates concurrent calls.
  */
 export async function initPurchases() {
-  if (!isNativeiOS() || initialized) return;
+  if (!isNativeiOS()) return;
+  if (initialized) return;
+  if (initPromise) return initPromise;
 
-  const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_APPLE_API_KEY?.trim();
-  if (!apiKey) {
-    console.warn("RevenueCat API key not configured — skipping init");
-    return;
-  }
+  initPromise = (async () => {
+    const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_APPLE_API_KEY?.trim();
+    if (!apiKey) {
+      console.warn("RevenueCat API key not configured — skipping init");
+      return;
+    }
 
-  try {
-    const { Purchases } = await import("@revenuecat/purchases-capacitor");
-    await Purchases.configure({ apiKey });
-    initialized = true;
-  } catch (e) {
-    console.error("Failed to initialize RevenueCat:", e);
-  }
+    try {
+      const { Purchases } = await import("@revenuecat/purchases-capacitor");
+      await Purchases.configure({ apiKey });
+      initialized = true;
+    } catch (e) {
+      console.error("Failed to initialize RevenueCat:", e);
+      initPromise = null; // Allow retry on next call
+    }
+  })();
+
+  return initPromise;
 }
 
 /**

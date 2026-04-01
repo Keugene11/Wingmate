@@ -72,15 +72,34 @@ export default function Terms() {
         <section>
           <h2 className="text-text font-semibold text-[17px] mb-2">6. Subscriptions and payments</h2>
           <p className="mb-2">
-            Wingmate offers a free tier and paid Pro subscriptions (monthly and yearly). By
-            subscribing to a paid plan:
+            Wingmate offers a free tier and paid Pro subscriptions. The following
+            auto-renewable subscription options are available:
           </p>
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc pl-5 space-y-1 mb-3">
+            <li><strong className="text-text">Pro Monthly</strong> — $19.99/month, auto-renews every month</li>
+            <li><strong className="text-text">Pro Yearly</strong> — $179.99/year ($15/month), auto-renews every year</li>
+          </ul>
+          <p className="mb-2 font-semibold text-text">Apple App Store (iOS):</p>
+          <ul className="list-disc pl-5 space-y-1 mb-3">
+            <li>Payment will be charged to your Apple ID account at confirmation of purchase</li>
+            <li>Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period</li>
+            <li>Your account will be charged for renewal within 24 hours prior to the end of the current period at the same price</li>
+            <li>You can manage and cancel subscriptions in your Apple ID account settings (Settings &gt; Apple ID &gt; Subscriptions)</li>
+          </ul>
+          <p className="mb-2 font-semibold text-text">Web:</p>
+          <ul className="list-disc pl-5 space-y-1 mb-3">
             <li>You authorize Stripe, our payment processor, to charge your chosen payment method on a recurring basis</li>
             <li>Subscriptions automatically renew unless cancelled before the end of the current billing period</li>
             <li>You may cancel your subscription at any time through the billing portal accessible from your profile</li>
-            <li>Refunds are handled on a case-by-case basis — contact us at <a href="mailto:keugenelee11@gmail.com" className="underline">keugenelee11@gmail.com</a></li>
           </ul>
+          <p>
+            Refunds are handled on a case-by-case basis — contact us at{" "}
+            <a href="mailto:keugenelee11@gmail.com" className="underline">keugenelee11@gmail.com</a>.
+            For Apple App Store purchases, refunds are subject to{" "}
+            <a href="https://support.apple.com/en-us/HT204084" className="underline text-text" target="_blank" rel="noopener noreferrer">
+              Apple&apos;s refund policy
+            </a>.
+          </p>
         </section>
 
         <section>

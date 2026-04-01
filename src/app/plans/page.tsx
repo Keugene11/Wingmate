@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Check, CreditCard, ChevronDown, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import SignInModal from "@/components/SignInModal";
 import { isNativeiOS } from "@/lib/platform";
@@ -69,8 +70,14 @@ export default function PlansPage() {
       await identifyUser(session.user.id);
     }
 
-    // Get offerings
-    const offering = await getOfferings();
+    // Get offerings — retry once if first attempt fails
+    let offering = await getOfferings();
+    if (!offering?.availablePackages) {
+      // Wait briefly and retry — StoreKit sandbox can be slow
+      await new Promise((r) => setTimeout(r, 1500));
+      offering = await getOfferings();
+    }
+
     if (offering?.availablePackages) {
       const pkgs: { monthly?: IAPPackage; yearly?: IAPPackage } = {};
       for (const pkg of offering.availablePackages) {
@@ -127,8 +134,15 @@ export default function PlansPage() {
             setShowSignIn(true);
           }
         }
-      } catch {
-        setError("Purchase failed. Please try again.");
+      } catch (e: unknown) {
+        const err = e as { code?: number; message?: string };
+        if (err.code === 2 || err.message?.includes("cancelled")) {
+          // User cancelled — not an error
+        } else if (err.code === 1) {
+          setError("This subscription is not available for purchase right now. Please try again later.");
+        } else {
+          setError("Purchase could not be completed. Please check your payment method and try again.");
+        }
       }
       setLoading(null);
       return;
@@ -409,6 +423,15 @@ export default function PlansPage() {
         ) : (
           <p>Cancel anytime from your billing portal.</p>
         )}
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link href="/terms" className="underline">
+            Terms of Use (EULA)
+          </Link>
+          <span>·</span>
+          <Link href="/privacy" className="underline">
+            Privacy Policy
+          </Link>
+        </div>
       </div>
 
       <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
