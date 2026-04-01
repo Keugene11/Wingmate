@@ -34,6 +34,11 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
   const [messagesRemaining, setMessagesRemaining] = useState<number | null>(null);
   const [viewingHistory, setViewingHistory] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
+  const [showAiConsent, setShowAiConsent] = useState(false);
+  const [aiConsentGiven, setAiConsentGiven] = useState(() => {
+    try { return typeof window !== "undefined" && localStorage.getItem("wingmate-ai-consent") === "true"; } catch { return false; }
+  });
+  const pendingMessageRef = useRef<string | null>(null);
   const isSubscribed = useRef(false);
   const convoIdRef = useRef<string | null>(conversationId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -256,6 +261,17 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     userScrolledUp.current = el.scrollHeight - el.scrollTop - el.clientHeight > 100;
   };
 
+  const acceptAiConsent = () => {
+    try { localStorage.setItem("wingmate-ai-consent", "true"); } catch {}
+    setAiConsentGiven(true);
+    setShowAiConsent(false);
+    if (pendingMessageRef.current) {
+      const msg = pendingMessageRef.current;
+      pendingMessageRef.current = null;
+      sendMessage(msg);
+    }
+  };
+
   const sendMessage = async (content: string) => {
     if (!content.trim() || content.trim().length < 2 || isLoading || limitReached) return;
 
@@ -265,6 +281,13 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         sessionStorage.setItem("wingmate-pending-message", content.trim());
       } catch {}
       setShowSignIn(true);
+      return;
+    }
+
+    // Show AI data consent modal before first message
+    if (!aiConsentGiven) {
+      pendingMessageRef.current = content.trim();
+      setShowAiConsent(true);
       return;
     }
 
@@ -480,6 +503,36 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         </div>
       )}
       <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
+
+      {/* AI Data Consent Modal (Apple Guideline 5.1.2(i)) */}
+      {showAiConsent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="bg-bg border border-border rounded-2xl px-6 py-7 w-[90%] max-w-sm relative animate-slide-up">
+            <h3 className="font-display text-[18px] font-bold tracking-tight mb-2">AI coaching disclaimer</h3>
+            <p className="text-text-muted text-[14px] leading-relaxed mb-4">
+              Your messages in this chat are sent to <span className="text-text font-medium">Anthropic (Claude)</span>, a third-party AI service, to generate coaching responses.
+            </p>
+            <p className="text-text-muted text-[14px] leading-relaxed mb-5">
+              No personal account information is shared — only the messages you type in this conversation. You can stop using the AI coach at any time.
+            </p>
+            <div className="space-y-2.5">
+              <button
+                onClick={acceptAiConsent}
+                className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-2xl font-semibold text-[15px] press"
+              >
+                I understand, continue
+              </button>
+              <button
+                onClick={() => { setShowAiConsent(false); pendingMessageRef.current = null; }}
+                className="w-full text-text-muted py-2.5 rounded-xl font-medium text-[14px] press"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
