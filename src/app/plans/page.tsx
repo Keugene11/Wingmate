@@ -67,34 +67,42 @@ export default function PlansPage() {
     addDebug("iOS detected, calling initPurchases...");
 
     const initResult = await initPurchases();
-    addDebug(`initPurchases result: ${initResult}`);
+    addDebug(`init: ${initResult}`);
 
     // Identify user if logged in
     if (session?.user?.id) {
       await identifyUser(session.user.id);
     }
 
-    addDebug("initPurchases done, initialized");
+    // Call RevenueCat directly with full error capture
+    try {
+      const { Purchases } = await import("@revenuecat/purchases-capacitor");
+      addDebug("calling Purchases.getOfferings()...");
+      const offerings = await Purchases.getOfferings();
+      addDebug(`offerings keys: ${Object.keys(offerings || {}).join(",")}`);
+      addDebug(`current: ${JSON.stringify(offerings?.current)?.substring(0, 200)}`);
+      addDebug(`all: ${JSON.stringify(offerings?.all)?.substring(0, 200)}`);
 
-    // Intercept console.log to capture IAP debug messages
-    const origLog = console.log;
-    const origErr = console.error;
-    console.log = (...args: unknown[]) => { origLog(...args); if (String(args[0]).includes("[IAP]")) addDebug(args.map(String).join(" ")); };
-    console.error = (...args: unknown[]) => { origErr(...args); if (String(args[0]).includes("[IAP]")) addDebug("ERR: " + args.map(String).join(" ")); };
-
-    // Get offerings — retry once if first attempt fails
-    let offering = await getOfferings();
-    addDebug(`1st result: ${offering ? `${(offering.availablePackages as unknown[])?.length || 0} pkgs` : "null"}`);
-    if (!offering?.availablePackages) {
-      // Wait briefly and retry — StoreKit sandbox can be slow
-      await new Promise((r) => setTimeout(r, 3000));
-      offering = await getOfferings();
-      addDebug(`2nd result: ${offering ? `${(offering.availablePackages as unknown[])?.length || 0} pkgs` : "null"}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const current = offerings?.current as any;
+      if (current?.availablePackages) {
+        addDebug(`pkgs count: ${current.availablePackages.length}`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        current.availablePackages.forEach((p: any) => addDebug(`pkg: ${p.packageType} ${p.identifier} ${p.product?.identifier}`));
+      } else {
+        addDebug("current has no availablePackages");
+      }
+    } catch (e: unknown) {
+      const err = e as { message?: string; code?: string };
+      addDebug(`ERROR: ${err.message || err.code || JSON.stringify(e)?.substring(0, 200)}`);
     }
 
-    // Restore original console
-    console.log = origLog;
-    console.error = origErr;
+    // Original getOfferings flow for actual functionality
+    let offering = await getOfferings();
+    if (!offering?.availablePackages) {
+      await new Promise((r) => setTimeout(r, 3000));
+      offering = await getOfferings();
+    }
 
     if (offering?.availablePackages) {
       const pkgs: { monthly?: IAPPackage; yearly?: IAPPackage } = {};
