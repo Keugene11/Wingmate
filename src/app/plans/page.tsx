@@ -72,19 +72,25 @@ export default function PlansPage() {
 
     // Get offerings — retry once if first attempt fails
     let offering = await getOfferings();
+    console.log("[IAP] First getOfferings:", JSON.stringify(offering, null, 2));
     if (!offering?.availablePackages) {
       // Wait briefly and retry — StoreKit sandbox can be slow
       await new Promise((r) => setTimeout(r, 1500));
       offering = await getOfferings();
+      console.log("[IAP] Retry getOfferings:", JSON.stringify(offering, null, 2));
     }
 
     if (offering?.availablePackages) {
       const pkgs: { monthly?: IAPPackage; yearly?: IAPPackage } = {};
       for (const pkg of offering.availablePackages) {
+        console.log("[IAP] Package:", pkg.packageType, pkg.identifier, JSON.stringify(pkg.product));
         if (pkg.packageType === "MONTHLY") pkgs.monthly = pkg as unknown as IAPPackage;
         else if (pkg.packageType === "ANNUAL") pkgs.yearly = pkg as unknown as IAPPackage;
       }
+      console.log("[IAP] Final packages:", JSON.stringify(pkgs));
       setIapPackages(pkgs);
+    } else {
+      console.log("[IAP] No offerings/packages available");
     }
   }, [session?.user?.id]);
 

@@ -23,8 +23,10 @@ export async function initPurchases() {
 
     try {
       const { Purchases } = await import("@revenuecat/purchases-capacitor");
+      console.log("[IAP] Configuring RevenueCat with key:", apiKey.substring(0, 10) + "...");
       await Purchases.configure({ apiKey });
       initialized = true;
+      console.log("[IAP] RevenueCat initialized successfully");
     } catch (e) {
       console.error("Failed to initialize RevenueCat:", e);
       initPromise = null; // Allow retry on next call
@@ -58,6 +60,7 @@ export async function getOfferings() {
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     const offerings = await Purchases.getOfferings();
+    console.log("[IAP] Raw offerings:", JSON.stringify(offerings, null, 2));
     return offerings.current;
   } catch (e) {
     console.error("Failed to get offerings:", e);
