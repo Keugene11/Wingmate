@@ -81,6 +81,9 @@ jobs:
             -archivePath $RUNNER_TEMP/Wingmate.xcarchive \
             -destination "generic/platform=iOS" \
             DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="Wingmate AppStore" \
             -skipPackagePluginValidation
 
       - name: Create ExportOptions.plist
