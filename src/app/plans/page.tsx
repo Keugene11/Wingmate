@@ -55,6 +55,8 @@ export default function PlansPage() {
   const [restoringPurchases, setRestoringPurchases] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planCounts, setPlanCounts] = useState<{ monthly: number; yearly: number } | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+  const addDebug = (msg: string) => setDebugLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
 
   const isLoggedIn = status === "authenticated";
 
@@ -62,6 +64,7 @@ export default function PlansPage() {
   const initIAP = useCallback(async () => {
     if (!isNativeiOS()) return;
     setIsiOS(true);
+    addDebug("iOS detected, calling initPurchases...");
 
     await initPurchases();
 
@@ -70,27 +73,29 @@ export default function PlansPage() {
       await identifyUser(session.user.id);
     }
 
+    addDebug("initPurchases done, initialized");
+
     // Get offerings — retry once if first attempt fails
     let offering = await getOfferings();
-    console.log("[IAP] First getOfferings:", JSON.stringify(offering, null, 2));
+    addDebug(`1st getOfferings: ${offering ? `${offering.availablePackages?.length || 0} pkgs` : "null"}`);
     if (!offering?.availablePackages) {
       // Wait briefly and retry — StoreKit sandbox can be slow
       await new Promise((r) => setTimeout(r, 1500));
       offering = await getOfferings();
-      console.log("[IAP] Retry getOfferings:", JSON.stringify(offering, null, 2));
+      addDebug(`2nd getOfferings: ${offering ? `${offering.availablePackages?.length || 0} pkgs` : "null"}`);
     }
 
     if (offering?.availablePackages) {
       const pkgs: { monthly?: IAPPackage; yearly?: IAPPackage } = {};
       for (const pkg of offering.availablePackages) {
-        console.log("[IAP] Package:", pkg.packageType, pkg.identifier, JSON.stringify(pkg.product));
+        addDebug(`pkg: ${pkg.packageType} / ${pkg.identifier} / ${(pkg as unknown as IAPPackage).product?.identifier || "no product"}`);
         if (pkg.packageType === "MONTHLY") pkgs.monthly = pkg as unknown as IAPPackage;
         else if (pkg.packageType === "ANNUAL") pkgs.yearly = pkg as unknown as IAPPackage;
       }
-      console.log("[IAP] Final packages:", JSON.stringify(pkgs));
+      addDebug(`monthly: ${pkgs.monthly ? "yes" : "no"}, yearly: ${pkgs.yearly ? "yes" : "no"}`);
       setIapPackages(pkgs);
     } else {
-      console.log("[IAP] No offerings/packages available");
+      addDebug("NO offerings available");
     }
   }, [session?.user?.id]);
 
@@ -441,6 +446,14 @@ export default function PlansPage() {
       </div>
 
       <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
+
+      {/* Debug panel — remove after testing */}
+      {isiOS && debugLog.length > 0 && (
+        <div className="fixed bottom-20 left-2 right-2 bg-black/90 text-green-400 text-[11px] font-mono p-3 rounded-lg max-h-[200px] overflow-y-auto z-50">
+          <div className="font-bold text-white mb-1">IAP Debug</div>
+          {debugLog.map((msg, i) => <div key={i}>{msg}</div>)}
+        </div>
+      )}
 
       <BottomNav />
     </main>
