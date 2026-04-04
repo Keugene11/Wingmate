@@ -90,8 +90,9 @@ export default function OnboardingPage() {
         if (offering?.availablePackages) {
           const pkgs: Record<string, unknown> = {};
           for (const pkg of offering.availablePackages) {
-            if (pkg.packageType === "MONTHLY") pkgs.monthly = pkg;
-            else if (pkg.packageType === "ANNUAL") pkgs.yearly = pkg;
+            const p = pkg as { packageType?: string };
+            if (p.packageType === "MONTHLY") pkgs.monthly = pkg;
+            else if (p.packageType === "ANNUAL") pkgs.yearly = pkg;
           }
           setIapPackages(pkgs);
         }
