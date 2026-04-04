@@ -76,8 +76,8 @@ export default function Terms() {
             auto-renewable subscription options are available:
           </p>
           <ul className="list-disc pl-5 space-y-1 mb-3">
-            <li><strong className="text-text">Pro Monthly</strong> — $19.99/month, auto-renews every month</li>
-            <li><strong className="text-text">Pro Yearly</strong> — $179.99/year ($15/month), auto-renews every year</li>
+            <li><strong className="text-text">Pro Monthly</strong> — $9.99/month, auto-renews every month</li>
+            <li><strong className="text-text">Pro Yearly</strong> — $49.99/year, auto-renews every year</li>
           </ul>
           <p className="mb-2 font-semibold text-text">Apple App Store (iOS):</p>
           <ul className="list-disc pl-5 space-y-1 mb-3">

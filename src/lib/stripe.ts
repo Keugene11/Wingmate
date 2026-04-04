@@ -14,16 +14,16 @@ export function getStripe(): Stripe {
 export const PRICES = {
   monthly: {
     lookup_key: "wingmate_monthly",
-    amount: 2000, // $20
+    amount: 1000, // $10
     interval: "month" as const,
     label: "Monthly",
-    description: "$20/month",
+    description: "$10/month",
   },
   yearly: {
     lookup_key: "wingmate_yearly",
-    amount: 18000, // $180/year = $15/month
+    amount: 5000, // $50/year
     interval: "year" as const,
     label: "Yearly",
-    description: "$15/month, billed yearly",
+    description: "$50/year",
   },
 };

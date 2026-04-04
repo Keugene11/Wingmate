@@ -690,7 +690,7 @@ function HomeInner() {
             {/* Yearly Pro */}
             <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-6 relative">
               <span className="absolute -top-3 left-6 bg-green-500 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                Save 25%
+                Save 90%
               </span>
               <div className="flex items-start justify-between mt-1 mb-2">
                 <div>
@@ -699,13 +699,13 @@ function HomeInner() {
                 </div>
                 <div className="text-right">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-text-muted text-[18px] font-bold line-through">$20</span>
-                    <span className="font-display text-[28px] font-extrabold">$15</span>
-                    <span className="text-text-muted text-[14px] font-medium">/mo</span>
+                    <span className="text-text-muted text-[18px] font-bold line-through">$500</span>
+                    <span className="font-display text-[28px] font-extrabold">$50</span>
+                    <span className="text-text-muted text-[14px] font-medium">/yr</span>
                   </div>
                 </div>
               </div>
-              <p className="text-text-muted text-[12px] mb-1">$180 billed annually</p>
+              <p className="text-text-muted text-[12px] mb-1">$50 billed annually</p>
               {planCounts && (
                 <p className="text-text-muted text-[12px] mb-4">{planCounts.yearly} {planCounts.yearly === 1 ? "person" : "people"} on this plan</p>
               )}
@@ -737,7 +737,8 @@ function HomeInner() {
                 </div>
                 <div className="text-right">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="font-display text-[28px] font-extrabold">$20</span>
+                    <span className="text-text-muted text-[18px] font-bold line-through">$50</span>
+                    <span className="font-display text-[28px] font-extrabold">$10</span>
                     <span className="text-text-muted text-[14px] font-medium">/mo</span>
                   </div>
                 </div>
@@ -776,7 +777,7 @@ function HomeInner() {
                   You see her across the room. Your heart&apos;s pounding. You walk over, say exactly the right thing, and she lights up. You get her number. You go home feeling like a king.
                 </p>
                 <p className="text-white/70 text-[15px] leading-relaxed mb-4">
-                  That moment — that rush — is worth way more than $20.
+                  That moment — that rush — is worth way more than $10.
                 </p>
                 <p className="text-white/70 text-[15px] leading-relaxed">
                   Cold approaching your crush and overcoming your nerves to actually talk to her is one of the most fulfilling experiences of your life. It&apos;s something you&apos;ll remember forever. Not the Netflix you watched that night. Not the scroll session. The time you actually went for it.

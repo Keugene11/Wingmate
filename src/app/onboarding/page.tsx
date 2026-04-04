@@ -227,7 +227,7 @@ export default function OnboardingPage() {
             </button>
             <p className="text-[40px] mb-10 onb-emoji">💰</p>
             <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
-              Let&apos;s say you buy a Wingmate Pro subscription for $20 a month.
+              Let&apos;s say you buy a Wingmate Pro subscription for $10 a month.
             </p>
             <p className="text-[17px] leading-[1.65] text-text-muted mt-6 onb-body">
               Since you&apos;re now financially committed to talking to more girls, you&apos;re going to talk to 1 more girl per week and 4 more girls per month.
@@ -236,7 +236,7 @@ export default function OnboardingPage() {
               This will improve your social skills, create more fun memories, make more valuable connections, and build real confidence.
             </p>
             <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-semibold mt-8 onb-body-2">
-              All of this is definitely worth $20.
+              All of this is definitely worth $10.
             </p>
           </div>
 
@@ -277,11 +277,11 @@ export default function OnboardingPage() {
             <div className="flex items-center justify-between mb-3 mt-1">
               <h3 className="font-display text-[16px] font-bold">Pro Yearly</h3>
               <div className="flex items-baseline gap-1.5">
-                {!isiOS && <span className="text-text-muted text-[16px] font-bold line-through">$20</span>}
+                <span className="text-text-muted text-[16px] font-bold line-through">$500</span>
                 <span className="font-display text-[22px] font-extrabold">
-                  {isiOS ? ((iapPackages.yearly as Record<string, unknown>)?.product as Record<string, unknown>)?.priceString as string || "$15" : "$15"}
+                  {isiOS ? ((iapPackages.yearly as Record<string, unknown>)?.product as Record<string, unknown>)?.priceString as string || "$50" : "$50"}
                 </span>
-                <span className="text-text-muted text-[13px]">{isiOS ? "/yr" : "/mo"}</span>
+                <span className="text-text-muted text-[13px]">/yr</span>
               </div>
             </div>
             <div className="space-y-2 mb-4">
@@ -297,7 +297,7 @@ export default function OnboardingPage() {
               disabled={!!checkoutLoading}
               className="w-full bg-[#1a1a1a] text-white py-2.5 rounded-xl font-semibold text-[14px] press disabled:opacity-60"
             >
-              {checkoutLoading === "yearly" ? (isiOS ? "Purchasing..." : "Redirecting...") : isiOS ? "Get started" : "Get started — $15/mo"}
+              {checkoutLoading === "yearly" ? (isiOS ? "Purchasing..." : "Redirecting...") : isiOS ? "Get started" : "Get started — $50/yr"}
             </button>
           </div>
 
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
               <h3 className="font-display text-[16px] font-bold">Pro Monthly</h3>
               <div className="flex items-baseline gap-1">
                 <span className="font-display text-[22px] font-extrabold">
-                  {isiOS ? ((iapPackages.monthly as Record<string, unknown>)?.product as Record<string, unknown>)?.priceString as string || "$20" : "$20"}
+                  {isiOS ? ((iapPackages.monthly as Record<string, unknown>)?.product as Record<string, unknown>)?.priceString as string || "$10" : "$10"}
                 </span>
                 <span className="text-text-muted text-[13px]">/mo</span>
               </div>
