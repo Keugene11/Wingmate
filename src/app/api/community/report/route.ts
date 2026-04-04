@@ -7,6 +7,9 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const sub = await sql`SELECT status FROM subscriptions WHERE user_id = ${session.user.id} AND status IN ('active', 'trialing') LIMIT 1`;
+  if (sub.length === 0) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+
   const { target_type, target_id, reason } = await req.json();
 
   if (!target_type || !target_id || !reason?.trim()) {

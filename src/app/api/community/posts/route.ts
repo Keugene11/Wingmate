@@ -5,10 +5,21 @@ import { moderateContent } from "@/lib/moderation";
 
 const PAGE_SIZE = 20;
 
+async function requirePro(userId: string) {
+  const rows = await sql`
+    SELECT status FROM subscriptions WHERE user_id = ${userId} AND status IN ('active', 'trialing') LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
 // GET — List posts with optional search, sort, pagination
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!(await requirePro(session.user.id))) {
+    return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+  }
 
   const url = new URL(req.url);
   const sort = url.searchParams.get("sort") || "new"; // "new" | "top"
@@ -103,6 +114,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!(await requirePro(session.user.id))) {
+    return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+  }
 
   const { title, body } = await req.json();
 
