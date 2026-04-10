@@ -125,28 +125,8 @@ function HomeInner() {
     // Initialize native plugins on iOS
     initSocialLogin();
     initPurchases().then(() => identifyUser(user.id!));
-    // Check if onboarding is needed, and save pending goals from pre-auth onboarding
-    fetch("/api/profile")
-      .then((r) => r.json())
-      .then(async (d) => {
-        if (d.profile && !d.profile.goal) {
-          try {
-            const pending = sessionStorage.getItem("wingmate-onboarding-goals");
-            if (pending) {
-              const goalData = JSON.parse(pending);
-              await fetch("/api/profile", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(goalData),
-              });
-              sessionStorage.removeItem("wingmate-onboarding-goals");
-              return; // goals saved, no need for onboarding
-            }
-          } catch {}
-          // onboarding temporarily disabled
-        }
-      })
-      .catch(() => {});
+    // Load profile
+    fetch("/api/profile").then((r) => r.json()).catch(() => {});
     // If there's a pending checkout plan from onboarding, check sub status first
     try {
       const pendingPlan = sessionStorage.getItem("wingmate-checkout-plan")

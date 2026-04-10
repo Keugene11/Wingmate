@@ -60,7 +60,13 @@ export async function signInWithGoogle() {
   if (isNativePlatform()) {
     const success = await nativeSignIn("google");
     if (success) return { error: null };
-    // Native failed — should not fall back to browser on iOS
+    // Native failed on Android — fall back to browser OAuth
+    const { isNativeAndroid } = await import("./platform");
+    if (isNativeAndroid()) {
+      const { openInAppBrowser } = await import("./capacitor");
+      await openInAppBrowser("/api/auth/native/google");
+      return { error: null };
+    }
     return { error: "Sign-in failed" };
   }
   await signIn("google", { redirectTo: "/" });

@@ -1,359 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check } from "lucide-react";
 import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { useSession } from "next-auth/react";
-import SignInModal from "@/components/SignInModal";
-import { isNativeiOS } from "@/lib/platform";
-import { initPurchases, identifyUser, getOfferings, purchasePackage } from "@/lib/purchases";
 import { hideSplash, setupAuthDeepLinkListener, initSocialLogin } from "@/lib/capacitor";
-
-const STEPS = ["age", "ask", "value", "features"] as const;
-type Step = (typeof STEPS)[number];
-
-function ProgressBar({ step }: { step: Step }) {
-  const idx = STEPS.indexOf(step);
-  const pct = (idx / (STEPS.length - 1)) * 100;
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-border/50">
-      <div
-        className="h-full bg-[#1a1a1a] transition-all duration-500 ease-out"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  );
-}
-
-function DelayedButton({ onClick, label, delay = 5000 }: { onClick: () => void; label: string; delay?: number }) {
-  const [visible, setVisible] = useState(false);
-  const [animated, setAnimated] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setVisible(true);
-      // Remove transition after animation completes to prevent vibration
-      setTimeout(() => setAnimated(true), 700);
-    }, delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-
-  return (
-    <div
-      className={animated ? "" : `transition-[opacity,transform] duration-700 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none"
-      }`}
-      style={animated ? undefined : { transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-    >
-      <button
-        onClick={onClick}
-        className={`w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[15px] press ${!visible ? "pointer-events-none" : ""}`}
-      >
-        {label}
-      </button>
-    </div>
-  );
-}
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [step, setStep] = useState<Step>(() => {
-    try {
-      const saved = typeof window !== "undefined" && sessionStorage.getItem("wingmate-onboarding-step");
-      if (saved && STEPS.includes(saved as Step)) return saved as Step;
-    } catch {}
-    return "age";
-  });
-  const [stepKey, setStepKey] = useState(0);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [showSignIn, setShowSignIn] = useState(false);
-  const [isiOS, setIsiOS] = useState(false);
-  const [iapPackages, setIapPackages] = useState<Record<string, unknown>>({});
-  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
-  // Redirect to home if user is already logged in + init IAP
   useEffect(() => {
-    // Initialize native plugins
     setupAuthDeepLinkListener();
     initSocialLogin();
-
     hideSplash();
     if (status === "authenticated") {
       router.replace("/");
     }
-
-    // Init IAP on iOS
-    if (isNativeiOS()) {
-      setIsiOS(true);
-      initPurchases().then(async () => {
-        let offering = await getOfferings();
-        for (let attempt = 0; attempt < 3 && !offering?.availablePackages; attempt++) {
-          await new Promise((r) => setTimeout(r, 2000));
-          offering = await getOfferings();
-        }
-        if (offering?.availablePackages) {
-          const pkgs: Record<string, unknown> = {};
-          for (const pkg of offering.availablePackages) {
-            const p = pkg as { packageType?: string };
-            if (p.packageType === "MONTHLY") pkgs.monthly = pkg;
-            else if (p.packageType === "ANNUAL") pkgs.yearly = pkg;
-          }
-          setIapPackages(pkgs);
-        }
-      });
-    }
-
   }, [router, status]);
 
-  const goToStep = (s: Step) => {
-    setStep(s);
-    setStepKey((k) => k + 1);
-    try { sessionStorage.setItem("wingmate-onboarding-step", s); } catch {}
-  };
-
-  const handleCheckout = async (plan: "monthly" | "yearly") => {
-    setCheckoutLoading(plan);
-
-    // iOS In-App Purchase — no sign-in required (Apple Guideline 5.1.1(v))
-    if (isiOS) {
-      setPurchaseError(null);
-      const pkg = iapPackages[plan];
-      if (!pkg) {
-        setPurchaseError("This plan is not available yet. Please try again later.");
-        setCheckoutLoading(null);
-        return;
-      }
-      try {
-        // Identify user if logged in, but don't require it
-        if (session?.user?.id) {
-          await identifyUser(session.user.id);
-        }
-        const success = await purchasePackage(pkg as Parameters<typeof purchasePackage>[0]);
-        if (success) {
-          // After successful IAP, prompt optional sign-in to link subscription
-          setShowSignIn(true);
-          setCheckoutLoading(null);
-          return;
-        }
-      } catch (e: unknown) {
-        const err = e as { code?: number | string; message?: string };
-        const code = String(err.code ?? "");
-        if (code !== "1" && !err.message?.includes("cancelled")) {
-          if (code === "2") {
-            setPurchaseError("The App Store couldn't process this purchase right now. Please try again in a moment.");
-          } else if (code === "3") {
-            setPurchaseError("Purchases are not allowed on this device. Please check your App Store settings.");
-          } else {
-            setPurchaseError("Purchase could not be completed. Please try again.");
-          }
-        }
-      }
-      setCheckoutLoading(null);
-      return;
-    }
-
-    // Web/Android Stripe checkout (requires sign-in)
-    if (!session?.user) {
-      try { sessionStorage.setItem("wingmate-checkout-plan", plan); } catch {}
-      setShowSignIn(true);
-      setCheckoutLoading(null);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-        return;
-      }
-    } catch {}
-    setCheckoutLoading(null);
-  };
-
-  const handleSkip = () => {
-    signInWithGoogle();
-  };
-
-  const handleAppleSignIn = () => {
-    signInWithApple();
-  };
-
-  // Step 0: Age verification
-  if (step === "age") {
-    return (
-      <>
-        <ProgressBar step={step} />
-        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-hidden">
-          <div>
-            <p className="text-[40px] mb-10 onb-emoji">🔒</p>
-            <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
-              Before we get started, please confirm your age.
-            </p>
-            <p className="text-[17px] leading-[1.65] text-text-muted mt-6 onb-body">
-              Wingmate is designed for adults 18 and older. By continuing, you confirm that you are at least 18 years old.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={() => goToStep("ask")}
-              className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[15px] press"
-            >
-              I am 18 or older
-            </button>
-            <p className="text-center text-[12px] text-text-muted">
-              By tapping above, you confirm you meet the minimum age requirement per our{" "}
-              <a href="/terms" className="underline">Terms of Service</a> and{" "}
-              <a href="/privacy" className="underline">Privacy Policy</a>.
-            </p>
-          </div>
-        </main>
-      </>
-    );
-  }
-
-  // Step 1: The question
-  if (step === "ask") {
-    return (
-      <>
-        <ProgressBar step={step} />
-        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-hidden">
-          <div>
-            <p className="text-[40px] mb-10 onb-emoji">🤔</p>
-            <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
-              Ask yourself if there&apos;s been an opportunity in the past 30 days where you had the chance to approach an attractive girl but you didn&apos;t because you had approach anxiety.
-            </p>
-          </div>
-
-          <DelayedButton onClick={() => goToStep("value")} label="Next" />
-        </main>
-      </>
-    );
-  }
-
-  // Step 2: The value proposition
-  if (step === "value") {
-    return (
-      <>
-        <ProgressBar step={step} />
-        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-hidden">
-          <div>
-            <button onClick={() => goToStep("ask")} className="p-1 -ml-1 mb-8 press">
-              <ArrowLeft size={20} strokeWidth={1.5} />
-            </button>
-            <p className="text-[40px] mb-10 onb-emoji">💰</p>
-            <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
-              Let&apos;s say you buy a Wingmate Pro subscription for $10 a month.
-            </p>
-            <p className="text-[17px] leading-[1.65] text-text-muted mt-6 onb-body">
-              Since you&apos;re now financially committed to talking to more girls, you&apos;re going to talk to 1 more girl per week and 4 more girls per month.
-            </p>
-            <p className="text-[17px] leading-[1.65] text-text-muted mt-5 onb-body-2">
-              This will improve your social skills, create more fun memories, make more valuable connections, and build real confidence.
-            </p>
-            <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-semibold mt-8 onb-body-2">
-              All of this is definitely worth $10.
-            </p>
-          </div>
-
-          <DelayedButton onClick={() => goToStep("features")} label="Next" />
-        </main>
-      </>
-    );
-  }
-
-  // Step 3: Features + plan options + skip
   return (
-    <>
-      <ProgressBar step={step} />
-      <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col px-7 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-y-auto">
-        <button onClick={() => goToStep("value")} className="p-1 -ml-1 mb-8 press">
-          <ArrowLeft size={20} strokeWidth={1.5} />
-        </button>
+    <main className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))]">
+      <div>
+        <h1 className="font-display text-[32px] font-bold tracking-tight leading-[1.2] mb-3">
+          Wingmate
+        </h1>
+        <p className="text-text-muted text-[17px] leading-[1.65]">
+          Your AI wingman for cold approaching.
+        </p>
+      </div>
 
-        <div className="mb-10">
-          <p className="text-[17px] leading-[1.65] text-text onb-title">
-            Wingmate has an AI chat bot that will inspire you to talk to a hot girl whenever you have approach anxiety.
-          </p>
-          <p className="text-[17px] leading-[1.65] text-text mt-5 onb-body">
-            Wingmate also has a community of the most dedicated cold approachers who talk to each other and provide updates on their conquests.
-          </p>
-          <p className="text-[17px] leading-[1.65] text-text mt-5 onb-body-2">
-            Wingmate also allows you to set goals on how many cold approaches you want to make per week and track exactly how many girls you approach over time.
-          </p>
-        </div>
-
-        {/* Error banner */}
-        {purchaseError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center mb-4">
-            <p className="text-[14px] font-medium text-red-700">{purchaseError}</p>
-          </div>
-        )}
-
-        {/* Plan cards */}
-        <div className="space-y-3 mb-4 onb-goals">
-          {/* Yearly */}
-          <div className="bg-bg-card border-2 border-[#1a1a1a] rounded-2xl p-5 relative">
-            <span className="absolute -top-2.5 left-5 bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-              Best value
-            </span>
-            <div className="flex items-center justify-between mb-3 mt-1">
-              <h3 className="font-display text-[16px] font-bold">Pro Yearly</h3>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-text-muted text-[16px] font-bold line-through">$500</span>
-                <span className="font-display text-[22px] font-extrabold">
-                  {isiOS ? ((iapPackages.yearly as Record<string, unknown>)?.product as Record<string, unknown>)?.priceString as string || "$50" : "$50"}
-                </span>
-                <span className="text-text-muted text-[13px]">/yr</span>
-              </div>
-            </div>
-            <div className="space-y-2 mb-4">
-              {["Unlimited AI coaching", "Approach tracker & stats", "Daily check-ins & streaks", "Community access"].map((f) => (
-                <div key={f} className="flex items-center gap-2">
-                  <Check size={14} strokeWidth={2.5} className="text-[#1a1a1a] shrink-0" />
-                  <span className="text-[13px]">{f}</span>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => handleCheckout("yearly")}
-              disabled={!!checkoutLoading}
-              className="w-full bg-[#1a1a1a] text-white py-2.5 rounded-xl font-semibold text-[14px] press disabled:opacity-60"
-            >
-              {checkoutLoading === "yearly" ? (isiOS ? "Purchasing..." : "Redirecting...") : isiOS ? "Get started" : "Get started — $50/yr"}
-            </button>
-          </div>
-
-          {/* Monthly */}
-          <div className="bg-bg-card border border-border rounded-2xl shadow-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display text-[16px] font-bold">Pro Monthly</h3>
-              <div className="flex items-baseline gap-1">
-                <span className="font-display text-[22px] font-extrabold">
-                  {isiOS ? ((iapPackages.monthly as Record<string, unknown>)?.product as Record<string, unknown>)?.priceString as string || "$10" : "$10"}
-                </span>
-                <span className="text-text-muted text-[13px]">/mo</span>
-              </div>
-            </div>
-            <button
-              onClick={() => handleCheckout("monthly")}
-              disabled={!!checkoutLoading}
-              className="w-full bg-bg-input text-text py-2.5 rounded-xl font-semibold text-[14px] press disabled:opacity-60"
-            >
-              {checkoutLoading === "monthly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe monthly"}
-            </button>
-          </div>
-        </div>
-
+      <div className="space-y-3">
         <button
-          onClick={handleSkip}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-border py-3.5 rounded-2xl font-semibold text-[15px] press mt-2 shadow-sm"
+          onClick={() => signInWithGoogle()}
+          className="w-full flex items-center justify-center gap-3 bg-white border border-border py-3.5 rounded-2xl font-semibold text-[15px] press shadow-sm"
         >
           <svg width="18" height="18" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -365,8 +45,8 @@ export default function OnboardingPage() {
         </button>
 
         <button
-          onClick={handleAppleSignIn}
-          className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-3.5 rounded-2xl font-semibold text-[15px] press mt-2"
+          onClick={() => signInWithApple()}
+          className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-3.5 rounded-2xl font-semibold text-[15px] press"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
             <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
@@ -374,8 +54,12 @@ export default function OnboardingPage() {
           Sign in with Apple
         </button>
 
-        <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
-      </main>
-    </>
+        <p className="text-center text-[12px] text-text-muted pt-2">
+          By signing in, you confirm you are at least 18 years old and agree to our{" "}
+          <a href="/terms" className="underline">Terms of Service</a> and{" "}
+          <a href="/privacy" className="underline">Privacy Policy</a>.
+        </p>
+      </div>
+    </main>
   );
 }
