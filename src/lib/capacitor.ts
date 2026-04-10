@@ -50,10 +50,10 @@ export async function setupAuthDeepLinkListener() {
 
 /**
  * Initialize native social login plugins (Apple + Google).
- * Call once on app startup. Only runs on native iOS.
+ * Call once on app startup. Runs on both native iOS and Android.
  */
 export async function initSocialLogin() {
-  if (!isNativeiOS()) return;
+  if (!isNativePlatform()) return;
   try {
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
     await SocialLogin.initialize({
@@ -62,6 +62,7 @@ export async function initSocialLogin() {
       },
       google: {
         iOSClientId: process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID || "",
+        webClientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID || "",
       },
     });
   } catch (e) {

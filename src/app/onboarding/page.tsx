@@ -189,7 +189,7 @@ export default function OnboardingPage() {
     return (
       <>
         <ProgressBar step={step} />
-        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-12 overflow-hidden">
+        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-hidden">
           <div>
             <p className="text-[40px] mb-10 onb-emoji">🔒</p>
             <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
     return (
       <>
         <ProgressBar step={step} />
-        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-12 overflow-hidden">
+        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-hidden">
           <div>
             <p className="text-[40px] mb-10 onb-emoji">🤔</p>
             <p className="text-[20px] leading-[1.6] tracking-[-0.01em] text-text font-medium onb-title">
@@ -242,7 +242,7 @@ export default function OnboardingPage() {
     return (
       <>
         <ProgressBar step={step} />
-        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-12 pb-12 overflow-hidden">
+        <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-hidden">
           <div>
             <button onClick={() => goToStep("ask")} className="p-1 -ml-1 mb-8 press">
               <ArrowLeft size={20} strokeWidth={1.5} />
@@ -272,7 +272,7 @@ export default function OnboardingPage() {
   return (
     <>
       <ProgressBar step={step} />
-      <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col px-7 pt-12 pb-12 overflow-y-auto">
+      <main key={stepKey} className="h-[100dvh] max-w-md mx-auto flex flex-col px-7 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))] overflow-y-auto">
         <button onClick={() => goToStep("value")} className="p-1 -ml-1 mb-8 press">
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
