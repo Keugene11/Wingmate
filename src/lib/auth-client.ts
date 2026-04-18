@@ -8,12 +8,9 @@ import { isNativePlatform } from "./platform";
 async function nativeSignIn(provider: "apple" | "google"): Promise<boolean> {
   try {
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
-    const res = await SocialLogin.login({
-      provider,
-      options: provider === "google"
-        ? { forcePrompt: true }
-        : { scopes: ["name", "email"] },
-    });
+    const res = provider === "google"
+      ? await SocialLogin.login({ provider: "google", options: { forcePrompt: true } })
+      : await SocialLogin.login({ provider: "apple", options: { scopes: ["name", "email"] } });
 
     // Extract the ID token from the response
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
