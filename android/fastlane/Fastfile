@@ -40,10 +40,10 @@ platform :android do
     )
   end
 
-  desc "Promote internal to production"
+  desc "Promote alpha (closed testing) to production"
   lane :promote_to_production do
     upload_to_play_store(
-      track: "internal",
+      track: "alpha",
       track_promote_to: "production",
       skip_upload_metadata: true,
       skip_upload_images: true,
