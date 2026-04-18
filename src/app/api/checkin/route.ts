@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
+import { isPro } from "@/lib/subscription";
 import { applyXp, computeLevelFromTotal, getLevelInfo, getXpToNextLevel, getXpForCurrentLevel } from "@/lib/levels";
 
 function computeStreak(dates: string[], clientToday?: string): number {
@@ -113,6 +114,8 @@ export async function GET(req: Request) {
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
 
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+
   const url = new URL(req.url);
   const today = url.searchParams.get("today") || new Date().toISOString().split("T")[0];
 
@@ -173,6 +176,8 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
+
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const body = await req.json();
   const { talked, opportunitiesCount, approachesCount, successesCount, clientDate } = body;
@@ -312,6 +317,8 @@ export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
+
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const body = await req.json();
 

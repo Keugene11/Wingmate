@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
+import { isPro } from "@/lib/subscription";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
+
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const data = await sql`
     SELECT id, preview, mode, created_at, updated_at
@@ -22,6 +25,8 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
+
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const { mode } = await req.json();
 

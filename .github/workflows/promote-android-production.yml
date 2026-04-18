@@ -1,0 +1,39 @@
+name: Promote Android to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: "Version code to promote (leave blank to promote latest from internal)"
+        required: false
+        type: string
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: android
+
+      - name: Promote internal build to production
+        working-directory: android
+        env:
+          ANDROID_PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
+          VERSION_CODE: ${{ inputs.version_code }}
+        run: |
+          echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > play-store-key.json
+          export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE="$(pwd)/play-store-key.json"
+          bundle exec fastlane promote_to_production
+          rm -f play-store-key.json
+
+      - name: Clean up secrets
+        if: always()
+        run: rm -f android/play-store-key.json

@@ -1,11 +1,14 @@
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
+import { isPro } from "@/lib/subscription";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
+
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const allCheckins = await sql`
     SELECT checked_in_at, talked, opportunities_count, approaches_count, successes_count

@@ -9,7 +9,11 @@
     "lint": "next lint",
     "cap:prepare": "node -e \"const fs=require('fs');fs.mkdirSync('out',{recursive:true});fs.copyFileSync('capacitor-web/error.html','out/error.html');fs.copyFileSync('capacitor-web/index.html','out/index.html')\"",
     "cap:sync": "npm run cap:prepare && npx cap sync ios",
+    "cap:sync:android": "npm run cap:prepare && npx cap sync android",
     "cap:open": "npx cap open ios",
+    "android:build": "npm run cap:sync:android && cd android && ./gradlew bundleRelease",
+    "android:upload:internal": "cd android && fastlane android internal",
+    "android:upload:production": "cd android && fastlane android production",
     "test:ipad": "playwright test --project='iPad Air'",
     "test:all": "playwright test"
   },

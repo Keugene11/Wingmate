@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
+import { isPro } from "@/lib/subscription";
 
 async function generateTitle(
   messages: { role: string; content: string }[]
@@ -44,6 +45,8 @@ export async function GET(
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
 
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+
   // Verify ownership
   const convoRows = await sql`
     SELECT id FROM conversations WHERE id = ${id} AND user_id = ${userId} LIMIT 1
@@ -67,6 +70,8 @@ export async function POST(
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
+
+  if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   // Verify ownership
   const convoRows = await sql`

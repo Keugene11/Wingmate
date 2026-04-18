@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
+import { isPro } from "@/lib/subscription";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -123,6 +124,10 @@ export async function POST(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
     const userId = session.user.id;
+
+    if (!(await isPro(userId))) {
+      return Response.json({ error: "Pro subscription required" }, { status: 403 });
+    }
 
     // Rate limit: 30 AI requests per hour per user
     if (ratelimit) {

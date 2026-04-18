@@ -191,9 +191,14 @@ function HomeInner() {
           } else {
             setIsPro(false);
             setCheckoutPending(false);
+            router.replace("/plans");
           }
         })
-        .catch(() => { setIsPro(false); setCheckoutPending(false); });
+        .catch(() => {
+          setIsPro(false);
+          setCheckoutPending(false);
+          router.replace("/plans");
+        });
 
     checkStatus();
 
@@ -318,7 +323,7 @@ function HomeInner() {
     updateState("tabs");
   };
 
-  if (!hydrated || isLoggedIn === null) return (
+  if (!hydrated || isLoggedIn === null || isPro === null || isPro === false) return (
     <main className="min-h-dvh flex items-center justify-center">
       <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
     </main>
@@ -429,53 +434,8 @@ function HomeInner() {
               Your approach history at a glance
             </p>
           </div>
-          {!isPro ? (
-            <div className="relative">
-              {/* Blurred skeleton stats */}
-              <div className="blur-[6px] select-none pointer-events-none" aria-hidden>
-                {/* Stat cards row */}
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card p-4">
-                      <div className="h-3 bg-border/60 rounded w-2/3 mb-2" />
-                      <div className="h-7 bg-border rounded w-1/2" />
-                    </div>
-                  ))}
-                </div>
-                {/* Calendar skeleton */}
-                <div className="bg-bg-card border border-border rounded-xl shadow-card p-4 mb-4">
-                  <div className="h-4 bg-border rounded w-1/3 mb-4" />
-                  <div className="grid grid-cols-7 gap-2">
-                    {Array.from({ length: 35 }).map((_, i) => (
-                      <div key={i} className="aspect-square rounded-lg bg-border/40" />
-                    ))}
-                  </div>
-                </div>
-                {/* Monthly breakdown */}
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-bg-card border border-border rounded-xl shadow-card p-4">
-                      <div className="h-3 bg-border/60 rounded w-1/2 mb-2" />
-                      <div className="h-5 bg-border rounded w-1/4" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[48px] mb-4">🔒</p>
-                <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Stats & tracking requires a Pro subscription. Subscribe to see your approach history and streaks.</p>
-                <button
-                  onClick={() => handleTabChange("plans")}
-                  className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
-                >
-                  View plans
-                </button>
-              </div>
-            </div>
-          ) : (
-            <StatsView isPro={isPro === true} />
-          )}
+          <StatsView isPro={true} />
+
         </div>
       )}
 
@@ -486,42 +446,7 @@ function HomeInner() {
             <h1 className="font-display text-[28px] font-bold tracking-tight">Community</h1>
           </div>
 
-          {!isPro ? (
-            <div className="relative">
-              {/* Blurred skeleton posts */}
-              <div className="space-y-3 blur-[6px] select-none pointer-events-none" aria-hidden>
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5">
-                    <div className="flex flex-col items-center gap-0.5 shrink-0 pt-0.5">
-                      <div className="w-5 h-5 rounded bg-border" />
-                      <div className="w-4 h-4 rounded bg-border" />
-                      <div className="w-5 h-5 rounded bg-border" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="h-4 bg-border rounded w-3/4 mb-2" />
-                      <div className="h-3 bg-border/60 rounded w-full mb-1.5" />
-                      <div className="h-3 bg-border/60 rounded w-2/3 mb-3" />
-                      <div className="flex items-center gap-3">
-                        <div className="h-3 bg-border/40 rounded w-16" />
-                        <div className="h-3 bg-border/40 rounded w-10" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[48px] mb-4">🔒</p>
-                <p className="text-text-muted text-[15px] mb-6 text-center max-w-[300px]">Community requires a Pro subscription. Subscribe to connect with other guys on the same path.</p>
-                <button
-                  onClick={() => handleTabChange("plans")}
-                  className="bg-[#1a1a1a] text-white px-8 py-3 rounded-xl font-semibold text-[14px] press"
-                >
-                  View plans
-                </button>
-              </div>
-            </div>
-          ) : <div>
+          <div>
           <div className="flex items-center justify-end mb-4 -mt-2 gap-2">
             <button
               onClick={() => { setCommunitySearchOpen(!communitySearchOpen); setTimeout(() => communitySearchRef.current?.focus(), 50); }}
@@ -619,7 +544,7 @@ function HomeInner() {
               )}
             </div>
           )}
-          </div>}
+          </div>
         </div>
       )}
 

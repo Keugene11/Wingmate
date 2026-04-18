@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 def keystoreFile = System.getenv("KEYSTORE_FILE")
 def envVersionCode = System.getenv("VERSION_CODE")
-def appVersionCode = envVersionCode != null ? envVersionCode.toInteger() : 500
+def appVersionCode = envVersionCode != null ? envVersionCode.toInteger() : 1000
 
 android {
     namespace = "com.approachai.twa"
@@ -12,7 +12,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode appVersionCode
-        versionName "2.0.0"
+        versionName "2.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
