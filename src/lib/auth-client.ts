@@ -56,9 +56,19 @@ async function androidGoogleSignIn(): Promise<Result> {
     const err = e as { message?: string };
     return { error: `init: ${err.message || JSON.stringify(e)}` };
   }
+  const { SocialLogin } = await import("@capgo/capacitor-social-login");
+  // Best-effort: clear stale Credential Manager state that triggers [16] reauth failed.
+  try { await SocialLogin.logout({ provider: "google" }); } catch {}
+
+  // Use the bottom-sheet path (GetGoogleIdOption). Standard path
+  // (GetSignInWithGoogleOption) throws [16] Account reauth failed for our
+  // freshly-created OAuth client; bottom-sheet uses a different Credential
+  // Manager code path that doesn't hit that bug.
   try {
-    const { SocialLogin } = await import("@capgo/capacitor-social-login");
-    const res = await SocialLogin.login({ provider: "google", options: { forcePrompt: false } });
+    const res = await SocialLogin.login({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      provider: "google", options: { style: "bottom", forcePrompt: false, filterByAuthorizedAccounts: false, autoSelectEnabled: false } as any,
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const idToken = (res?.result as any)?.idToken as string | null;
     if (!idToken) return { error: "no idToken returned from native sign-in" };
