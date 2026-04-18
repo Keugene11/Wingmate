@@ -1,6 +1,6 @@
 import { signIn } from "next-auth/react";
 import { isNativePlatform, isNativeiOS, isNativeAndroid } from "./platform";
-import { initSocialLogin, openInAppBrowser } from "./capacitor";
+import { initSocialLogin } from "./capacitor";
 
 type Result = { error: null } | { error: string };
 
@@ -52,32 +52,34 @@ export async function signInWithGoogle(): Promise<Result> {
 async function androidGoogleSignIn(): Promise<Result> {
   try {
     await initSocialLogin();
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    return { error: `init: ${err.message || JSON.stringify(e)}` };
+  }
+  try {
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
-    // Patched plugin: skips the secondary access-token consent UI, so the user
-    // sees exactly one Google account picker and is done.
     const res = await SocialLogin.login({ provider: "google", options: { forcePrompt: false } });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const idToken = (res?.result as any)?.idToken as string | null;
-    if (idToken) {
-      const tokenRes = await fetch("/api/auth/native/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: "google", idToken }),
-      });
-      if (tokenRes.ok) {
-        window.location.href = "/";
-        return { error: null };
-      }
+    if (!idToken) return { error: "no idToken returned from native sign-in" };
+    const tokenRes = await fetch("/api/auth/native/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: "google", idToken }),
+    });
+    if (!tokenRes.ok) {
+      const body = await tokenRes.text();
+      return { error: `backend rejected token: ${tokenRes.status} ${body}` };
     }
+    window.location.href = "/";
+    return { error: null };
   } catch (e: unknown) {
     const err = e as { message?: string; code?: string };
     if (err.message?.includes("cancel") || err.code === "SIGN_IN_CANCELLED") {
       return { error: null };
     }
-    // fall through to Custom Tab
+    return { error: `native: ${err.message || err.code || JSON.stringify(e)}` };
   }
-  await openInAppBrowser("/api/auth/native/google");
-  return { error: null };
 }
 
 export async function signInWithApple(): Promise<Result> {
