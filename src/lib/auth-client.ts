@@ -1,10 +1,12 @@
 import { signIn } from "next-auth/react";
 import { isNativePlatform } from "./platform";
+import { initSocialLogin } from "./capacitor";
 
 type Result = { error: null } | { error: string };
 
 async function nativeSignIn(provider: "apple" | "google"): Promise<Result> {
   try {
+    await initSocialLogin();
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
     const res = provider === "google"
       ? await SocialLogin.login({ provider: "google", options: { forcePrompt: true } })

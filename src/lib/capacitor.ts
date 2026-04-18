@@ -50,24 +50,28 @@ export async function setupAuthDeepLinkListener() {
 
 /**
  * Initialize native social login plugins (Apple + Google).
- * Call once on app startup. Runs on both native iOS and Android.
+ * Idempotent — repeated calls return the same in-flight promise.
+ * Throws if init fails so callers can surface the real error.
  */
-export async function initSocialLogin() {
-  if (!isNativePlatform()) return;
-  try {
+let socialLoginInitPromise: Promise<void> | null = null;
+
+export function initSocialLogin(): Promise<void> {
+  if (!isNativePlatform()) return Promise.resolve();
+  if (socialLoginInitPromise) return socialLoginInitPromise;
+  socialLoginInitPromise = (async () => {
+    const webClientId = (process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID || "").trim();
+    const iOSClientId = (process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID || "").trim();
+    const appleClientId = (process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "live.wingmate.app").trim();
+    if (!webClientId) throw new Error("NEXT_PUBLIC_AUTH_GOOGLE_ID is empty in this build");
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
     await SocialLogin.initialize({
-      apple: {
-        clientId: (process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "live.wingmate.app").trim(),
-      },
-      google: {
-        iOSClientId: (process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID || "").trim(),
-        webClientId: (process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID || "").trim(),
-      },
+      apple: { clientId: appleClientId },
+      google: { iOSClientId, webClientId },
     });
-  } catch (e) {
-    console.error("Failed to initialize social login:", e);
-  }
+  })();
+  // Reset on failure so a retry can re-initialize
+  socialLoginInitPromise.catch(() => { socialLoginInitPromise = null; });
+  return socialLoginInitPromise;
 }
 
 /**
