@@ -27,8 +27,10 @@ jobs:
         working-directory: android
         env:
           ANDROID_PACKAGE_ID: ${{ vars.ANDROID_PACKAGE_ID }}
-          VERSION_CODE: ${{ inputs.version_code }}
         run: |
+          if [ -n "${{ inputs.version_code }}" ]; then
+            export VERSION_CODE="${{ inputs.version_code }}"
+          fi
           echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > play-store-key.json
           export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_FILE="$(pwd)/play-store-key.json"
           bundle exec fastlane promote_to_production
