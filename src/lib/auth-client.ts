@@ -1,5 +1,5 @@
 import { signIn } from "next-auth/react";
-import { isNativePlatform } from "./platform";
+import { isNativePlatform, isNativeiOS } from "./platform";
 import { initSocialLogin } from "./capacitor";
 
 type Result = { error: null } | { error: string };
@@ -41,7 +41,11 @@ async function nativeSignIn(provider: "apple" | "google"): Promise<Result> {
 }
 
 export async function signInWithGoogle(): Promise<Result> {
-  if (isNativePlatform()) return nativeSignIn("google");
+  // iOS: native Sign-In with Apple SDK works reliably.
+  // Android: Credential Manager is flaky (error 16 reauth, slow SHA-1 propagation,
+  // device account state issues). Fall through to NextAuth web flow which runs
+  // inside the Capacitor WebView — UA is overridden so Google accepts it.
+  if (isNativeiOS()) return nativeSignIn("google");
   await signIn("google", { redirectTo: "/" });
   return { error: null };
 }

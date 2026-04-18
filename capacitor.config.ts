@@ -13,6 +13,11 @@ const config: CapacitorConfig = {
     contentInset: "automatic",
     scheme: "Wingmate",
   },
+  android: {
+    // Strip the WebView "wv" marker so Google's OAuth pages accept us as a
+    // regular Chrome browser and don't show the "this browser may not be secure" block.
+    overrideUserAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
+  },
   plugins: {
     SplashScreen: {
       launchAutoHide: false,
