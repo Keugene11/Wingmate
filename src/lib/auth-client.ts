@@ -10,10 +10,9 @@ async function nativeSignIn(provider: "apple" | "google"): Promise<boolean> {
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
     const res = await SocialLogin.login({
       provider,
-      options: {
-        scopes: ["email", provider === "google" ? "profile" : "name"],
-        ...(provider === "google" ? { forcePrompt: true } : {}),
-      },
+      options: provider === "google"
+        ? { forcePrompt: true }
+        : { scopes: ["name", "email"] },
     });
 
     // Extract the ID token from the response

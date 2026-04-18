@@ -58,11 +58,11 @@ export async function initSocialLogin() {
     const { SocialLogin } = await import("@capgo/capacitor-social-login");
     await SocialLogin.initialize({
       apple: {
-        clientId: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "live.wingmate.app",
+        clientId: (process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "live.wingmate.app").trim(),
       },
       google: {
-        iOSClientId: process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID || "",
-        webClientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID || "",
+        iOSClientId: (process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID || "").trim(),
+        webClientId: (process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID || "").trim(),
       },
     });
   } catch (e) {
