@@ -1,6 +1,6 @@
 import { signIn } from "next-auth/react";
-import { isNativePlatform, isNativeiOS } from "./platform";
-import { initSocialLogin } from "./capacitor";
+import { isNativePlatform, isNativeiOS, isNativeAndroid } from "./platform";
+import { initSocialLogin, openInAppBrowser } from "./capacitor";
 
 type Result = { error: null } | { error: string };
 
@@ -41,11 +41,16 @@ async function nativeSignIn(provider: "apple" | "google"): Promise<Result> {
 }
 
 export async function signInWithGoogle(): Promise<Result> {
-  // iOS: native Sign-In with Apple SDK works reliably.
-  // Android: Credential Manager is flaky (error 16 reauth, slow SHA-1 propagation,
-  // device account state issues). Fall through to NextAuth web flow which runs
-  // inside the Capacitor WebView — UA is overridden so Google accepts it.
+  // iOS: native sign-in works reliably.
   if (isNativeiOS()) return nativeSignIn("google");
+  // Android: Custom Tab flow. Shares cookies with Chrome so users get one-tap
+  // if they're already logged into Google in Chrome. After OAuth, the server
+  // issues a wingmate://auth/callback?session_token deep link which the app
+  // intercepts (see setupAuthDeepLinkListener) to set the session cookie.
+  if (isNativeAndroid()) {
+    await openInAppBrowser("/api/auth/native/google");
+    return { error: null };
+  }
   await signIn("google", { redirectTo: "/" });
   return { error: null };
 }
