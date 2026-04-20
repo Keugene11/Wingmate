@@ -28,10 +28,6 @@ type IAPPackage = {
 
 const FAQ = [
   {
-    q: "Can I try it for free?",
-    a: "You get 1 free coaching session to try it out. Upgrade to Pro for unlimited AI coaching, community access, and the full approach tracker.",
-  },
-  {
     q: "How is this different from ChatGPT?",
     a: "Wingmate is purpose-built for approaching. It gives you exact openers, tracks your progress over time, and keeps you accountable with daily check-ins. No generic advice.",
   },
@@ -287,7 +283,7 @@ export default function PlansPage() {
       {/* Hero */}
       <div className="text-center mb-12">
         <h1 className="font-display text-[36px] font-extrabold tracking-tight leading-[1.1] mb-4">
-          {isActive ? "Your plan" : "Start for free."}
+          {isActive ? "Your plan" : "Go Pro."}
         </h1>
         <p className="text-text-muted text-[16px] leading-relaxed max-w-[380px] mx-auto">
           {isActive

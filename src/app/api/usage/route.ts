@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 
-const FREE_SESSION_LIMIT = 1;
-const FREE_MESSAGE_LIMIT = 1;
+const FREE_SESSION_LIMIT = 0;
+const FREE_MESSAGE_LIMIT = 0;
 
 async function getSubscription(userId: string) {
   const rows = await sql`
