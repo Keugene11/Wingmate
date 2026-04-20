@@ -31,19 +31,7 @@ export async function DELETE() {
     // Continue with deletion even if Stripe cancellation fails
   }
 
-  // Delete in dependency order (children before parents)
-  await sql`DELETE FROM reports WHERE reporter_id = ${userId}`;
-  await sql`DELETE FROM blocked_users WHERE blocker_id = ${userId} OR blocked_id = ${userId}`;
-  await sql`DELETE FROM comments WHERE user_id = ${userId}`;
-  await sql`DELETE FROM votes WHERE user_id = ${userId}`;
-  await sql`DELETE FROM posts WHERE user_id = ${userId}`;
-  await sql`DELETE FROM checkins WHERE user_id = ${userId}`;
-  await sql`DELETE FROM messages WHERE user_id = ${userId}`;
-  await sql`DELETE FROM conversations WHERE user_id = ${userId}`;
-  await sql`DELETE FROM usage WHERE user_id = ${userId}`;
-  await sql`DELETE FROM subscriptions WHERE user_id = ${userId}`;
-  await sql`DELETE FROM user_badges WHERE user_id = ${userId}`;
-  await sql`DELETE FROM profiles WHERE id = ${userId}`;
+  // All child tables reference users(id) ON DELETE CASCADE — one delete handles everything.
   await sql`DELETE FROM users WHERE id = ${userId}`;
 
   return NextResponse.json({ ok: true });
