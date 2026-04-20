@@ -9,22 +9,25 @@ export default function DeleteAccountPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDelete = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/account", { method: "DELETE" });
       if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        setError(`Delete failed (${res.status}): ${body || res.statusText}`);
         setLoading(false);
         return;
       }
+      setDeleted(true);
       await signOut({ redirectTo: "/" });
-    } catch {
+    } catch (e) {
+      setError(`Network error: ${e instanceof Error ? e.message : String(e)}`);
       setLoading(false);
-      return;
     }
-    setDeleted(true);
-    setLoading(false);
   };
 
   if (deleted) {
@@ -90,6 +93,12 @@ export default function DeleteAccountPage() {
       >
         {loading ? "Deleting..." : "Delete my account"}
       </button>
+
+      {error && (
+        <p className="mt-4 text-[13px] text-red-500 leading-relaxed break-words">
+          {error}
+        </p>
+      )}
     </main>
   );
 }
