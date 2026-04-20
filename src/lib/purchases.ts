@@ -1,23 +1,29 @@
-import { isNativeiOS } from "./platform";
+import { isNativeAndroid, isNativeiOS, isNativePlatform } from "./platform";
 
 let initialized = false;
 let initPromise: Promise<void> | null = null;
 
+function getApiKey(): string | undefined {
+  if (isNativeiOS()) return process.env.NEXT_PUBLIC_REVENUECAT_APPLE_API_KEY?.trim();
+  if (isNativeAndroid()) return process.env.NEXT_PUBLIC_REVENUECAT_GOOGLE_API_KEY?.trim();
+  return undefined;
+}
+
 /**
  * Initialize RevenueCat. Call once on app load.
- * Only initializes on native iOS — web/Android use Stripe.
+ * Initializes on native iOS (Apple key) and native Android (Google key).
  * Returns a promise that resolves when initialization is complete.
  * Safe to call multiple times — deduplicates concurrent calls.
  */
 export async function initPurchases(): Promise<string> {
-  if (!isNativeiOS()) return "skip:not-ios";
+  if (!isNativePlatform()) return "skip:not-native";
   if (initialized) return "already-initialized";
   if (initPromise) { await initPromise; return initialized ? "ok:from-existing-promise" : "fail:existing-promise-failed"; }
 
   initPromise = (async () => {
-    const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_APPLE_API_KEY?.trim();
+    const apiKey = getApiKey();
     if (!apiKey) {
-      console.warn("RevenueCat API key not configured — skipping init");
+      console.warn("[IAP] RevenueCat API key not configured for this platform — skipping init");
       return;
     }
 
@@ -34,7 +40,7 @@ export async function initPurchases(): Promise<string> {
   })();
 
   await initPromise;
-  return initialized ? "ok:initialized" : `fail:key=${process.env.NEXT_PUBLIC_REVENUECAT_APPLE_API_KEY ? "present" : "MISSING"}`;
+  return initialized ? "ok:initialized" : `fail:key=${getApiKey() ? "present" : "MISSING"}`;
 }
 
 /**
@@ -42,7 +48,7 @@ export async function initPurchases(): Promise<string> {
  * Call after authentication.
  */
 export async function identifyUser(userId: string) {
-  if (!isNativeiOS() || !initialized) return;
+  if (!isNativePlatform() || !initialized) return;
 
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
@@ -56,7 +62,7 @@ export async function identifyUser(userId: string) {
  * Get available subscription packages.
  */
 export async function getOfferings(): Promise<{ availablePackages?: unknown[]; [key: string]: unknown } | null> {
-  if (!isNativeiOS()) { console.log("[IAP] getOfferings: not iOS, Capacitor=" + typeof window?.Capacitor); return null; }
+  if (!isNativePlatform()) { console.log("[IAP] getOfferings: not native, Capacitor=" + typeof window?.Capacitor); return null; }
   if (!initialized) { console.log("[IAP] getOfferings: not initialized, initPromise=" + !!initPromise); return null; }
 
   try {
@@ -79,7 +85,7 @@ export async function getOfferings(): Promise<{ availablePackages?: unknown[]; [
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function purchasePackage(packageToPurchase: any) {
-  if (!isNativeiOS() || !initialized) return false;
+  if (!isNativePlatform() || !initialized) return false;
 
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
@@ -102,7 +108,7 @@ export async function purchasePackage(packageToPurchase: any) {
  * Returns true if user has active entitlement after restore.
  */
 export async function restorePurchases() {
-  if (!isNativeiOS() || !initialized) return false;
+  if (!isNativePlatform() || !initialized) return false;
 
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
@@ -119,7 +125,7 @@ export async function restorePurchases() {
  * Check if user has active subscription via RevenueCat.
  */
 export async function checkSubscription() {
-  if (!isNativeiOS() || !initialized) return false;
+  if (!isNativePlatform() || !initialized) return false;
 
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import SignInModal from "@/components/SignInModal";
-import { isNativeiOS } from "@/lib/platform";
+import { isNativeAndroid, isNativeiOS, isNativePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage, restorePurchases } from "@/lib/purchases";
 import { useSession } from "next-auth/react";
 import { openInAppBrowser, initSocialLogin } from "@/lib/capacitor";
@@ -50,7 +50,8 @@ export default function PlansPage() {
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
-  const [isiOS, setIsiOS] = useState(false);
+  const [isNative, setIsNative] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [iapPackages, setIapPackages] = useState<{ monthly?: IAPPackage; yearly?: IAPPackage }>({});
   const [restoringPurchases, setRestoringPurchases] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +61,12 @@ export default function PlansPage() {
 
   const isLoggedIn = status === "authenticated";
 
-  // Initialize IAP on iOS
+  // Initialize IAP on native platforms (iOS + Android)
   const initIAP = useCallback(async () => {
-    if (!isNativeiOS()) return;
-    setIsiOS(true);
-    addDebug("iOS detected, calling initPurchases...");
+    if (!isNativePlatform()) return;
+    setIsNative(true);
+    setIsAndroid(isNativeAndroid());
+    addDebug(`${isNativeiOS() ? "iOS" : "Android"} detected, calling initPurchases...`);
 
     const initResult = await initPurchases();
     addDebug(`init: ${initResult}`);
@@ -138,8 +140,9 @@ export default function PlansPage() {
     setLoading(plan);
     setError(null);
 
-    // iOS In-App Purchase — no sign-in required (Apple Guideline 5.1.1(v))
-    if (isiOS) {
+    // Native In-App Purchase (iOS + Android) — no sign-in required
+    // iOS: Apple Guideline 5.1.1(v); Android: Google Play Billing requires same flow
+    if (isNative) {
       const pkg = plan === "monthly" ? iapPackages.monthly : iapPackages.yearly;
       if (!pkg) {
         setError("This plan is not available yet. Please try again later.");
@@ -220,9 +223,12 @@ export default function PlansPage() {
   };
 
   const handleManageBilling = async () => {
-    if (isiOS) {
-      // On iOS, direct user to iOS Settings for subscription management
-      openInAppBrowser("https://apps.apple.com/account/subscriptions");
+    if (isNative) {
+      // Native: direct user to the store's subscription management page
+      const url = isAndroid
+        ? "https://play.google.com/store/account/subscriptions"
+        : "https://apps.apple.com/account/subscriptions";
+      openInAppBrowser(url);
       return;
     }
     setLoadingPortal(true);
@@ -323,7 +329,7 @@ export default function PlansPage() {
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-bg-input text-[14px] font-semibold press disabled:opacity-60"
             >
               <CreditCard size={16} strokeWidth={1.5} className="text-text-muted" />
-              {isiOS ? "Manage subscription" : loadingPortal ? "Redirecting..." : "Manage billing"}
+              {isNative ? "Manage subscription" : loadingPortal ? "Redirecting..." : "Manage billing"}
             </button>
           </div>
         )}
@@ -338,12 +344,12 @@ export default function PlansPage() {
             <div className="text-right">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-text-muted text-[18px] font-bold line-through">$50</span>
-                <span className="font-display text-[28px] font-extrabold">{isiOS ? monthlyPrice : "$10"}</span>
+                <span className="font-display text-[28px] font-extrabold">{isNative ? monthlyPrice : "$10"}</span>
                 <span className="text-text-muted text-[14px] font-medium">/mo</span>
               </div>
             </div>
           </div>
-          <p className="text-text-muted text-[12px] mb-1">{isiOS ? `${monthlyPrice}/month. ` : "$10/month. "}Auto-renews monthly until cancelled.</p>
+          <p className="text-text-muted text-[12px] mb-1">{isNative ? `${monthlyPrice}/month. ` : "$10/month. "}Auto-renews monthly until cancelled.</p>
           {planCounts && (
             <p className="text-text-muted text-[12px] mb-4">{planCounts.monthly} {planCounts.monthly === 1 ? "person" : "people"} on this plan</p>
           )}
@@ -353,7 +359,7 @@ export default function PlansPage() {
               disabled={!!loading}
               className="w-full bg-bg-input text-text py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
             >
-              {loading === "monthly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe monthly"}
+              {loading === "monthly" ? (isNative ? "Purchasing..." : "Redirecting...") : "Subscribe monthly"}
             </button>
           )}
           <div className="space-y-3">
@@ -379,12 +385,12 @@ export default function PlansPage() {
             <div className="text-right">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-text-muted text-[18px] font-bold line-through">$500</span>
-                <span className="font-display text-[28px] font-extrabold">{isiOS ? yearlyPrice : "$50"}</span>
+                <span className="font-display text-[28px] font-extrabold">{isNative ? yearlyPrice : "$50"}</span>
                 <span className="text-text-muted text-[14px] font-medium">/yr</span>
               </div>
             </div>
           </div>
-          <p className="text-text-muted text-[12px] mb-1">{isiOS ? `${yearlyPrice}/year. ` : "$50 billed annually. "}Auto-renews yearly until cancelled.</p>
+          <p className="text-text-muted text-[12px] mb-1">{isNative ? `${yearlyPrice}/year. ` : "$50 billed annually. "}Auto-renews yearly until cancelled.</p>
           {planCounts && (
             <p className="text-text-muted text-[12px] mb-4">{planCounts.yearly} {planCounts.yearly === 1 ? "person" : "people"} on this plan</p>
           )}
@@ -394,7 +400,7 @@ export default function PlansPage() {
               disabled={!!loading}
               className="w-full bg-[#1a1a1a] text-white py-3 rounded-xl font-semibold text-[14px] press disabled:opacity-60 mb-5"
             >
-              {loading === "yearly" ? (isiOS ? "Purchasing..." : "Redirecting...") : "Subscribe yearly"}
+              {loading === "yearly" ? (isNative ? "Purchasing..." : "Redirecting...") : "Subscribe yearly"}
             </button>
           )}
           <div className="space-y-3">
@@ -409,7 +415,7 @@ export default function PlansPage() {
       </div>
 
       {/* Restore purchases (iOS only) */}
-      {isiOS && !isActive && (
+      {isNative && !isActive && (
         <div className="text-center mb-8">
           <button
             onClick={handleRestore}
@@ -461,11 +467,18 @@ export default function PlansPage() {
       {/* Footer */}
       <div className="text-center text-[13px] text-text-muted pb-6 space-y-1">
         <p>Subscription auto-renews until cancelled.</p>
-        {isiOS ? (
-          <>
-            <p>Payment will be charged to your Apple ID account at confirmation of purchase.</p>
-            <p>Manage or cancel anytime in Settings &gt; Apple ID &gt; Subscriptions.</p>
-          </>
+        {isNative ? (
+          isAndroid ? (
+            <>
+              <p>Payment will be charged to your Google Play account at confirmation of purchase.</p>
+              <p>Manage or cancel anytime in Google Play Store &gt; Subscriptions.</p>
+            </>
+          ) : (
+            <>
+              <p>Payment will be charged to your Apple ID account at confirmation of purchase.</p>
+              <p>Manage or cancel anytime in Settings &gt; Apple ID &gt; Subscriptions.</p>
+            </>
+          )
         ) : (
           <p>Cancel anytime from your billing portal.</p>
         )}
