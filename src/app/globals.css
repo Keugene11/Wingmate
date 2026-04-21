@@ -30,9 +30,20 @@ html {
 /* Body is viewport-sized and non-scrolling. AppShell provides the internal
    scroll container, so fixed/sticky positioning issues are bypassed entirely
    -- the BottomNav is a flex child of a static-height container, not
-   viewport-fixed. */
+   viewport-fixed.
+
+   The background gradient paints the bottom safe-area region (which shows
+   behind Android's transparent system nav bar under targetSdk 36
+   edge-to-edge) in the dark gray, while the rest of body is the app bg. */
 body {
-  background: var(--color-bg);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--color-bg) 0,
+      var(--color-bg) calc(100% - env(safe-area-inset-bottom)),
+      #374151 calc(100% - env(safe-area-inset-bottom)),
+      #374151 100%
+    );
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

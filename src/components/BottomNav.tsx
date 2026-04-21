@@ -3,7 +3,6 @@
 import { Flame, MessageCircle, Users, User, BarChart3, Crown } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export type Tab = "checkin" | "coach" | "stats" | "community" | "plans";
 
@@ -33,23 +32,10 @@ function useActiveTab(): { active: Tab | null; isProfile: boolean } {
 
 export default function BottomNavBar() {
   const { active, isProfile } = useActiveTab();
-  const [sab, setSab] = useState(0);
-
-  // Snapshot env(safe-area-inset-bottom) on mount. The painted gray strip is
-  // the color behind Android's transparent system nav bar (edge-to-edge on
-  // targetSdk 36 ignores android:navigationBarColor).
-  useEffect(() => {
-    const probe = document.createElement("div");
-    probe.style.cssText = "position:absolute;visibility:hidden;padding-bottom:env(safe-area-inset-bottom)";
-    document.body.appendChild(probe);
-    const measured = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
-    document.body.removeChild(probe);
-    setSab(measured);
-  }, []);
 
   return (
-    <nav className="shrink-0">
-      <div className="bg-bg border-t border-border shadow-nav">
+    <nav className="shrink-0 bg-bg border-t border-border shadow-nav">
+      <div className="bg-bg">
         <div className="max-w-md mx-auto flex items-center justify-around py-2">
           {tabs.map(({ id, label, icon: Icon }) => {
             const isActive = !isProfile && active === id;
@@ -78,7 +64,6 @@ export default function BottomNavBar() {
           </Link>
         </div>
       </div>
-      <div style={{ height: sab, background: "#374151" }} />
     </nav>
   );
 }
