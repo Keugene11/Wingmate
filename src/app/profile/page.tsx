@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import SignInModal from "@/components/SignInModal";
 import { useRouter } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
 
 type Subscription = {
   status: string;
@@ -213,7 +212,6 @@ export default function ProfilePage() {
           </button>
           <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
         </div>
-        <BottomNav />
       </main>
     );
   }
@@ -465,8 +463,6 @@ export default function ProfilePage() {
           Support
         </button>
       </div>
-
-      <BottomNav />
 
       {/* Toast */}
       {toast && (

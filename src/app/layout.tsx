@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import Providers from "@/components/Providers";
+import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "Wingmate",
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <Providers>
-          {children}
+          <AppShell>{children}</AppShell>
         </Providers>
         <Analytics />
         <ServiceWorkerRegister />

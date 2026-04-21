@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Check, CreditCard, ChevronDown, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import BottomNav from "@/components/BottomNav";
 import SignInModal from "@/components/SignInModal";
 import { isNativeAndroid, isNativeiOS, isNativePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage, restorePurchases } from "@/lib/purchases";
@@ -490,8 +489,6 @@ export default function PlansPage() {
       </div>
 
       <SignInModal open={showSignIn} onClose={() => setShowSignIn(false)} />
-
-      <BottomNav />
     </main>
   );
 }

@@ -13,7 +13,7 @@ import { isNativePlatform } from "@/lib/platform";
 import ChatCoach from "@/components/ChatCoach";
 import ConversationList from "@/components/ConversationList";
 import DailyCheckin from "@/components/DailyCheckin";
-import BottomNav, { type Tab } from "@/components/BottomNav";
+import type { Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
 import StatsView from "@/components/StatsView";
 
@@ -298,24 +298,6 @@ function HomeInner() {
     },
     []
   );
-
-  const handleTabChange = (tab: Tab) => {
-    setActiveTab(tab);
-    if (tab === "coach") {
-      if (activeTab !== "coach" && !activeConversationId) {
-        updateState("chat");
-      }
-    } else {
-      updateState("tabs");
-    }
-    // Persist tab for refresh recovery
-    try { sessionStorage.setItem("wingmate-active-tab", tab); } catch {}
-    // Update URL so refresh stays on this tab
-    const url = new URL(window.location.href);
-    if (tab === "checkin") url.searchParams.delete("tab");
-    else url.searchParams.set("tab", tab);
-    window.history.replaceState({}, "", url.toString());
-  };
 
   const reset = () => {
     setCheckinTalked(null);
@@ -708,7 +690,6 @@ function HomeInner() {
         </div>
       )}
 
-      <BottomNav active={activeTab} onChange={handleTabChange} />
     </main>
   );
 }
