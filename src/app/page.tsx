@@ -604,7 +604,7 @@ function HomeInner() {
                 </div>
                 <div className="text-right">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-text-muted text-[18px] font-bold line-through">$100</span>
+                    <span className="text-text-muted text-[11px] font-medium line-through">$100</span>
                     <span className="font-display text-[28px] font-extrabold">$29.99</span>
                     <span className="text-text-muted text-[14px] font-medium">/yr</span>
                   </div>
@@ -642,7 +642,7 @@ function HomeInner() {
                 </div>
                 <div className="text-right">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-text-muted text-[18px] font-bold line-through">$30</span>
+                    <span className="text-text-muted text-[11px] font-medium line-through">$30</span>
                     <span className="font-display text-[28px] font-extrabold">$9.99</span>
                     <span className="text-text-muted text-[14px] font-medium">/mo</span>
                   </div>

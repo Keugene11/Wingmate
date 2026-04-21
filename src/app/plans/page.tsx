@@ -339,7 +339,7 @@ export default function PlansPage() {
             </div>
             <div className="text-right">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-text-muted text-[13px] font-medium line-through">$30</span>
+                <span className="text-text-muted text-[11px] font-medium line-through">$30</span>
                 <span className="font-display text-[28px] font-extrabold">{isNative ? monthlyPrice : "$9.99"}</span>
                 <span className="text-text-muted text-[14px] font-medium">/mo</span>
               </div>
@@ -380,7 +380,7 @@ export default function PlansPage() {
             </div>
             <div className="text-right">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-text-muted text-[13px] font-medium line-through">$100</span>
+                <span className="text-text-muted text-[11px] font-medium line-through">$100</span>
                 <span className="font-display text-[28px] font-extrabold">{isNative ? yearlyPrice : "$29.99"}</span>
                 <span className="text-text-muted text-[14px] font-medium">/yr</span>
               </div>
