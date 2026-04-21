@@ -43,7 +43,6 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
   const nav = (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
-      style={{ transform: "translateZ(0)", willChange: "transform", backfaceVisibility: "hidden" }}
     >
       <div
         className="bg-bg border-t border-border shadow-nav"
@@ -86,7 +85,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
       </div>
       {/* Android targetSdk 36 enforces edge-to-edge; theme navigationBarColor
           is ignored. Paint a gray strip behind the transparent system nav. */}
-      <div style={{ height: sab, background: "#D1D1D6" }} />
+      <div style={{ height: sab, background: "#6B7280" }} />
     </nav>
   );
 
