@@ -272,7 +272,7 @@ export default function PlansPage() {
   if (!loaded) return null;
 
   return (
-    <main className="min-h-dvh max-w-lg mx-auto px-6 pb-24 animate-fade-in">
+    <main className="min-h-app max-w-lg mx-auto px-6 pb-24 animate-fade-in">
       {/* Nav */}
       <div className="flex items-center gap-3 pt-6 mb-16">
         <button onClick={() => router.back()} className="p-1 -ml-1 press">

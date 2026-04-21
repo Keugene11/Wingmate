@@ -43,7 +43,7 @@ function OnboardingInner() {
   };
 
   return (
-    <main className="h-[100dvh] max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))]">
+    <main className="h-app max-w-md mx-auto flex flex-col justify-between px-7 pt-24 pb-[calc(3rem+env(safe-area-inset-bottom))]">
       <div>
         <h1 className="font-display text-[32px] font-bold tracking-tight leading-[1.2] mb-3">
           Wingmate

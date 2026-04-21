@@ -324,13 +324,13 @@ function HomeInner() {
   };
 
   if (!hydrated || isLoggedIn === null || isPro === null || isPro === false) return (
-    <main className="min-h-dvh flex items-center justify-center">
+    <main className="min-h-app flex items-center justify-center">
       <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
     </main>
   );
 
   if (checkoutPending) return (
-    <main className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6 text-center animate-fade-in">
+    <main className="min-h-app flex flex-col items-center justify-center gap-4 px-6 text-center animate-fade-in">
       <div className="w-6 h-6 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
       <p className="font-display text-[18px] font-bold">Activating your Pro plan...</p>
       <p className="text-text-muted text-[14px]">This only takes a few seconds.</p>
@@ -340,7 +340,7 @@ function HomeInner() {
   // Full-screen: checkin-chat (no tab bar — temporary coaching flow)
   if (state === "checkin-chat") {
     return (
-      <main className="min-h-dvh max-w-md mx-auto">
+      <main className="min-h-app max-w-md mx-auto">
         <ChatCoach
           onBack={reset}
           checkinMode={checkinTalked !== null ? (checkinTalked ? "talked" : "didnt-talk") : undefined}
@@ -352,7 +352,7 @@ function HomeInner() {
 
   // Tab-based layout (tab bar always visible)
   return (
-    <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-[100dvh] overflow-hidden" : "min-h-dvh pb-20"}`}>
+    <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-app overflow-hidden" : "min-h-app pb-20"}`}>
 
       {/* Update banner */}
       {updateAvailable && (

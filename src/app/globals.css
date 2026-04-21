@@ -39,6 +39,11 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Sized to fit inside body's safe-area padding — using min-h-dvh directly on
+   children causes body overflow equal to inset_top + inset_bottom on Android. */
+.min-h-app { min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+.h-app { height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+
 ::-webkit-scrollbar {
   width: 0px;
 }

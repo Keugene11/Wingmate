@@ -32,7 +32,7 @@ export default function DeleteAccountPage() {
 
   if (deleted) {
     return (
-      <main className="min-h-dvh max-w-md mx-auto px-5 pt-16 pb-10 animate-fade-in">
+      <main className="min-h-app max-w-md mx-auto px-5 pt-16 pb-10 animate-fade-in">
         <h1 className="font-display text-[24px] font-bold tracking-tight mb-4">Account deleted</h1>
         <p className="text-text-muted text-[15px] leading-relaxed mb-6">
           Your account data has been deleted. Your Google account itself is not affected.
@@ -45,7 +45,7 @@ export default function DeleteAccountPage() {
   }
 
   return (
-    <main className="min-h-dvh max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
+    <main className="min-h-app max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
       <div className="flex items-center gap-3 mb-8">
         <Link href="/profile" className="p-1 -ml-1 press">
           <ArrowLeft size={20} strokeWidth={1.5} />

@@ -87,7 +87,7 @@ export default function CommunityPage() {
 
   if (isPro === null) {
     return (
-      <main className="min-h-dvh flex items-center justify-center">
+      <main className="min-h-app flex items-center justify-center">
         <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
       </main>
     );
@@ -95,7 +95,7 @@ export default function CommunityPage() {
 
   if (!isPro) {
     return (
-      <main className="min-h-dvh max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
+      <main className="min-h-app max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
         <div className="flex items-center gap-3 mb-6">
           <Link href="/" className="p-1 -ml-1 press">
             <ArrowLeft size={20} strokeWidth={1.5} />
@@ -139,7 +139,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <main className="min-h-dvh max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
+    <main className="min-h-app max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

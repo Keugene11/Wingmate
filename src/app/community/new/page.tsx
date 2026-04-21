@@ -48,14 +48,14 @@ export default function NewPostPage() {
 
   if (!isPro) {
     return (
-      <main className="min-h-dvh flex items-center justify-center">
+      <main className="min-h-app flex items-center justify-center">
         <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-dvh max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
+    <main className="min-h-app max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">

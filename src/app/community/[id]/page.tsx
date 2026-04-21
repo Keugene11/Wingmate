@@ -196,7 +196,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
 
   if (!post) {
     return (
-      <main className="min-h-dvh max-w-md mx-auto px-5 pt-6">
+      <main className="min-h-app max-w-md mx-auto px-5 pt-6">
         <Link href="/" className="p-1 -ml-1 press inline-block">
           <ArrowLeft size={20} strokeWidth={1.5} />
         </Link>
@@ -207,14 +207,14 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
 
   if (!isPro) {
     return (
-      <main className="min-h-dvh flex items-center justify-center">
+      <main className="min-h-app flex items-center justify-center">
         <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-dvh max-w-md mx-auto px-5 pt-6 pb-24 animate-fade-in">
+    <main className="min-h-app max-w-md mx-auto px-5 pt-6 pb-24 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/" className="p-1 -ml-1 press">

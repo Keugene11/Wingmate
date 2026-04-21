@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Privacy() {
   return (
-    <main className="min-h-dvh max-w-2xl mx-auto px-5 py-16">
+    <main className="min-h-app max-w-2xl mx-auto px-5 py-16">
       <Link href="/" className="text-[14px] text-text-muted underline mb-8 inline-block">
         &larr; Back
       </Link>
