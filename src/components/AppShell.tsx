@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import BottomNavBar from "./BottomNav";
 
 // Paths where the bottom nav should NOT render.
@@ -39,8 +39,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function useKeyboardOpen() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    let baseline = vv.height;
+    const onResize = () => {
+      // Track the tallest viewport we've seen as the no-keyboard baseline,
+      // then treat a drop of >150px as the keyboard opening.
+      if (vv.height > baseline) baseline = vv.height;
+      setOpen(vv.height < baseline - 150);
+    };
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
+  return open;
+}
+
 function NavSlot() {
   const pathname = usePathname();
+  const keyboardOpen = useKeyboardOpen();
   if (!shouldShowNav(pathname)) return null;
+  if (keyboardOpen) return null;
   return <BottomNavBar />;
 }
