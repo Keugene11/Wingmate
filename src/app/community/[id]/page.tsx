@@ -103,9 +103,8 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
       if (res.ok) {
         const data = await res.json();
         if (data.comment) {
-          setComments((prev) => [...prev, data.comment]);
+          setComments((prev) => [...prev, { ...data.comment, user_liked: false, score: data.comment.score ?? 0 }]);
         } else {
-          // Fallback: add optimistic comment
           setComments((prev) => [...prev, {
             id: Date.now().toString(),
             post_id: id,
@@ -113,6 +112,8 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
             author_name: userName,
             body: commentText.trim(),
             created_at: new Date().toISOString(),
+            score: 0,
+            user_liked: false,
           }]);
         }
         setCommentText("");
@@ -122,6 +123,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   };
 
   const handleDelete = async () => {
+    if (!window.confirm("Delete this post? This can't be undone.")) return;
     await fetch(`/api/community/posts/${id}`, { method: "DELETE" });
     router.push("/?tab=community");
   };
@@ -147,8 +149,30 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
   };
 
   const handleDeleteComment = async (commentId: string) => {
+    if (!window.confirm("Delete this comment?")) return;
     await fetch(`/api/community/comments/${commentId}`, { method: "DELETE" });
     setComments((prev) => prev.filter((c) => c.id !== commentId));
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    const target = comments.find((c) => c.id === commentId);
+    if (!target) return;
+    const nextLiked = !target.user_liked;
+    // Optimistic update
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? { ...c, user_liked: nextLiked, score: (c.score ?? 0) + (nextLiked ? 1 : -1) }
+          : c
+      )
+    );
+    try {
+      await fetch(`/api/community/comments/${commentId}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction: nextLiked ? 1 : 0 }),
+      });
+    } catch {}
   };
 
   const handleEditComment = async (commentId: string) => {
@@ -313,7 +337,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
       ) : (
         <div className="space-y-4 mb-6">
           {comments.map((comment) => (
-            <div key={comment.id} className="group">
+            <div key={comment.id}>
               <div className="flex items-center gap-2 mb-1">
                 <Link href={`/community/user/${comment.user_id}`} className="text-[13px] font-medium hover:underline">
                   {comment.author_name}
@@ -322,9 +346,10 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                 {comment.user_id === userId ? (
                   <button
                     onClick={() => handleDeleteComment(comment.id)}
-                    className="ml-auto opacity-0 group-hover:opacity-100 p-1 press text-text-muted"
+                    className="ml-auto p-1 press text-text-muted/60"
+                    aria-label="Delete comment"
                   >
-                    <Trash2 size={12} strokeWidth={1.5} />
+                    <Trash2 size={14} strokeWidth={1.5} />
                   </button>
                 ) : (
                   <button
@@ -335,14 +360,27 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                         body: JSON.stringify({ target_type: "comment", target_id: comment.id, reason: "Flagged by user" }),
                       });
                     }}
-                    className="ml-auto opacity-0 group-hover:opacity-100 p-1 press text-text-muted"
+                    className="ml-auto p-1 press text-text-muted/60"
                     title="Report comment"
                   >
-                    <Flag size={12} strokeWidth={1.5} />
+                    <Flag size={14} strokeWidth={1.5} />
                   </button>
                 )}
               </div>
-              <p className="text-[14px] leading-relaxed text-text/90">{comment.body}</p>
+              <p className="text-[14px] leading-relaxed text-text/90 mb-1.5">{comment.body}</p>
+              <button
+                onClick={() => handleLikeComment(comment.id)}
+                className="flex items-center gap-1.5 press"
+              >
+                <Heart
+                  size={14}
+                  strokeWidth={1.5}
+                  className={comment.user_liked ? "fill-red-500 text-red-500" : "text-text-muted/60"}
+                />
+                <span className={`text-[12px] font-medium ${comment.user_liked ? "text-red-500" : "text-text-muted/60"}`}>
+                  {comment.score > 0 ? comment.score : ""}
+                </span>
+              </button>
             </div>
           ))}
         </div>

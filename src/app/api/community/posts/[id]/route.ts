@@ -22,9 +22,17 @@ export async function GET(
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const comments = await sql`
+  const rawComments = await sql`
     SELECT * FROM comments WHERE post_id = ${id} ORDER BY created_at ASC
   `;
+
+  // Current user's likes on these comments.
+  const commentIds = rawComments.map((c: Record<string, string>) => c.id);
+  const userCommentVotes = commentIds.length > 0
+    ? await sql`SELECT comment_id FROM comment_votes WHERE user_id = ${session.user.id} AND comment_id = ANY(${commentIds})`
+    : [];
+  const likedSet = new Set(userCommentVotes.map((v: Record<string, string>) => v.comment_id));
+  const comments = rawComments.map((c: Record<string, unknown>) => ({ ...c, user_liked: likedSet.has(c.id as string) }));
 
   const votes = await sql`
     SELECT direction FROM votes WHERE post_id = ${id} AND user_id = ${session.user.id}
@@ -53,10 +61,10 @@ export async function PATCH(
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { title, body } = await req.json();
+  const { body } = await req.json();
 
-  if (!title?.trim() || !body?.trim()) {
-    return NextResponse.json({ error: "Title and body are required" }, { status: 400 });
+  if (!body?.trim()) {
+    return NextResponse.json({ error: "Body is required" }, { status: 400 });
   }
 
   // Verify ownership
@@ -70,7 +78,7 @@ export async function PATCH(
 
   const rows = await sql`
     UPDATE posts
-    SET title = ${title.trim().slice(0, 120)}, body = ${body.trim().slice(0, 2000)}, updated_at = now()
+    SET body = ${body.trim().slice(0, 2000)}, updated_at = now()
     WHERE id = ${id}
     RETURNING *
   `;

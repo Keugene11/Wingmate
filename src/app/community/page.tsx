@@ -217,6 +217,7 @@ export default function CommunityPage() {
               userId={post.user_id}
               currentUserId={userId}
               currentVote={votes[post.id] ?? null}
+              recentComments={post.recent_comments || []}
             />
           ))}
 

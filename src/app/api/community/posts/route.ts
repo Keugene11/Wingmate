@@ -90,7 +90,7 @@ export async function GET(req: Request) {
     posts = posts.filter((p: any) => !blockedIds.includes(p.user_id));
   }
 
-  // Fetch current user's votes for these posts
+  // Fetch current user's votes for these posts + 2 newest comments per post
   const votes: Record<string, number> = {};
   if (posts.length > 0) {
     const ids = posts.map((p: any) => p.id);
@@ -101,6 +101,22 @@ export async function GET(req: Request) {
     for (const v of userVotes) {
       votes[v.post_id] = v.direction;
     }
+
+    // Top 2 newest comments per post via a lateral window.
+    const previewComments = await sql`
+      SELECT id, post_id, author_name, body, created_at FROM (
+        SELECT c.*, row_number() OVER (PARTITION BY post_id ORDER BY created_at DESC) AS rn
+        FROM comments c
+        WHERE post_id = ANY(${ids})
+      ) t
+      WHERE rn <= 2
+      ORDER BY created_at ASC
+    `;
+    const byPost: Record<string, any[]> = {};
+    for (const c of previewComments) {
+      (byPost[c.post_id] ||= []).push(c);
+    }
+    posts = posts.map((p: any) => ({ ...p, recent_comments: byPost[p.id] || [] }));
   }
 
   return NextResponse.json({

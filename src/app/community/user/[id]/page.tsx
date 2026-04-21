@@ -117,6 +117,7 @@ export default function UserPostsPage({ params }: { params: Promise<{ id: string
               userId={post.user_id}
               currentUserId={currentUserId}
               currentVote={votes[post.id] ?? null}
+              recentComments={post.recent_comments || []}
             />
           ))}
 

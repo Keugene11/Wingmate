@@ -5,6 +5,13 @@ import { Heart, MessageCircle, Flag } from "lucide-react";
 import Link from "next/link";
 import { timeAgo } from "@/lib/time";
 
+interface PreviewComment {
+  id: string;
+  author_name: string;
+  body: string;
+  created_at: string;
+}
+
 interface PostCardProps {
   id: string;
   body: string;
@@ -15,6 +22,7 @@ interface PostCardProps {
   userId: string;
   currentUserId: string;
   currentVote: number | null;
+  recentComments?: PreviewComment[];
 }
 
 export default function PostCard({
@@ -27,6 +35,7 @@ export default function PostCard({
   userId,
   currentUserId,
   currentVote: initialVote,
+  recentComments = [],
 }: PostCardProps) {
   const [score, setScore] = useState(initialScore);
   const [liked, setLiked] = useState(initialVote === 1);
@@ -89,6 +98,23 @@ export default function PostCard({
             </div>
 
             <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words mb-3">{body}</p>
+
+            {recentComments.length > 0 && (
+              <div className="mb-3 pl-3 border-l border-border space-y-1.5">
+                {recentComments.map((c) => (
+                  <div key={c.id} className="text-[13px] leading-snug">
+                    <span className="font-medium text-text/90">{c.author_name}</span>
+                    <span className="text-text-muted"> </span>
+                    <span className="text-text-muted/90 break-words line-clamp-2">{c.body}</span>
+                  </div>
+                ))}
+                {commentCount > recentComments.length && (
+                  <p className="text-[12px] text-text-muted/70 pt-0.5">
+                    View all {commentCount} comments
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-5 text-text-muted">
               <button onClick={handleLike} className="flex items-center gap-1.5 press">
