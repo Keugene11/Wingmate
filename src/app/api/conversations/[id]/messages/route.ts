@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { isPro } from "@/lib/subscription";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 async function generateTitle(
   messages: { role: string; content: string }[]
@@ -73,6 +74,10 @@ export async function POST(
 
   if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
+  if (!(await checkRateLimit("conversations:messages", userId, 60, "1 h"))) {
+    return NextResponse.json({ error: "Too many messages. Try again later." }, { status: 429 });
+  }
+
   // Verify ownership
   const convoRows = await sql`
     SELECT id, preview FROM conversations WHERE id = ${id} AND user_id = ${userId} LIMIT 1
@@ -83,6 +88,15 @@ export async function POST(
   const { messages } = await req.json();
   if (!messages || !Array.isArray(messages)) {
     return NextResponse.json({ error: "Messages required" }, { status: 400 });
+  }
+
+  // Cap total message size to prevent DB bloat / abuse.
+  const totalLength = messages.reduce(
+    (sum: number, m: { content?: string }) => sum + (m.content?.length || 0),
+    0,
+  );
+  if (totalLength > 50_000) {
+    return NextResponse.json({ error: "Messages too long" }, { status: 400 });
   }
 
   // Insert messages

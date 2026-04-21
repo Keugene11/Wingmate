@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { encode } from "next-auth/jwt";
+import { verifyAppleIdToken } from "@/lib/apple-verify";
 
 const ADJECTIVES = [
   "Bold","Brave","Chill","Cool","Daring","Epic","Fierce","Grand",
@@ -61,25 +62,13 @@ export async function POST(req: Request) {
     avatarUrl = payload.picture || null;
     providerAccountId = payload.sub;
   } else if (provider === "apple") {
-    // Decode Apple ID token (JWT) — the native SDK already verified it
-    try {
-      const parts = idToken.split(".");
-      if (parts.length !== 3) throw new Error("Invalid JWT");
-      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
-
-      // Verify basic claims
-      if (payload.iss !== "https://appleid.apple.com") {
-        return NextResponse.json({ error: "Invalid Apple token issuer" }, { status: 401 });
-      }
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        return NextResponse.json({ error: "Apple token expired" }, { status: 401 });
-      }
-
-      email = payload.email || null;
-      providerAccountId = payload.sub;
-    } catch {
+    // Cryptographically verify against Apple's JWKS — do NOT trust the client SDK.
+    const verified = await verifyAppleIdToken(idToken);
+    if (!verified) {
       return NextResponse.json({ error: "Invalid Apple token" }, { status: 401 });
     }
+    email = verified.email;
+    providerAccountId = verified.sub;
   } else {
     return NextResponse.json({ error: "Unsupported provider" }, { status: 400 });
   }

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 // POST — Report a post or comment
 export async function POST(req: Request) {
@@ -9,6 +10,10 @@ export async function POST(req: Request) {
 
   const sub = await sql`SELECT status FROM subscriptions WHERE user_id = ${session.user.id} AND status IN ('active', 'trialing') LIMIT 1`;
   if (sub.length === 0) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+
+  if (!(await checkRateLimit("community:report", session.user.id, 20, "1 h"))) {
+    return NextResponse.json({ error: "Too many reports." }, { status: 429 });
+  }
 
   const { target_type, target_id, reason } = await req.json();
 

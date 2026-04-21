@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { isPro } from "@/lib/subscription";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function GET() {
   const session = await auth();
@@ -27,6 +28,10 @@ export async function POST(req: Request) {
   const userId = session.user.id;
 
   if (!(await isPro(userId))) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+
+  if (!(await checkRateLimit("conversations:create", userId, 20, "1 h"))) {
+    return NextResponse.json({ error: "Too many conversations. Try again later." }, { status: 429 });
+  }
 
   const { mode } = await req.json();
 

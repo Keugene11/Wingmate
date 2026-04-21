@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { moderateContent } from "@/lib/moderation";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 // POST — Add a comment to a post
 export async function POST(
@@ -13,6 +14,10 @@ export async function POST(
 
   const sub = await sql`SELECT status FROM subscriptions WHERE user_id = ${session.user.id} AND status IN ('active', 'trialing') LIMIT 1`;
   if (sub.length === 0) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+
+  if (!(await checkRateLimit("community:comment", session.user.id, 30, "1 h"))) {
+    return NextResponse.json({ error: "Too many comments — slow down a bit." }, { status: 429 });
+  }
 
   const { id: postId } = await params;
   const { content } = await req.json();

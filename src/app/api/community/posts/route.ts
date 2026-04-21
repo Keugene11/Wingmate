@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { moderateContent } from "@/lib/moderation";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 const PAGE_SIZE = 20;
 
@@ -133,6 +134,10 @@ export async function POST(req: Request) {
 
   if (!(await requirePro(session.user.id))) {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+  }
+
+  if (!(await checkRateLimit("community:post", session.user.id, 10, "1 h"))) {
+    return NextResponse.json({ error: "You're posting too fast. Try again in a bit." }, { status: 429 });
   }
 
   const { body } = await req.json();

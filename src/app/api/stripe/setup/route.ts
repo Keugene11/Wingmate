@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server";
 import { getStripe, PRICES } from "@/lib/stripe";
+import { auth } from "@/lib/auth";
 
-// One-time setup: creates the product and prices in Stripe
-export async function GET() { return setup(); }
-export async function POST() { return setup(); }
+// One-time setup: creates the product and prices in Stripe.
+// Gated to authenticated users so it can't be triggered anonymously.
+async function guard() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
+export async function GET() {
+  const denied = await guard();
+  return denied ?? setup();
+}
+export async function POST() {
+  const denied = await guard();
+  return denied ?? setup();
+}
 
 async function setup() {
   try {
