@@ -235,7 +235,7 @@ function OnboardingInner() {
 
   if (step === "welcome") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <PhoneMockup />
 
         <h1 className="my-auto font-display text-[34px] font-extrabold tracking-tight leading-[1.05] text-center">
@@ -262,7 +262,7 @@ function OnboardingInner() {
 
   if (step === "approaches") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("welcome")} progress={0.2} />
 
         <div className="mt-8">
@@ -327,7 +327,7 @@ function OnboardingInner() {
 
   if (step === "source") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("approaches")} progress={0.4} />
 
         <div className="mt-8">
@@ -382,7 +382,7 @@ function OnboardingInner() {
 
   if (step === "experience") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("source")} progress={0.6} />
 
         <div className="mt-8">
@@ -439,7 +439,7 @@ function OnboardingInner() {
 
   if (step === "pitch") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("experience")} progress={0.8} />
 
         <div className="mt-8">
@@ -473,7 +473,7 @@ function OnboardingInner() {
     const complete = birthMonth !== null && birthDay !== null && birthYear !== null;
 
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("pitch")} progress={0.9} />
 
         <div className="mt-8">
@@ -537,7 +537,7 @@ function OnboardingInner() {
 
   if (step === "goal") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("birthday")} progress={0.95} />
 
         <div className="mt-8">
@@ -586,7 +586,7 @@ function OnboardingInner() {
 
   if (step === "target") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("goal")} progress={0.97} />
 
         <div className="mt-8">
@@ -673,7 +673,7 @@ function OnboardingInner() {
 
   if (step === "doable") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("target")} progress={0.99} />
 
         <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -706,7 +706,7 @@ function OnboardingInner() {
 
   if (step === "thanks") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("doable")} progress={1} />
 
         <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -745,7 +745,7 @@ function OnboardingInner() {
     };
 
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
         <QuizHeader onBack={() => setStep("thanks")} progress={1} />
 
         <div className="mt-8">
@@ -798,7 +798,7 @@ function OnboardingInner() {
   }
 
   return (
-    <main key={step} className="h-app max-w-md mx-auto flex flex-col justify-between px-6 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] onb-anim">
+    <main key={step} className="h-app max-w-md mx-auto flex flex-col justify-between px-6 pt-10 pb-4 onb-anim">
       <div>
         <button
           onClick={() => setStep("notifications")}
