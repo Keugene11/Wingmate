@@ -156,8 +156,8 @@ body {
 }
 
 @keyframes onb-content-in {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(22px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes onb-fade-in {
@@ -165,18 +165,39 @@ body {
   to { opacity: 1; }
 }
 
-/* Stagger each step's content. First child (QuizHeader / PhoneMockup) stays
-   still; middle children slide up with a staggered delay; last child (button
-   area) only fades so its bottom-pinned position doesn't shift. */
+/* Step-level: middle children cascade in; first (QuizHeader / PhoneMockup)
+   stays still; last (button area) only fades so its bottom position is
+   stable. */
 main.onb-anim > *:not(:first-child):not(:last-child) {
-  animation: onb-content-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: onb-content-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 main.onb-anim > *:last-child {
-  animation: onb-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: onb-fade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-main.onb-anim > *:nth-child(2) { animation-delay: 20ms; }
-main.onb-anim > *:nth-child(3) { animation-delay: 100ms; }
-main.onb-anim > *:nth-child(4) { animation-delay: 180ms; }
-main.onb-anim > *:nth-child(5) { animation-delay: 260ms; }
+main.onb-anim > *:nth-child(2) { animation-delay: 60ms; }
+main.onb-anim > *:nth-child(3) { animation-delay: 150ms; }
+main.onb-anim > *:nth-child(4) { animation-delay: 240ms; }
+main.onb-anim > *:nth-child(5) { animation-delay: 330ms; }
+
+/* List-level: each item cascades in individually (apply to option lists). */
+main.onb-anim .onb-list > * {
+  animation: onb-content-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+main.onb-anim .onb-list > *:nth-child(1) { animation-delay: 140ms; }
+main.onb-anim .onb-list > *:nth-child(2) { animation-delay: 210ms; }
+main.onb-anim .onb-list > *:nth-child(3) { animation-delay: 280ms; }
+main.onb-anim .onb-list > *:nth-child(4) { animation-delay: 350ms; }
+main.onb-anim .onb-list > *:nth-child(5) { animation-delay: 420ms; }
+main.onb-anim .onb-list > *:nth-child(6) { animation-delay: 490ms; }
+main.onb-anim .onb-list > *:nth-child(7) { animation-delay: 560ms; }
+main.onb-anim .onb-list > *:nth-child(8) { animation-delay: 630ms; }
+
+/* Don't let a stagger list's container (or any ancestor that wraps one)
+   double-animate — the items handle their own entrance. */
+main.onb-anim > .onb-list,
+main.onb-anim > *:has(.onb-list) {
+  animation: none !important;
+}

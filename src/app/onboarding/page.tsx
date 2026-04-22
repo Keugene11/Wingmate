@@ -274,7 +274,7 @@ function OnboardingInner() {
           </p>
         </div>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-8 space-y-3 onb-list">
           {APPROACH_OPTIONS.map((opt) => {
             const selected = approaches === opt.id;
             return (
@@ -336,7 +336,7 @@ function OnboardingInner() {
           </h1>
         </div>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-8 space-y-3 onb-list">
           {SOURCE_OPTIONS.map((opt) => {
             const selected = source === opt.id;
             return (
@@ -392,7 +392,7 @@ function OnboardingInner() {
         </div>
 
         <div className="flex-1 flex items-center">
-          <div className="w-full space-y-3">
+          <div className="w-full space-y-3 onb-list">
             {EXPERIENCE_OPTIONS.map((opt) => {
               const selected = experience === opt.id;
               return (
@@ -550,7 +550,7 @@ function OnboardingInner() {
         </div>
 
         <div className="flex-1 flex items-center">
-          <div className="w-full space-y-3">
+          <div className="w-full space-y-3 onb-list">
             {GOAL_OPTIONS.map((opt) => {
               const selected = goals.includes(opt.id);
               return (
