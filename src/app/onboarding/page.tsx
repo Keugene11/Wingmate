@@ -1159,7 +1159,27 @@ function GrowthChart() {
   );
 }
 
+// Persists across QuizHeader remounts (main is keyed by step, so the header
+// unmounts on each step change — a CSS transition on a fresh node has no
+// "from" value to animate from). We remember the last rendered progress
+// and replay the from→to change after mount so transition-all fires.
+let lastProgressValue = 0;
+
 function QuizHeader({ onBack, progress }: { onBack: () => void; progress: number }) {
+  const barRef = useRef<HTMLDivElement>(null);
+  const initialWidth = Math.max(0, Math.min(1, lastProgressValue)) * 100;
+
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    const to = Math.max(0, Math.min(1, progress)) * 100;
+    const raf = requestAnimationFrame(() => {
+      el.style.width = `${to}%`;
+    });
+    lastProgressValue = progress;
+    return () => cancelAnimationFrame(raf);
+  }, [progress]);
+
   return (
     <div className="flex items-center gap-3">
       <button onClick={onBack} className="p-1 -ml-1 press shrink-0" aria-label="Back">
@@ -1169,8 +1189,9 @@ function QuizHeader({ onBack, progress }: { onBack: () => void; progress: number
       </button>
       <div className="flex-1 h-1.5 bg-bg-input rounded-full overflow-hidden">
         <div
+          ref={barRef}
           className="h-full bg-[#1a1a1a] rounded-full transition-all duration-300"
-          style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
+          style={{ width: `${initialWidth}%` }}
         />
       </div>
     </div>
