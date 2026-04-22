@@ -317,7 +317,7 @@ function OnboardingInner() {
         <button
           onClick={() => setStep("source")}
           disabled={!approaches}
-          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:opacity-30 disabled:pointer-events-none"
+          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:bg-border disabled:text-text-muted disabled:pointer-events-none"
         >
           Next
         </button>
@@ -372,7 +372,7 @@ function OnboardingInner() {
         <button
           onClick={() => setStep("experience")}
           disabled={!source}
-          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:opacity-30 disabled:pointer-events-none"
+          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:bg-border disabled:text-text-muted disabled:pointer-events-none"
         >
           Next
         </button>
@@ -429,7 +429,7 @@ function OnboardingInner() {
         <button
           onClick={() => setStep("pitch")}
           disabled={!experience}
-          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:opacity-30 disabled:pointer-events-none"
+          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:bg-border disabled:text-text-muted disabled:pointer-events-none"
         >
           Next
         </button>
@@ -527,7 +527,7 @@ function OnboardingInner() {
         <button
           onClick={() => setStep("goal")}
           disabled={!complete}
-          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:opacity-30 disabled:pointer-events-none"
+          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:bg-border disabled:text-text-muted disabled:pointer-events-none"
         >
           Next
         </button>
@@ -576,7 +576,7 @@ function OnboardingInner() {
         <button
           onClick={() => setStep("target")}
           disabled={goals.length === 0}
-          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:opacity-30 disabled:pointer-events-none"
+          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:bg-border disabled:text-text-muted disabled:pointer-events-none"
         >
           Next
         </button>
