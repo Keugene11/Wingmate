@@ -156,7 +156,7 @@ body {
 }
 
 @keyframes onb-content-in {
-  from { opacity: 0; transform: translateX(32px); }
+  from { opacity: 0; transform: translateX(56px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
@@ -169,7 +169,7 @@ body {
    stays still; last (button area) only fades so its bottom position is
    stable. */
 main.onb-anim > *:not(:first-child):not(:last-child) {
-  animation: onb-content-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: onb-content-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 main.onb-anim > *:last-child {
@@ -195,17 +195,17 @@ main.onb-anim > *:nth-child(5) { animation-delay: 330ms; }
 
 /* List-level: each item cascades in individually (apply to option lists). */
 main.onb-anim .onb-list > * {
-  animation: onb-content-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: onb-content-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-main.onb-anim .onb-list > *:nth-child(1) { animation-delay: 160ms; }
-main.onb-anim .onb-list > *:nth-child(2) { animation-delay: 250ms; }
-main.onb-anim .onb-list > *:nth-child(3) { animation-delay: 340ms; }
-main.onb-anim .onb-list > *:nth-child(4) { animation-delay: 430ms; }
-main.onb-anim .onb-list > *:nth-child(5) { animation-delay: 520ms; }
-main.onb-anim .onb-list > *:nth-child(6) { animation-delay: 610ms; }
-main.onb-anim .onb-list > *:nth-child(7) { animation-delay: 700ms; }
-main.onb-anim .onb-list > *:nth-child(8) { animation-delay: 790ms; }
+main.onb-anim .onb-list > *:nth-child(1) { animation-delay: 180ms; }
+main.onb-anim .onb-list > *:nth-child(2) { animation-delay: 290ms; }
+main.onb-anim .onb-list > *:nth-child(3) { animation-delay: 400ms; }
+main.onb-anim .onb-list > *:nth-child(4) { animation-delay: 510ms; }
+main.onb-anim .onb-list > *:nth-child(5) { animation-delay: 620ms; }
+main.onb-anim .onb-list > *:nth-child(6) { animation-delay: 730ms; }
+main.onb-anim .onb-list > *:nth-child(7) { animation-delay: 840ms; }
+main.onb-anim .onb-list > *:nth-child(8) { animation-delay: 950ms; }
 
 /* Don't let a stagger list's container (or any ancestor that wraps one)
    double-animate — the items handle their own entrance. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense, useState, useRef } from "react";
+import { useEffect, Suspense, useState, useRef, Fragment } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { useSession } from "next-auth/react";
@@ -263,7 +263,7 @@ function OnboardingInner() {
   if (step === "approaches") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("welcome")} progress={0.2} />
+        <QuizHeader onBack={() => setStep("welcome")} progress={0.1} />
 
         <div className="mt-8">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
@@ -328,7 +328,7 @@ function OnboardingInner() {
   if (step === "source") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("approaches")} progress={0.4} />
+        <QuizHeader onBack={() => setStep("approaches")} progress={0.2} />
 
         <div className="mt-8">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
@@ -383,7 +383,7 @@ function OnboardingInner() {
   if (step === "experience") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("source")} progress={0.6} />
+        <QuizHeader onBack={() => setStep("source")} progress={0.3} />
 
         <div className="mt-8">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
@@ -440,7 +440,7 @@ function OnboardingInner() {
   if (step === "pitch") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("experience")} progress={0.8} />
+        <QuizHeader onBack={() => setStep("experience")} progress={0.4} />
 
         <div className="mt-8">
           <h1 className="font-display text-[30px] font-bold tracking-tight leading-[1.1]">
@@ -474,7 +474,7 @@ function OnboardingInner() {
 
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("pitch")} progress={0.9} />
+        <QuizHeader onBack={() => setStep("pitch")} progress={0.5} />
 
         <div className="mt-8">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
@@ -538,7 +538,7 @@ function OnboardingInner() {
   if (step === "goal") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("birthday")} progress={0.95} />
+        <QuizHeader onBack={() => setStep("birthday")} progress={0.6} />
 
         <div className="mt-8">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
@@ -587,7 +587,7 @@ function OnboardingInner() {
   if (step === "target") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("goal")} progress={0.97} />
+        <QuizHeader onBack={() => setStep("goal")} progress={0.7} />
 
         <div className="mt-8">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
@@ -674,7 +674,7 @@ function OnboardingInner() {
   if (step === "doable") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("target")} progress={0.99} />
+        <QuizHeader onBack={() => setStep("target")} progress={0.8} />
 
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <div className="w-24 h-24 rounded-full bg-green-50 border border-green-200 flex items-center justify-center mb-8">
@@ -707,7 +707,7 @@ function OnboardingInner() {
   if (step === "thanks") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("doable")} progress={1} />
+        <QuizHeader onBack={() => setStep("doable")} progress={0.9} />
 
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <div className="w-24 h-24 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mb-8">
