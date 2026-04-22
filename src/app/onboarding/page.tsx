@@ -338,34 +338,23 @@ function OnboardingInner() {
           </h1>
         </div>
 
-        <div className="mt-8 space-y-3 onb-list">
+        <div className="mt-8 grid grid-cols-2 gap-2.5 onb-list">
           {SOURCE_OPTIONS.map((opt) => {
             const selected = source === opt.id;
             return (
               <button
                 key={opt.id}
                 onClick={() => setSource(opt.id)}
-                className={`w-full flex items-center gap-4 text-left px-5 py-3.5 rounded-2xl border-2 transition-colors press ${
+                className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl border-2 transition-colors press ${
                   selected
                     ? "border-[#1a1a1a] bg-[#1a1a1a] text-white"
                     : "border-border bg-bg-card"
                 }`}
               >
-                <span className="w-7 h-7 flex items-center justify-center shrink-0" aria-hidden>
+                <span className="w-6 h-6 flex items-center justify-center shrink-0" aria-hidden>
                   <SourceLogo id={opt.id} selected={selected} />
                 </span>
-                <p className="text-[16px] font-semibold leading-tight flex-1">{opt.label}</p>
-                <div
-                  className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                    selected ? "border-white bg-white" : "border-border"
-                  }`}
-                >
-                  {selected && (
-                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#1a1a1a" strokeWidth="3">
-                      <path d="M3 8l3 3 7-7" />
-                    </svg>
-                  )}
-                </div>
+                <p className="text-[14px] font-semibold leading-tight truncate">{opt.label}</p>
               </button>
             );
           })}
