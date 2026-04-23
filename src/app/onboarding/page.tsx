@@ -967,43 +967,20 @@ function OnboardingInner() {
 
         <div className="mt-8 text-center">
           <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.15]">
-            Guys like you love Wingmate.
+            Help us reach more guys.
           </h1>
           <p className="text-text-muted text-[15px] leading-relaxed mt-2">
-            Here&apos;s what they&apos;re saying.
+            If Wingmate has you feeling more confident, a rating goes a long way.
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-2">
-          <div className="flex items-center gap-1">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex items-center gap-1.5">
             {Array.from({ length: 5 }).map((_, i) => (
-              <svg key={i} width="22" height="22" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinejoin="round">
+              <svg key={i} width="44" height="44" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinejoin="round">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             ))}
-          </div>
-          <p className="text-[13px] text-text-muted">
-            <span className="font-semibold text-text">4.9</span> out of 5 · 2,400+ reviews
-          </p>
-        </div>
-
-        <div className="flex-1 flex items-center py-6">
-          <div className="w-full space-y-2.5">
-            <ReviewCard
-              name="Marcus T."
-              stars={5}
-              body="Finally actually approached someone. The coach's advice actually works."
-            />
-            <ReviewCard
-              name="Jordan K."
-              stars={5}
-              body="Went from 0 approaches a week to 5. Worth every penny."
-            />
-            <ReviewCard
-              name="Ethan R."
-              stars={5}
-              body="Best confidence app I've tried. No generic fluff — it's specific."
-            />
           </div>
         </div>
 
@@ -1485,24 +1462,6 @@ function NotifPreview({
         </div>
         <p className="text-[12.5px] leading-snug mt-1 text-text/90 line-clamp-2">{body}</p>
       </div>
-    </div>
-  );
-}
-
-function ReviewCard({ name, stars, body }: { name: string; stars: number; body: string }) {
-  return (
-    <div className="bg-bg-card border border-border rounded-2xl px-4 py-3">
-      <div className="flex items-center justify-between mb-1.5">
-        <p className="text-[13px] font-semibold">{name}</p>
-        <div className="flex items-center gap-0.5">
-          {Array.from({ length: stars }).map((_, i) => (
-            <svg key={i} width="12" height="12" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinejoin="round">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          ))}
-        </div>
-      </div>
-      <p className="text-[13px] leading-snug text-text/85">{body}</p>
     </div>
   );
 }
