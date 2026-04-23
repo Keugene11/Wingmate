@@ -1158,29 +1158,20 @@ function OnboardingInner() {
           </div>
         </div>
 
-        <div className="bg-bg-card border border-border rounded-2xl p-4 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[14px] font-medium">No payment due now</span>
-            <span className="text-[13px] text-text-muted">—</span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-[14px] font-medium">Continue for FREE</span>
-            <span className="text-[14px] font-semibold tabular-nums text-green-500">$0.00</span>
-          </div>
-          <div className="flex items-baseline justify-between pt-3 border-t border-border">
-            <span className="text-[14px] font-medium">Then just</span>
-            <span className="text-[14px] font-semibold tabular-nums">
-              $29.99/yr <span className="text-text-muted text-[12px] font-medium">($2.49/mo)</span>
-            </span>
-          </div>
+        <div className="shrink-0">
+          <p className="text-center text-[13px] font-semibold uppercase tracking-wide text-text-muted mb-2">
+            No Payment Due Now
+          </p>
+          <button
+            onClick={() => setStep("trialPayment")}
+            className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
+          >
+            Continue for FREE
+          </button>
+          <p className="text-center text-[12px] text-text-muted mt-3">
+            Just <span className="font-semibold text-text">$29.99/year</span> ($2.49/mo) after your 3-day free trial. Cancel anytime.
+          </p>
         </div>
-
-        <button
-          onClick={() => setStep("trialPayment")}
-          className="mt-3 w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
-        >
-          Continue
-        </button>
       </main>
     );
   }
