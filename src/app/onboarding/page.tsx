@@ -375,14 +375,11 @@ function OnboardingInner() {
     setupAuthDeepLinkListener();
     initSocialLogin();
     hideSplash();
-    if (status === "authenticated") {
-      // Users returning from OAuth with ?paywall=1 are mid-onboarding — drop
-      // them on the trial intro instead of bouncing to home.
-      if (searchParams.get("paywall") === "1") {
-        setStep("trialIntro");
-      } else {
-        router.replace("/");
-      }
+    // Users returning from OAuth with ?paywall=1 are mid-onboarding — drop
+    // them on the trial intro. Otherwise, authenticated users stay on the
+    // welcome flow so they can walk through the full onboarding.
+    if (status === "authenticated" && searchParams.get("paywall") === "1") {
+      setStep("trialIntro");
     }
   }, [router, status, searchParams]);
 
