@@ -1116,7 +1116,11 @@ function OnboardingInner() {
   if (step === "trialIntro") {
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-4 onb-anim onb-no-divider">
-        <PhoneMockup width="min(160px, 42vw)" />
+        <TrialHeader onClose={() => setStep("auth")} />
+
+        <div className="mt-4">
+          <PhoneMockup width="min(160px, 42vw)" />
+        </div>
 
         <h1 className="mt-auto font-display text-[26px] font-extrabold tracking-tight leading-[1.1] text-center">
           We want you to try Wingmate for free.
@@ -1142,8 +1146,10 @@ function OnboardingInner() {
 
   if (step === "trialReminder") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim onb-no-divider">
-        <div className="mt-4 text-center">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-4 onb-anim onb-no-divider">
+        <TrialHeader onBack={() => setStep("trialIntro")} onClose={() => setStep("auth")} />
+
+        <div className="mt-6 text-center">
           <h1 className="font-display text-[26px] font-bold tracking-tight leading-[1.15]">
             We&apos;ll send you a reminder before your free trial ends.
           </h1>
@@ -1178,8 +1184,10 @@ function OnboardingInner() {
 
   if (step === "trialPayment") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim onb-no-divider">
-        <div className="mt-4 text-center">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-4 onb-anim onb-no-divider">
+        <TrialHeader onBack={() => setStep("trialReminder")} onClose={() => setStep("auth")} />
+
+        <div className="mt-6 text-center">
           <h1 className="font-display text-[26px] font-bold tracking-tight leading-[1.1]">
             Start your 3-day <span className="text-green-500">FREE</span> trial to continue.
           </h1>
@@ -1486,6 +1494,36 @@ function buildPlan({
       },
     ],
   };
+}
+
+function TrialHeader({ onBack, onClose }: { onBack?: () => void; onClose: () => void }) {
+  return (
+    <div className="flex items-center justify-between">
+      {onBack ? (
+        <button
+          onClick={onBack}
+          className="w-11 h-11 rounded-full bg-bg-input flex items-center justify-center press shrink-0"
+          aria-label="Back"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+      ) : (
+        <div className="w-11 h-11" aria-hidden />
+      )}
+      <button
+        onClick={onClose}
+        className="w-11 h-11 rounded-full bg-bg-input flex items-center justify-center press shrink-0"
+        aria-label="Close"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+    </div>
+  );
 }
 
 function FeatureRow({ emoji, title, body }: { emoji: string; title: string; body: string }) {
