@@ -199,13 +199,13 @@ function HomeInner() {
           } else {
             setIsPro(false);
             setCheckoutPending(false);
-            router.replace("/plans");
+            router.replace("/onboarding?paywall=1");
           }
         })
         .catch(() => {
           setIsPro(false);
           setCheckoutPending(false);
-          router.replace("/plans");
+          router.replace("/onboarding?paywall=1");
         });
 
     checkStatus();
