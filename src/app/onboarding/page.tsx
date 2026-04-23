@@ -1118,33 +1118,24 @@ function OnboardingInner() {
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-4 onb-anim onb-no-divider">
         <PhoneMockup width="min(160px, 42vw)" />
 
-        <h1 className="mt-4 font-display text-[24px] font-extrabold tracking-tight leading-[1.1] text-center">
+        <h1 className="mt-auto font-display text-[26px] font-extrabold tracking-tight leading-[1.1] text-center">
           We want you to try Wingmate for free.
         </h1>
 
-        <div className="mt-auto bg-bg-card border border-border rounded-2xl p-4 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[14px] font-medium">No payment due now</span>
-            <span className="text-[13px] text-text-muted">—</span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-[14px] font-medium">Try Wingmate for 3 days</span>
-            <span className="text-[14px] font-semibold tabular-nums text-green-500">$0.00</span>
-          </div>
-          <div className="flex items-baseline justify-between pt-3 border-t border-border">
-            <span className="text-[14px] font-medium">Then just</span>
-            <span className="text-[14px] font-semibold tabular-nums">
-              $29.99/yr <span className="text-text-muted text-[12px] font-medium">($2.49/mo)</span>
-            </span>
-          </div>
+        <div className="mt-auto shrink-0">
+          <p className="text-center text-[13px] font-semibold uppercase tracking-wide text-text-muted mb-2">
+            No Payment Due Now
+          </p>
+          <button
+            onClick={() => setStep("trialReminder")}
+            className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
+          >
+            Try for $0.00
+          </button>
+          <p className="text-center text-[12px] text-text-muted mt-3">
+            Just <span className="font-semibold text-text">$29.99/year</span> ($2.49/mo) after your 3-day free trial. Cancel anytime.
+          </p>
         </div>
-
-        <button
-          onClick={() => setStep("trialReminder")}
-          className="mt-3 w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
-        >
-          Continue
-        </button>
       </main>
     );
   }
