@@ -1229,7 +1229,7 @@ function OnboardingInner() {
           <PhoneMockup width="min(220px, 62vw)" />
         </div>
 
-        <div className="shrink-0">
+        <div className="shrink-0 pb-2">
           <p className="text-center text-[14px] font-medium text-text-muted mb-3">
             No Payment Due Now
           </p>
@@ -1267,7 +1267,7 @@ function OnboardingInner() {
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="shrink-0 pb-2">
           <p className="text-center text-[14px] font-medium text-text-muted mb-3">
             No Payment Due Now
           </p>
