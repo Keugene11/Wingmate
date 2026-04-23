@@ -1552,11 +1552,22 @@ function NotificationsStep({
   useEffect(() => {
     if (promptedRef.current) return;
     promptedRef.current = true;
-    // Fire the permission prompt as soon as the screen mounts. Best-effort —
-    // some environments require a user gesture; in that case nothing happens
-    // and the user can still continue.
+    // Fire the permission prompt as soon as the screen mounts.
     (async () => {
       try {
+        // Native (iOS/Android): use Capacitor PushNotifications plugin, which
+        // triggers the actual OS-level permission dialog. WKWebView has no
+        // web Notification API at all and Android WebView silently blocks
+        // it without a user gesture.
+        if (typeof window !== "undefined" && window.Capacitor?.isNativePlatform()) {
+          const { PushNotifications } = await import("@capacitor/push-notifications");
+          const existing = await PushNotifications.checkPermissions();
+          if (existing.receive === "prompt" || existing.receive === "prompt-with-rationale") {
+            await PushNotifications.requestPermissions();
+          }
+          return;
+        }
+        // Web fallback — only works when the browser doesn't require a gesture.
         if (typeof window !== "undefined" && "Notification" in window) {
           if (Notification.permission === "default") {
             await Notification.requestPermission();
