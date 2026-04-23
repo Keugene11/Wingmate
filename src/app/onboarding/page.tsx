@@ -1117,15 +1117,6 @@ function OnboardingInner() {
     <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
       <QuizHeader onBack={() => setStep("planReady")} progress={1} />
 
-      <div className="mt-8">
-        <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-3">
-          Create your account
-        </h1>
-        <p className="text-text-muted text-[15px] leading-[1.65]">
-          Save your progress and pick up on any device.
-        </p>
-      </div>
-
       <div className="flex-1" />
 
       <div className="space-y-3">
@@ -1136,11 +1127,6 @@ function OnboardingInner() {
             </p>
           </div>
         )}
-        <p className="text-center text-[12px] text-text-muted pb-1">
-          By signing in, you confirm you are at least 18 years old and agree to our{" "}
-          <a href="/terms" className="underline">Terms of Service</a> and{" "}
-          <a href="/privacy" className="underline">Privacy Policy</a>.
-        </p>
         <button
           onClick={handleGoogle}
           className="w-full flex items-center justify-center gap-3 bg-white border border-border py-4 rounded-2xl font-semibold text-[16px] press shadow-sm"
