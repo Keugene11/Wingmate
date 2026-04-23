@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { useSession } from "next-auth/react";
 import { hideSplash, setupAuthDeepLinkListener, initSocialLogin } from "@/lib/capacitor";
+import { isApplePlatform } from "@/lib/platform";
 
 type Step =
   | "welcome"
@@ -211,7 +212,12 @@ function OnboardingInner() {
   const [goals, setGoals] = useState<string[]>([]);
   const [blocker, setBlocker] = useState<string | null>(null);
   const [weeklyTarget, setWeeklyTarget] = useState<number>(5);
+  const [showApple, setShowApple] = useState(false);
   const targetTrackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setShowApple(isApplePlatform());
+  }, []);
   const error = liveError || searchParams.get("error");
 
   const setTargetFromClientX = (clientX: number) => {
@@ -1060,7 +1066,9 @@ function OnboardingInner() {
     });
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <div className="mt-8 text-center">
+        <QuizHeader onBack={() => setStep("planIntro")} progress={1} />
+
+        <div className="mt-6 text-center">
           <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-600 px-3 py-1 rounded-full text-[12px] font-semibold mb-4">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 12l5 5L20 6" />
@@ -1106,14 +1114,10 @@ function OnboardingInner() {
   }
 
   return (
-    <main key={step} className="h-app max-w-md mx-auto flex flex-col justify-between px-6 pt-10 pb-4 onb-anim">
-      <div>
-        <button
-          onClick={() => setStep("planReady")}
-          className="text-text-muted text-[14px] font-medium mb-8 press"
-        >
-          ← Back
-        </button>
+    <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
+      <QuizHeader onBack={() => setStep("planReady")} progress={1} />
+
+      <div className="mt-8">
         <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-3">
           Create your account
         </h1>
@@ -1121,6 +1125,8 @@ function OnboardingInner() {
           Save your progress and pick up on any device.
         </p>
       </div>
+
+      <div className="flex-1" />
 
       <div className="space-y-3">
         {error && (
@@ -1148,14 +1154,23 @@ function OnboardingInner() {
           Continue with Google
         </button>
 
+        {showApple && (
+          <button
+            onClick={handleApple}
+            className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-4 rounded-2xl font-semibold text-[16px] press"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
+            </svg>
+            Continue with Apple
+          </button>
+        )}
+
         <button
-          onClick={handleApple}
-          className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white border border-[#1a1a1a] py-4 rounded-2xl font-semibold text-[16px] press"
+          onClick={() => router.replace("/")}
+          className="w-full text-center text-text-muted text-[14px] font-medium press py-3"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-            <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
-          </svg>
-          Continue with Apple
+          Skip
         </button>
       </div>
     </main>
