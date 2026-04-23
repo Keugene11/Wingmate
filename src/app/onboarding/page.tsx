@@ -46,6 +46,16 @@ const PROGRESS_STEPS = [
   "planIntro", "planReady", "auth",
 ] as const;
 
+// Full forward ordering including non-progress steps. Used to infer whether
+// a setStep() call is a forward advance or a backward navigation so the
+// page can play the right slide-in direction.
+const ALL_STEPS = [
+  "welcome", "status", "approaches", "source", "experience", "pitch",
+  "location", "birthday", "goal", "target", "doable", "blockers",
+  "thanks", "notifications", "rating", "planIntro", "planGenerating",
+  "planReady", "auth", "trialIntro", "trialReminder", "trialPayment",
+] as const;
+
 function progressFor(step: string): number {
   const idx = (PROGRESS_STEPS as readonly string[]).indexOf(step);
   return idx < 0 ? 0 : (idx + 1) / PROGRESS_STEPS.length;
@@ -218,7 +228,17 @@ function OnboardingInner() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [liveError, setLiveError] = useState<string | null>(null);
-  const [step, setStep] = useState<Step>("welcome");
+  const [step, setRawStep] = useState<Step>("welcome");
+
+  const setStep = (next: Step) => {
+    const prevIdx = (ALL_STEPS as readonly string[]).indexOf(step);
+    const nextIdx = (ALL_STEPS as readonly string[]).indexOf(next);
+    const goingBack = prevIdx >= 0 && nextIdx >= 0 && nextIdx < prevIdx;
+    if (typeof document !== "undefined") {
+      document.body.classList.toggle("onb-anim-back", goingBack);
+    }
+    setRawStep(next);
+  };
   const [status_, setStatusAnswer] = useState<string | null>(null);
   const [approaches, setApproaches] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
@@ -239,6 +259,11 @@ function OnboardingInner() {
 
   useEffect(() => {
     setShowApple(isApplePlatform());
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.classList.remove("onb-anim-back");
+      }
+    };
   }, []);
 
   // Load IAP offerings when the user reaches the paywall, so tapping the CTA
