@@ -1115,28 +1115,33 @@ function OnboardingInner() {
 
   if (step === "trialIntro") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim onb-no-divider">
-        <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <div className="w-24 h-24 rounded-full bg-[#1a1a1a] flex items-center justify-center mb-8">
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 12v10H4V12" />
-              <path d="M2 7h20v5H2z" />
-              <path d="M12 22V7" />
-              <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-              <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-            </svg>
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-4 onb-anim onb-no-divider">
+        <PhoneMockup width="min(160px, 42vw)" />
+
+        <h1 className="mt-4 font-display text-[24px] font-extrabold tracking-tight leading-[1.1] text-center">
+          We want you to try Wingmate for free.
+        </h1>
+
+        <div className="mt-auto bg-bg-card border border-border rounded-2xl p-4 space-y-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[14px] font-medium">No payment due now</span>
+            <span className="text-[13px] text-text-muted">—</span>
           </div>
-          <h1 className="font-display text-[32px] font-extrabold tracking-tight leading-[1.1] mb-4">
-            We want you to try Wingmate for free.
-          </h1>
-          <p className="text-text-muted text-[15px] leading-relaxed max-w-[320px]">
-            Full access to the coach, plan, and every feature — no commitment, no charge up front.
-          </p>
+          <div className="flex items-baseline justify-between">
+            <span className="text-[14px] font-medium">Try Wingmate for 3 days</span>
+            <span className="text-[14px] font-semibold tabular-nums text-green-500">$0.00</span>
+          </div>
+          <div className="flex items-baseline justify-between pt-3 border-t border-border">
+            <span className="text-[14px] font-medium">Then just</span>
+            <span className="text-[14px] font-semibold tabular-nums">
+              $29.99/yr <span className="text-text-muted text-[12px] font-medium">($2.49/mo)</span>
+            </span>
+          </div>
         </div>
 
         <button
           onClick={() => setStep("trialReminder")}
-          className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
+          className="mt-3 w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
         >
           Continue
         </button>
@@ -1956,11 +1961,11 @@ function QuizHeader({ onBack, progress }: { onBack: () => void; progress: number
   );
 }
 
-function PhoneMockup() {
+function PhoneMockup({ width = "min(220px, 62vw)" }: { width?: string } = {}) {
   return (
     <div
       className="mx-auto relative select-none pointer-events-none"
-      style={{ width: "min(220px, 62vw)" }}
+      style={{ width }}
     >
       {/* Side buttons (subtle protrusion hints) */}
       <div className="absolute left-[-2px] top-[90px] w-[2px] h-[28px] bg-[#0a0a0a] rounded-l-sm" />
