@@ -932,65 +932,11 @@ function OnboardingInner() {
   }
 
   if (step === "notifications") {
-    const requestNotifications = async () => {
-      try {
-        if (typeof window !== "undefined" && "Notification" in window) {
-          await Notification.requestPermission();
-        }
-      } catch {}
-      setStep("rating");
-    };
-
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
-        <QuizHeader onBack={() => setStep("thanks")} progress={1} />
-
-        <div className="mt-8">
-          <h1 className="font-display text-[30px] font-bold tracking-tight leading-[1.15]">
-            Reach your goals with notifications.
-          </h1>
-          <p className="text-text-muted text-[15px] leading-relaxed mt-2">
-            A nudge at the right moment is the difference between doing it and not.
-          </p>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center py-8">
-          <div className="w-full max-w-[340px] space-y-2.5">
-            <NotifPreview
-              title="Wingmate"
-              body="Time to make today count 🔥 Who are you going to talk to?"
-              timestamp="now"
-            />
-            <NotifPreview
-              title="Wingmate"
-              body="You're 2 approaches away from hitting your weekly goal. Let's finish it."
-              timestamp="2m ago"
-              dim
-            />
-            <NotifPreview
-              title="Wingmate"
-              body="3-day streak 🔥 Don't break it — check in before midnight."
-              timestamp="1h ago"
-              dim
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <button
-            onClick={() => setStep("rating")}
-            className="w-full text-center text-text-muted text-[14px] font-medium press py-2"
-          >
-            Maybe later
-          </button>
-          <button
-            onClick={requestNotifications}
-            className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
-          >
-            Allow notifications
-          </button>
-        </div>
-      </main>
+      <NotificationsStep
+        onBack={() => setStep("thanks")}
+        onContinue={() => setStep("rating")}
+      />
     );
   }
 
@@ -1416,6 +1362,77 @@ function buildPlan({
       },
     ],
   };
+}
+
+function NotificationsStep({
+  onBack,
+  onContinue,
+}: {
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  const promptedRef = useRef(false);
+
+  useEffect(() => {
+    if (promptedRef.current) return;
+    promptedRef.current = true;
+    // Fire the permission prompt as soon as the screen mounts. Best-effort —
+    // some environments require a user gesture; in that case nothing happens
+    // and the user can still continue.
+    (async () => {
+      try {
+        if (typeof window !== "undefined" && "Notification" in window) {
+          if (Notification.permission === "default") {
+            await Notification.requestPermission();
+          }
+        }
+      } catch {}
+    })();
+  }, []);
+
+  return (
+    <main key="notifications" className="h-app max-w-md mx-auto flex flex-col px-6 pt-10 pb-4 onb-anim">
+      <QuizHeader onBack={onBack} progress={1} />
+
+      <div className="mt-8">
+        <h1 className="font-display text-[30px] font-bold tracking-tight leading-[1.15]">
+          Reach your goals with notifications.
+        </h1>
+        <p className="text-text-muted text-[15px] leading-relaxed mt-2">
+          A nudge at the right moment is the difference between doing it and not.
+        </p>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center py-8">
+        <div className="w-full max-w-[340px] space-y-2.5">
+          <NotifPreview
+            title="Wingmate"
+            body="Time to make today count 🔥 Who are you going to talk to?"
+            timestamp="now"
+          />
+          <NotifPreview
+            title="Wingmate"
+            body="You're 2 approaches away from hitting your weekly goal. Let's finish it."
+            timestamp="2m ago"
+            dim
+          />
+          <NotifPreview
+            title="Wingmate"
+            body="3-day streak 🔥 Don't break it — check in before midnight."
+            timestamp="1h ago"
+            dim
+          />
+        </div>
+      </div>
+
+      <button
+        onClick={onContinue}
+        className="mt-auto w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
+      >
+        Continue
+      </button>
+    </main>
+  );
 }
 
 function NotifPreview({
