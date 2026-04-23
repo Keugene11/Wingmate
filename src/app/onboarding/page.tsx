@@ -1214,7 +1214,7 @@ function OnboardingInner() {
 
   if (step === "trialIntro") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-4 pb-8 onb-anim onb-no-divider">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-8 onb-anim onb-no-divider">
         <TrialHeader onClose={() => setStep("auth")} />
 
         <h1 className="mt-2 font-display text-[28px] font-extrabold tracking-tight leading-[1.1] text-center">
@@ -1225,7 +1225,7 @@ function OnboardingInner() {
           <PhoneMockup width="min(220px, 62vw)" />
         </div>
 
-        <div className="shrink-0 relative pt-2">
+        <div className="shrink-0">
           <p className="text-center text-[14px] font-medium text-text-muted mb-3">
             No Payment Due Now
           </p>
