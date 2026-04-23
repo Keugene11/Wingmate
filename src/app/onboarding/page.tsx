@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { useSession } from "next-auth/react";
 import { hideSplash, setupAuthDeepLinkListener, initSocialLogin } from "@/lib/capacitor";
-import { isApplePlatform } from "@/lib/platform";
+import { isApplePlatform, isNativePlatform } from "@/lib/platform";
+import { initPurchases, getOfferings, purchasePackage, identifyUser } from "@/lib/purchases";
 
 type Step =
   | "welcome"
@@ -215,7 +216,7 @@ export default function OnboardingPage() {
 function OnboardingInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [liveError, setLiveError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("welcome");
   const [status_, setStatusAnswer] = useState<string | null>(null);
@@ -231,11 +232,79 @@ function OnboardingInner() {
   const [weeklyTarget, setWeeklyTarget] = useState<number>(5);
   const [showApple, setShowApple] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("yearly");
+  const [purchasing, setPurchasing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [iapPackages, setIapPackages] = useState<{ monthly?: any; yearly?: any }>({});
   const targetTrackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setShowApple(isApplePlatform());
   }, []);
+
+  // Load IAP offerings when the user reaches the paywall, so tapping the CTA
+  // can fire the native purchase sheet immediately without a loading stall.
+  useEffect(() => {
+    if (step !== "trialPayment") return;
+    if (!isNativePlatform()) return;
+    let cancelled = false;
+    (async () => {
+      await initPurchases();
+      if (session?.user?.id) await identifyUser(session.user.id);
+      let offering = await getOfferings();
+      for (let i = 0; i < 3 && !offering?.availablePackages; i++) {
+        await new Promise((r) => setTimeout(r, 1500));
+        offering = await getOfferings();
+      }
+      if (cancelled) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pkgs: { monthly?: any; yearly?: any } = {};
+      for (const pkg of offering?.availablePackages || []) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const p = pkg as any;
+        if (p.packageType === "MONTHLY") pkgs.monthly = p;
+        else if (p.packageType === "ANNUAL") pkgs.yearly = p;
+      }
+      setIapPackages(pkgs);
+    })();
+    return () => { cancelled = true; };
+  }, [step, session?.user?.id]);
+
+  const handleStartTrial = async () => {
+    if (purchasing) return;
+    setPurchasing(true);
+    try {
+      if (isNativePlatform()) {
+        const pkg = selectedPlan === "monthly" ? iapPackages.monthly : iapPackages.yearly;
+        if (!pkg) {
+          setLiveError("This plan isn't available yet. Try again in a moment.");
+          return;
+        }
+        if (session?.user?.id) await identifyUser(session.user.id);
+        const ok = await purchasePackage(pkg);
+        if (ok) {
+          window.location.href = "/";
+        }
+        return;
+      }
+      // Web (Stripe) — requires the user to be signed in.
+      if (!session?.user?.id) {
+        router.push(`/plans?plan=${selectedPlan}`);
+        return;
+      }
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      setLiveError(data.error || "Couldn't start checkout. Try again.");
+    } catch (e) {
+      setLiveError((e as Error)?.message || "Purchase failed.");
+    } finally {
+      setPurchasing(false);
+    }
+  };
   const error = liveError || searchParams.get("error");
 
   const setTargetFromClientX = (clientX: number) => {
@@ -1116,19 +1185,19 @@ function OnboardingInner() {
 
   if (step === "trialIntro") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-4 onb-anim onb-no-divider">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-4 pb-4 onb-anim onb-no-divider">
         <TrialHeader onClose={() => setStep("auth")} />
 
-        <h1 className="mt-6 font-display text-[28px] font-extrabold tracking-tight leading-[1.1] text-center">
+        <h1 className="mt-2 font-display text-[28px] font-extrabold tracking-tight leading-[1.1] text-center">
           We want you to try Wingmate for free.
         </h1>
 
-        <div className="mt-6 flex-1 flex items-center justify-center min-h-0">
+        <div className="flex-1 flex items-start justify-center min-h-0 pt-4 pb-10 overflow-hidden">
           <PhoneMockup width="min(240px, 68vw)" />
         </div>
 
-        <div className="shrink-0">
-          <p className="text-center text-[13px] font-semibold text-text-muted mb-2">
+        <div className="shrink-0 relative bg-bg">
+          <p className="text-center text-[14px] font-medium text-text-muted mb-3">
             No Payment Due Now
           </p>
           <button
@@ -1166,7 +1235,7 @@ function OnboardingInner() {
         </div>
 
         <div className="shrink-0">
-          <p className="text-center text-[13px] font-semibold text-text-muted mb-2">
+          <p className="text-center text-[14px] font-medium text-text-muted mb-3">
             No Payment Due Now
           </p>
           <button
@@ -1270,14 +1339,15 @@ function OnboardingInner() {
         </div>
 
         <div className="shrink-0">
-          <p className="text-center text-[13px] font-semibold text-text-muted mb-2">
+          <p className="text-center text-[14px] font-medium text-text-muted mb-3">
             No Payment Due Now
           </p>
           <button
-            onClick={() => router.push(`/plans?plan=${selectedPlan}`)}
-            className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press"
+            onClick={handleStartTrial}
+            disabled={purchasing}
+            className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-semibold text-[16px] press disabled:opacity-60"
           >
-            Start my 3-day free trial
+            {purchasing ? "Starting…" : "Start my 3-day free trial"}
           </button>
           <p className="text-center text-[12px] text-text-muted mt-3">
             <span className="font-semibold text-text">3 days free</span>, then {fineTextByPlan[selectedPlan].replace("3 days free, then ", "")}
@@ -1551,7 +1621,7 @@ function TrialHeader({ onBack, onClose }: { onBack?: () => void; onClose: () => 
   return (
     <div className="flex items-center justify-between h-11">
       {onBack ? (
-        <button onClick={onBack} className="p-2 -ml-2 press shrink-0" aria-label="Back">
+        <button onClick={onBack} className="p-2 -ml-2 press shrink-0 text-text-muted" aria-label="Back">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -1559,7 +1629,7 @@ function TrialHeader({ onBack, onClose }: { onBack?: () => void; onClose: () => 
       ) : (
         <div aria-hidden />
       )}
-      <button onClick={onClose} className="p-2 -mr-2 press shrink-0" aria-label="Close">
+      <button onClick={onClose} className="p-2 -mr-2 press shrink-0 text-text-muted" aria-label="Close">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 6 6 18" />
           <path d="m6 6 12 12" />
