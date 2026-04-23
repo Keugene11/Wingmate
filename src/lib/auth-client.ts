@@ -1,7 +1,6 @@
 import { signIn } from "next-auth/react";
-import { isNativePlatform, isNativeiOS, isNativeAndroid } from "./platform";
+import { isNativePlatform } from "./platform";
 import { initSocialLogin } from "./capacitor";
-import { LegacyGoogleAuth } from "./legacy-google-auth";
 
 type Result = { error: null } | { error: string };
 
@@ -42,41 +41,9 @@ async function nativeSignIn(provider: "apple" | "google"): Promise<Result> {
 }
 
 export async function signInWithGoogle(): Promise<Result> {
-  if (isNativeiOS()) return nativeSignIn("google");
-  if (isNativeAndroid()) {
-    return androidGoogleSignIn();
-  }
+  if (isNativePlatform()) return nativeSignIn("google");
   await signIn("google", { redirectTo: "/" });
   return { error: null };
-}
-
-async function androidGoogleSignIn(): Promise<Result> {
-  // Use our custom Capacitor plugin that uses the legacy GoogleSignIn API
-  // directly. Bypasses Credential Manager (which has the [16] reauth bug
-  // for freshly-created OAuth clients).
-  const webClientId = (process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID || "").trim();
-  if (!webClientId) return { error: "NEXT_PUBLIC_AUTH_GOOGLE_ID is empty" };
-  try {
-    const res = await LegacyGoogleAuth.signIn({ webClientId });
-    if (!res.idToken) return { error: "no idToken from legacy Google Auth" };
-    const tokenRes = await fetch("/api/auth/native/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider: "google", idToken: res.idToken }),
-    });
-    if (!tokenRes.ok) {
-      const body = await tokenRes.text();
-      return { error: `backend rejected token: ${tokenRes.status} ${body}` };
-    }
-    window.location.href = "/";
-    return { error: null };
-  } catch (e: unknown) {
-    const err = e as { message?: string; code?: string };
-    if (err.message?.includes("cancel") || err.message?.includes("12501") || err.code === "SIGN_IN_CANCELLED") {
-      return { error: null };
-    }
-    return { error: `legacy: ${err.message || err.code || JSON.stringify(e)}` };
-  }
 }
 
 export async function signInWithApple(): Promise<Result> {
