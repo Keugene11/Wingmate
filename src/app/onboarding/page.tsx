@@ -1207,9 +1207,9 @@ function OnboardingInner() {
               </div>
               <div className="flex items-baseline justify-between mb-1">
                 <p className="text-[16px] font-bold">Yearly</p>
-                <p className="font-display text-[22px] font-extrabold tabular-nums">$49.99<span className="text-[12px] font-medium text-text-muted">/yr</span></p>
+                <p className="font-display text-[22px] font-extrabold tabular-nums">$29.99<span className="text-[12px] font-medium text-text-muted">/yr</span></p>
               </div>
-              <p className="text-[12px] text-text-muted">Just $4.16/month · save 60%</p>
+              <p className="text-[12px] text-text-muted">Just $2.50/month · save 75%</p>
             </div>
             <div className="bg-bg-card border-2 border-border rounded-2xl p-5">
               <div className="flex items-baseline justify-between mb-1">
