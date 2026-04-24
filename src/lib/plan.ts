@@ -1,5 +1,7 @@
-// 4-week rizz plan. Content is static templates personalized at read time
-// from the user's profile fields (status, location, blocker, goal).
+// 4-week rizz plan. Static structure, but every line is written against the
+// user's own onboarding answers: weekly target, blocker, status, location,
+// and goal. No generic "Eye Contact" labels — the plan speaks in their
+// numbers and in their language.
 
 export type PlanLocation = "city" | "suburb" | "town" | "rural";
 export type PlanStatus = "student" | "working" | "other";
@@ -10,12 +12,13 @@ export type PlanProfile = {
   location: string | null;
   blocker: string | null;
   goal: string | null; // comma-separated ids, e.g. "girlfriend,rizz"
+  weekly_approach_goal: number | null;
 };
 
 export type PlanWeek = {
   number: 1 | 2 | 3 | 4;
-  theme: string;
-  why: string;
+  heading: string;
+  why: string; // may contain \n\n for paragraph breaks
   tasks: string[];
   endOfWeek: string;
 };
@@ -23,19 +26,15 @@ export type PlanWeek = {
 export type PlanState = {
   currentWeek: 1 | 2 | 3 | 4;
   daysIntoWeek: number; // 0-6
-  graduated: boolean; // true once the user is past the 4-week curriculum
+  graduated: boolean;
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function derivePlanState(createdAt: string | Date | null | undefined): PlanState {
-  if (!createdAt) {
-    return { currentWeek: 1, daysIntoWeek: 0, graduated: false };
-  }
+  if (!createdAt) return { currentWeek: 1, daysIntoWeek: 0, graduated: false };
   const start = createdAt instanceof Date ? createdAt.getTime() : new Date(createdAt).getTime();
-  if (Number.isNaN(start)) {
-    return { currentWeek: 1, daysIntoWeek: 0, graduated: false };
-  }
+  if (Number.isNaN(start)) return { currentWeek: 1, daysIntoWeek: 0, graduated: false };
   const daysSince = Math.max(0, Math.floor((Date.now() - start) / DAY_MS));
   const rawWeek = Math.floor(daysSince / 7) + 1;
   const currentWeek = Math.min(4, Math.max(1, rawWeek)) as 1 | 2 | 3 | 4;
@@ -46,104 +45,113 @@ export function derivePlanState(createdAt: string | Date | null | undefined): Pl
   };
 }
 
-function hotspotFor(location: string | null): string {
-  switch (location) {
-    case "city": return "coffee shops and busy streets";
-    case "suburb": return "the mall, grocery stores, and gyms";
-    case "town": return "your regular spots — the café, the gym, the bookstore";
-    case "rural": return "the few spots you do go to — make every trip count";
-    default: return "your daily spots";
-  }
+function weeklyTarget(profile: PlanProfile): number {
+  const t = profile.weekly_approach_goal;
+  if (typeof t === "number" && t > 0) return t;
+  return 5;
 }
 
-function blockerFraming(blocker: string | null): string {
+function spotsFor(profile: PlanProfile): string {
+  const { status, location } = profile;
+  if (status === "student") return "campus — the library café, the student union, between classes";
+  if (status === "working") {
+    if (location === "city") return "the lunch spots near your office, after-work cafés, the gym";
+    if (location === "suburb") return "the grocery store, the gym, the coffee shop on your commute";
+    return "the handful of places you go in a normal week — make every trip count";
+  }
+  if (location === "city") return "coffee shops, busy streets, the gym";
+  if (location === "suburb") return "the mall, the grocery store, the gym";
+  if (location === "town") return "your regular spots — the café, the gym, the bookstore";
+  if (location === "rural") return "the few spots you do go to — don't wait for the perfect moment";
+  return "the spots you're already at every week";
+}
+
+function blockerAddress(blocker: string | null): string {
   switch (blocker) {
-    case "rejection": return "Every attempt counts as a win, even if she ignores you. You showed up.";
-    case "words": return "Short is fine. You don't need a script — a two-word opener works.";
-    case "confidence": return "You don't need to feel ready. Act first, confidence follows.";
-    case "time": return "Don't wait for the 'right' moment. Do it in the first 10 seconds or you won't do it at all.";
-    default: return "Just do the reps. The fear shrinks every time.";
+    case "rejection":
+      return "You said fear of rejection is what stops you. Forget the outcome — every attempt IS the win. She doesn't owe you a conversation. You owe yourself the rep.";
+    case "words":
+      return "You said you never know what to say. You don't need a script. \"Hey, how's your day going?\" has worked for every guy in history. Use the words that are already in your mouth.";
+    case "confidence":
+      return "You said low confidence is holding you back. You're not going to feel ready. The guy who waits to feel ready never goes. Act first, confidence comes after.";
+    case "time":
+      return "You said you can never find the right moment. There isn't one. Make the move in the first 10 seconds or you'll talk yourself out of it.";
+    default:
+      return "You're here because you want to make more moves. That's the first rep.";
   }
 }
 
 function goalLine(goal: string | null): string {
   const goals = (goal || "").split(",").filter(Boolean);
-  if (goals.includes("girlfriend")) return "You're looking for quality — close the loop with the ones who actually spark something.";
-  if (goals.includes("hookups")) return "Match her vibe. If she's giving energy, escalate the plan.";
-  if (goals.includes("rizz")) return "This is the rep that builds the skill. Volume matters more than outcome.";
+  if (goals.includes("girlfriend")) return "You said you want a girlfriend — so don't waste the ask on every girl you talk to. Close the loop with the ones who actually spark something.";
+  if (goals.includes("hookups")) return "You said you're in it for the dating game. Read her energy. If she's giving it back, match and escalate.";
+  if (goals.includes("rizz")) return "You said you're working on rizz. The ask is the rep that builds the skill — treat it like a set, not a verdict.";
+  if (goals.includes("memories")) return "You said you just want great memories. That's made by the moments you said yes to, not the ones you dodged.";
   return "Every closed loop is proof you can do this.";
 }
 
-function studentSpot(status: string | null, location: string | null): string {
-  if (status === "student") return "campus library cafés, lecture halls, the student union";
-  if (status === "working") return "the lunch spot near your office, after-work gyms, commuter coffee shops";
-  return hotspotFor(location);
-}
-
 export function buildWeek(weekNum: 1 | 2 | 3 | 4, profile: PlanProfile): PlanWeek {
-  const where = hotspotFor(profile.location);
-  const spots = studentSpot(profile.status, profile.location);
-  const framing = blockerFraming(profile.blocker);
+  const weekly = weeklyTarget(profile);
+  const daily = Math.max(1, Math.round(weekly / 7));
+  const halfWeekly = Math.max(1, Math.round(weekly / 2));
+  const halfDaily = Math.max(1, Math.round(halfWeekly / 7));
+  const spots = spotsFor(profile);
 
   if (weekNum === 1) {
     return {
       number: 1,
-      theme: "Eye Contact",
-      why: "You don't need words yet. You need to stop avoiding eyes. A guy who can look at people without flinching is already halfway there.",
+      heading: "Build the habit",
+      why: `${blockerAddress(profile.blocker)}\n\nYou told us you want to talk to ${weekly} girls a week. This week we're not there yet — we're ramping. Half the volume, full commitment.`,
       tasks: [
-        `Hold eye contact with 3 strangers a day for 2+ seconds`,
-        `Smile at 1 person when they catch you looking — don't look away first`,
-        `One walk a day through ${where} with your phone in your pocket`,
+        `${halfDaily} ${halfDaily === 1 ? "approach" : "approaches"} a day — ${halfWeekly} for the week`,
+        `Do them at ${spots}`,
+        `Count attempts, not outcomes. Every "hey" is a rep, even if she barely responds`,
       ],
-      endOfWeek: "Make eye contact and smile with someone who looks back.",
+      endOfWeek: `${halfWeekly} attempts logged. Hit that and Week 2 is just volume.`,
     };
   }
 
   if (weekNum === 2) {
+    const timeNudge = profile.blocker === "time"
+      ? "Use the time you already have — the line at the café, the walk between classes, the grocery run."
+      : "You're allowed to leave right after the opener. A 'hi' still counts.";
     return {
       number: 2,
-      theme: "Openers",
-      why: `Say words to a stranger. You don't need a conversation — you need to prove your voice works. ${framing}`,
+      heading: "Hit your number",
+      why: `Last week was the warmup. This week is your actual target — ${weekly} approaches. You set the number; time to prove it wasn't a fantasy.`,
       tasks: [
-        `2 openers a day — "hey, how's it going" or a comment on something in front of you`,
-        `You're allowed to leave right after. No pressure to continue`,
-        `Do most of them at ${spots}`,
+        `${daily} ${daily === 1 ? "approach" : "approaches"} a day, ${weekly} for the week`,
+        `Lean on routine. Same ${spots.split(" — ")[0]} — different faces`,
+        timeNudge,
       ],
-      endOfWeek: "One opener accidentally becomes a 30-second back-and-forth.",
+      endOfWeek: `${weekly} approaches. Your number, hit clean.`,
     };
   }
 
   if (weekNum === 3) {
     return {
       number: 3,
-      theme: "Short Conversations",
-      why: "Carry a 60-90 second chat without panicking. Ask one follow-up, share one thing about yourself, exit cleanly.",
+      heading: "Go deeper",
+      why: `You're past "can I even do this." Now we stretch — same ${weekly} approaches, but on at least half of them, actually stick around.`,
       tasks: [
-        `1-2 real mini-convos a day`,
-        `Practice the exit — "Anyway, I gotta run, but it was good talking"`,
-        `Listen to what she says back. Don't just plan your next line`,
+        `Keep your ${daily}-a-day pace — ${weekly} for the week`,
+        `On half of them, hold a 60+ second conversation. Ask one follow-up. Listen to her answer`,
+        `Practice the exit: "Anyway, I gotta run — was good talking." Say it and mean it`,
       ],
-      endOfWeek: "A 2-minute conversation that doesn't feel forced.",
+      endOfWeek: "One 2-minute conversation that doesn't feel forced.",
     };
   }
 
   // Week 4
   return {
     number: 4,
-    theme: "Getting Numbers",
-    why: `You're past the hard part. Stop walking away empty-handed. One line closes the loop. ${goalLine(profile.goal)}`,
+    heading: "Close the loop",
+    why: `You're not walking away empty-handed anymore.\n\n${goalLine(profile.goal)}`,
     tasks: [
-      `1 attempt a day at asking for Instagram or a number`,
-      `Exact line: "Hey, I gotta go but you seem cool — what's your Instagram?"`,
-      `If she says no, say "all good, have a great one" and walk. Practice the exit clean`,
+      `Keep ${daily} a day — ${weekly} for the week`,
+      `1 ask per day for an Instagram or number. Exact line: "I gotta go but you seem cool — what's your Instagram?"`,
+      `If she says no: "all good, have a great one" — walk. Clean exit, no wounded energy`,
     ],
-    endOfWeek: "One IG or number this week. Ghosting doesn't matter — you closed.",
+    endOfWeek: "One closed loop this week. Whether she replies or ghosts doesn't matter — you closed.",
   };
 }
-
-export const WEEK_LABELS: Record<1 | 2 | 3 | 4, string> = {
-  1: "Eye Contact",
-  2: "Openers",
-  3: "Short Convos",
-  4: "Numbers",
-};
