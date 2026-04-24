@@ -260,54 +260,40 @@ export default function PlanView() {
         </span>
       </div>
 
-      {/* Plan card — reflects the user's own answers: their goal, what's
-          stopping them, and the focus for this week. */}
+      {/* Plan card — narrative built from the user's own answers. */}
       <div
         className={`bg-bg-card border border-border rounded-2xl shadow-card p-5 mb-5 transition-all ${
           justUpdated ? "ring-2 ring-green-400" : ""
         }`}
       >
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
-          Your goal
-        </p>
-        {motivation.goalLabels.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {motivation.goalLabels.map((label) => (
-              <span
-                key={label}
-                className="text-[14px] font-semibold bg-bg-input rounded-lg px-3 py-1.5"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[14px] text-text-muted">Not set</p>
+        {motivation.goalSentence && (
+          <p className="font-display text-[18px] font-extrabold leading-snug mb-4">
+            {motivation.goalSentence}
+          </p>
         )}
 
-        {motivation.blockerLabel && (
-          <>
-            <div className="h-px bg-border my-4" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
-              What&apos;s stopping me
-            </p>
-            <p className="text-[15px] font-semibold leading-snug">
-              {motivation.blockerLabel}
-            </p>
-          </>
+        {motivation.blockerFragment && (
+          <p className="text-[15px] leading-snug text-text/85 mb-4">
+            What&apos;s holding you back is{" "}
+            <span className="font-semibold text-text">{motivation.blockerFragment}</span>.
+          </p>
         )}
 
-        <div className="h-px bg-border my-4" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-orange-500 mb-2">
-          This week
-        </p>
+        <div className="h-px bg-border my-2" />
+
         {motivation.focus ? (
-          <p className="text-[15px] font-semibold leading-snug">
-            {motivation.focus}
+          <p className="text-[15px] leading-snug text-text/85 mt-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-orange-500 block mb-1">
+              This week
+            </span>
+            <span className="font-semibold text-text">{motivation.focus}</span>
           </p>
         ) : (
-          <p className="text-[14px] text-text-muted">
-            Tell the chat what to lock in this week.
+          <p className="text-[14px] text-text-muted mt-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-orange-500 block mb-1">
+              This week
+            </span>
+            Tell the chat what to lock in.
           </p>
         )}
       </div>

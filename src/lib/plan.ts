@@ -16,8 +16,8 @@ export type PlanProfile = {
 };
 
 export type PlanMotivation = {
-  goalLabels: string[];
-  blockerLabel: string | null;
+  goalSentence: string | null;
+  blockerFragment: string | null;
   focus: string | null;
   weeklyTarget: number;
 };
@@ -35,6 +35,29 @@ export const BLOCKER_LABELS: Record<string, string> = {
   confidence: "Low confidence",
   time: "Never the right moment",
 };
+
+// Sentence fragments — phrased to drop into "You want to ___." and
+// "What's stopping you is ___." so the card reads as a narrative, not a list.
+const GOAL_FRAGMENTS: Record<string, string> = {
+  girlfriend: "get a girlfriend",
+  rizz: "improve your rizz",
+  memories: "make fun memories",
+  hookups: "meet more people and date casually",
+};
+
+const BLOCKER_FRAGMENTS: Record<string, string> = {
+  rejection: "fear of rejection",
+  words: "not knowing what to say",
+  confidence: "low confidence",
+  time: "never finding the right moment",
+};
+
+function joinList(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
 
 export type PlanState = {
   currentWeek: 1 | 2 | 3 | 4;
@@ -60,16 +83,20 @@ export function derivePlanState(createdAt: string | Date | null | undefined): Pl
 
 export function buildMotivation(profile: PlanProfile): PlanMotivation {
   const ids = (profile.goal || "").split(",").filter(Boolean);
-  const goalLabels = ids.map((id) => GOAL_LABELS[id]).filter(Boolean);
+  const fragments = ids.map((id) => GOAL_FRAGMENTS[id]).filter(Boolean);
   const custom = (profile.custom_goal || "").trim();
-  if (custom) goalLabels.push(custom);
+  if (custom) fragments.push(custom);
 
-  const blockerLabel = profile.blocker ? BLOCKER_LABELS[profile.blocker] ?? null : null;
+  const goalSentence = fragments.length > 0
+    ? `You want to ${joinList(fragments)}.`
+    : null;
+
+  const blockerFragment = profile.blocker ? BLOCKER_FRAGMENTS[profile.blocker] ?? null : null;
   const raw = profile.weekly_approach_goal;
 
   return {
-    goalLabels,
-    blockerLabel,
+    goalSentence,
+    blockerFragment,
     focus: (profile.plan_note || "").trim() || null,
     weeklyTarget: typeof raw === "number" && raw > 0 ? raw : 5,
   };
