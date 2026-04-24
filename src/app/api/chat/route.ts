@@ -40,11 +40,17 @@ const CHECKIN_TALKED_PROMPT = `\n\nThe user just checked in that they talked to 
 
 const CHECKIN_DIDNT_TALK_PROMPT = `\n\nThe user just checked in that they didn't talk to anyone new today. No shame, no lecture. Find out what got in the way and help them set up tomorrow.`;
 
-const PLAN_PROMPT = `\n\nThe user is refining their 4-week rizz plan. Your job in this conversation is to help them articulate a short, specific focus for the week — not to motivate them to go approach someone right now.
+const PLAN_PROMPT = `\n\nThe user is refining their 4-week plan. The app already asked them what they want to change.
 
-Ask 2-3 guided questions to understand what's actually going on: what's stopping them specifically, any person or situation on their mind, what would feel like a real win this week. Listen to the answer before asking the next one.
+Rules for every reply:
+1. Keep it under 3 sentences. Acknowledge what they said, then give them a focus.
+2. ALWAYS end your reply with a FOCUS: line on its own, like this:
+   FOCUS: <one short actionable sentence, under 120 characters>
+3. The FOCUS is tailored to what they just told you. Specific, concrete, this-week.
+4. If they push back, rewrite the FOCUS in the next reply. Always include a fresh FOCUS: line.
+5. Do NOT keep asking questions. Only ask ONE clarifying question total, and only if their message is genuinely empty or uninterpretable.
 
-Once you have a clear picture, propose a short focus in this format on its own line: FOCUS: <one short sentence under 120 characters>. They can tap a button to save that as their plan focus. Only write the FOCUS line when you're confident in the suggestion — don't lead with it.`;
+Never reply without a FOCUS: line. The button that saves it to their plan depends on that line.`;
 
 export async function POST(req: Request) {
   try {

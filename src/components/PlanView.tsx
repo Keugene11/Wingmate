@@ -303,29 +303,51 @@ export default function PlanView() {
       )}
 
       {/* Refine section */}
-      <div>
+      <div className="bg-bg-card/50 border border-border/60 rounded-2xl p-3">
+        {/* Chat header */}
+        <div className="flex items-center gap-2 mb-3 px-1">
+          <div className="w-6 h-6 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0">
+            <Sparkles size={12} strokeWidth={2.5} className="text-white" />
+          </div>
+          <p className="text-[12px] font-bold tracking-wide">Chat with Wingmate</p>
+          <span className="text-[11px] text-text-muted ml-1">· refine your plan</span>
+        </div>
+
         {/* Messages */}
         <div className="space-y-2.5 mb-3">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`flex ${m.role === "user" ? "justify-end" : ""}`}
-            >
-              <div
-                className={`rounded-2xl px-3.5 py-2.5 text-[14px] leading-[1.5] ${
-                  m.role === "user"
-                    ? "bg-[#1a1a1a] text-white max-w-[85%] rounded-br-sm"
-                    : "bg-bg-card border border-border/60 max-w-[92%] rounded-bl-sm"
-                }`}
-              >
-                <p className="whitespace-pre-wrap">{m.content}</p>
+          {messages.map((m, i) => {
+            if (m.role === "user") {
+              return (
+                <div key={i} className="flex justify-end">
+                  <div className="bg-[#1a1a1a] text-white rounded-2xl rounded-br-sm px-3.5 py-2.5 max-w-[85%] text-[14px] leading-[1.5]">
+                    <p className="whitespace-pre-wrap">{m.content}</p>
+                  </div>
+                </div>
+              );
+            }
+            // Assistant message — strip the FOCUS: marker from the visible
+            // text so the conversation reads naturally. The Save button
+            // below the input surfaces the extracted focus separately.
+            const display = m.content.replace(/\n?FOCUS:\s*(.+?)(?:\n|$)/i, "").trim();
+            if (!display && !chatLoading) return null;
+            return (
+              <div key={i} className="flex items-start gap-2">
+                <div className="w-6 h-6 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles size={12} strokeWidth={2.5} className="text-white" />
+                </div>
+                <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-3.5 py-2.5 max-w-[88%] text-[14px] leading-[1.5]">
+                  <p className="whitespace-pre-wrap">{display}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {chatLoading &&
             messages[messages.length - 1]?.role === "assistant" &&
             messages[messages.length - 1]?.content === "" && (
-              <div className="flex">
+              <div className="flex items-start gap-2">
+                <div className="w-6 h-6 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles size={12} strokeWidth={2.5} className="text-white" />
+                </div>
                 <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-3.5 py-3">
                   <div className="flex gap-1">
                     <div
@@ -364,17 +386,17 @@ export default function PlanView() {
           </button>
         )}
 
-        {/* Input */}
+        {/* Input — visually anchored to the chat container */}
         <form
           onSubmit={handleSubmit}
-          className="flex items-end gap-2 bg-bg-card border border-border rounded-2xl shadow-card pl-4 pr-2 py-2"
+          className="flex items-end gap-2 bg-bg border border-border rounded-2xl pl-4 pr-2 py-2"
         >
           <textarea
             ref={inputRef}
             value={input}
             onChange={handleTextareaInput}
             onKeyDown={handleKeyDown}
-            placeholder={messages.some((m) => m.role === "user") ? "Keep going..." : "What do you want to change..."}
+            placeholder={hasChatted ? "Type your reply..." : "Type your reply here..."}
             rows={1}
             maxLength={2000}
             className="flex-1 bg-transparent text-text text-[15px] placeholder-text-muted/60 focus:outline-none resize-none leading-normal py-1 min-w-0"
