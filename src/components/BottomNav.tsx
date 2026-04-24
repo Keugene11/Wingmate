@@ -44,10 +44,10 @@ export default function BottomNavBar() {
                 href={`/?tab=${id}`}
                 replace
                 className={`flex flex-col items-center gap-0.5 px-4 py-1 press transition-colors ${
-                  isActive ? "text-text" : "text-text-muted/50"
+                  isActive ? "text-text" : "text-text-muted"
                 }`}
               >
-                <Icon size={20} strokeWidth={isActive ? 2 : 1.5} />
+                <Icon size={20} strokeWidth={isActive ? 2.25 : 1.75} />
                 <span className="text-[10px] font-medium">{label}</span>
               </Link>
             );
@@ -55,10 +55,10 @@ export default function BottomNavBar() {
           <Link
             href="/profile"
             className={`flex flex-col items-center gap-0.5 px-4 py-1 press transition-colors ${
-              isProfile ? "text-text" : "text-text-muted/50"
+              isProfile ? "text-text" : "text-text-muted"
             }`}
           >
-            <User size={20} strokeWidth={isProfile ? 2 : 1.5} />
+            <User size={20} strokeWidth={isProfile ? 2.25 : 1.75} />
             <span className="text-[10px] font-medium">Profile</span>
           </Link>
         </div>

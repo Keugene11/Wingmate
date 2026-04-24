@@ -183,14 +183,9 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
           {/* Check-in card */}
           <div className="rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="font-display text-[18px] font-bold">Enter today&apos;s stats</h2>
-                <p className="text-white/50 text-[13px]">Start your streak today</p>
-              </div>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white/10">
-                <Flame size={20} strokeWidth={1.5} className="text-orange-400" />
-              </div>
+            <div className="mb-5">
+              <h2 className="font-display text-[18px] font-bold">Enter today&apos;s stats</h2>
+              <p className="text-white/50 text-[13px]">Start your streak today</p>
             </div>
 
             <div className="space-y-4 mb-5">
@@ -362,18 +357,13 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
 
       {/* Main check-in card — always the same black card style */}
       <div className="rounded-2xl px-5 py-6 bg-[#1a1a1a] text-white">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="font-display text-[18px] font-bold">
-                  {data.checkedInToday ? "Today\u2019s stats" : "Enter today\u2019s stats"}
-                </h2>
-                <p className="text-white/50 text-[13px]">
-                  {data.streak > 0 ? `${data.streak}-day streak — don\u2019t break it` : "Start your streak today"}
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white/10">
-                <Flame size={20} strokeWidth={1.5} className="text-orange-400" />
-              </div>
+            <div className="mb-5">
+              <h2 className="font-display text-[18px] font-bold">
+                {data.checkedInToday ? "Today\u2019s stats" : "Enter today\u2019s stats"}
+              </h2>
+              <p className="text-white/50 text-[13px]">
+                {data.streak > 0 ? `${data.streak}-day streak — don\u2019t break it` : "Start your streak today"}
+              </p>
             </div>
 
             <div className="space-y-4 mb-5">
