@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, ArrowUp, Lock, List, Plus } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { ArrowLeft, ArrowUp, Lock, List, Plus, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 
@@ -15,6 +15,7 @@ interface Message {
 interface ChatCoachProps {
   onBack: () => void;
   checkinMode?: "talked" | "didnt-talk";
+  planMode?: boolean;
   conversationId?: string | null;
   onConversationCreated?: (id: string) => void;
   onShowHistory?: () => void;
@@ -23,7 +24,14 @@ interface ChatCoachProps {
   isLoggedIn?: boolean;
 }
 
-export default function ChatCoach({ onBack, checkinMode, conversationId, onConversationCreated, onShowHistory, onNewChat, showBottomPadding, isLoggedIn = true }: ChatCoachProps) {
+function extractFocusLine(content: string): string | null {
+  const m = content.match(/FOCUS:\s*(.+?)(?:\n|$)/i);
+  if (!m) return null;
+  const focus = m[1].trim().replace(/^["']|["']$/g, "");
+  return focus.length > 0 ? focus.slice(0, 500) : null;
+}
+
+export default function ChatCoach({ onBack, checkinMode, planMode, conversationId, onConversationCreated, onShowHistory, onNewChat, showBottomPadding, isLoggedIn = true }: ChatCoachProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -107,7 +115,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: messagesToSend,
-            mode: checkinMode ? `checkin-${checkinMode}` : "general",
+            mode: planMode ? "plan" : checkinMode ? `checkin-${checkinMode}` : "general",
           }),
         });
         if (!response.ok) throw new Error("Failed");
@@ -367,6 +375,39 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     };
   }, []);
 
+  // In plan mode, scan the most recent completed assistant message for a
+  // "FOCUS: ..." line the coach wrote. When one exists, we surface a button
+  // to save it as the user's plan focus.
+  const pendingFocus = useMemo(() => {
+    if (!planMode) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role === "assistant" && m.content) {
+        const f = extractFocusLine(m.content);
+        if (f) return f;
+        break;
+      }
+    }
+    return null;
+  }, [planMode, messages]);
+
+  const [savingFocus, setSavingFocus] = useState(false);
+
+  const saveFocus = async () => {
+    if (!pendingFocus || savingFocus) return;
+    setSavingFocus(true);
+    try {
+      await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan_note: pendingFocus }),
+      });
+      onBack();
+    } catch {
+      setSavingFocus(false);
+    }
+  };
+
   return (
     <div
       className={`fixed top-0 left-0 right-0 flex flex-col max-w-md mx-auto bg-bg animate-fade-in overflow-hidden ${showBottomPadding && keyboardOffset === 0 ? "bottom-[calc(3.25rem+max(0.5rem,env(safe-area-inset-bottom)))]" : "bottom-0"}`}
@@ -472,6 +513,20 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         </div>
       ) : (
         <div className="shrink-0 pb-2">
+          {planMode && pendingFocus && (
+            <div className="px-4 pb-2">
+              <button
+                onClick={saveFocus}
+                disabled={savingFocus}
+                className="w-full flex items-center justify-center gap-2 bg-[#1a1a1a] text-white rounded-2xl py-3 press disabled:opacity-60"
+              >
+                <Sparkles size={14} strokeWidth={2} />
+                <span className="text-[14px] font-semibold">
+                  {savingFocus ? "Saving..." : `Save as my focus: "${pendingFocus.length > 32 ? pendingFocus.slice(0, 32) + "..." : pendingFocus}"`}
+                </span>
+              </button>
+            </div>
+          )}
           <div className="px-4 py-2">
             <form
               onSubmit={handleSubmit}

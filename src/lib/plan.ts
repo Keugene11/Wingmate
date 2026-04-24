@@ -69,24 +69,24 @@ function spotsFor(profile: PlanProfile): string {
 function blockerAddress(blocker: string | null): string {
   switch (blocker) {
     case "rejection":
-      return "You said fear of rejection is what stops you. Forget the outcome — every attempt IS the win. She doesn't owe you a conversation. You owe yourself the rep.";
+      return "Fear of rejection is your block — so forget outcomes. Every attempt is the win.";
     case "words":
-      return "You said you never know what to say. You don't need a script. \"Hey, how's your day going?\" has worked for every guy in history. Use the words that are already in your mouth.";
+      return "You never know what to say — so don't try to. \"Hey, how's your day going\" works.";
     case "confidence":
-      return "You said low confidence is holding you back. You're not going to feel ready. The guy who waits to feel ready never goes. Act first, confidence comes after.";
+      return "Low confidence is the block — you won't feel ready. Act first, confidence follows.";
     case "time":
-      return "You said you can never find the right moment. There isn't one. Make the move in the first 10 seconds or you'll talk yourself out of it.";
+      return "You can't find the right moment — so don't wait for one. First 10 seconds or it doesn't happen.";
     default:
-      return "You're here because you want to make more moves. That's the first rep.";
+      return "You're here to make more moves. That's the first rep.";
   }
 }
 
 function goalLine(goal: string | null): string {
   const goals = (goal || "").split(",").filter(Boolean);
-  if (goals.includes("girlfriend")) return "You said you want a girlfriend — so don't waste the ask on every girl you talk to. Close the loop with the ones who actually spark something.";
-  if (goals.includes("hookups")) return "You said you're in it for the dating game. Read her energy. If she's giving it back, match and escalate.";
-  if (goals.includes("rizz")) return "You said you're working on rizz. The ask is the rep that builds the skill — treat it like a set, not a verdict.";
-  if (goals.includes("memories")) return "You said you just want great memories. That's made by the moments you said yes to, not the ones you dodged.";
+  if (goals.includes("girlfriend")) return "You want a girlfriend — close only with the ones who actually spark something.";
+  if (goals.includes("hookups")) return "You're playing the dating game — match her energy and escalate.";
+  if (goals.includes("rizz")) return "You're building rizz — the ask is the rep that matters most.";
+  if (goals.includes("memories")) return "You want memories — made by the moments you said yes to.";
   return "Every closed loop is proof you can do this.";
 }
 
@@ -101,30 +101,27 @@ export function buildWeek(weekNum: 1 | 2 | 3 | 4, profile: PlanProfile): PlanWee
     return {
       number: 1,
       heading: "Build the habit",
-      why: `${blockerAddress(profile.blocker)}\n\nYou told us you want to talk to ${weekly} girls a week. This week we're not there yet — we're ramping. Half the volume, full commitment.`,
+      why: `${blockerAddress(profile.blocker)} Target ${weekly}/week — this week we ramp at half.`,
       tasks: [
-        `${halfDaily} ${halfDaily === 1 ? "approach" : "approaches"} a day — ${halfWeekly} for the week`,
-        `Do them at ${spots}`,
-        `Count attempts, not outcomes. Every "hey" is a rep, even if she barely responds`,
+        `${halfDaily} ${halfDaily === 1 ? "approach" : "approaches"} a day · ${halfWeekly}/week`,
+        `Stay in your lane: ${spots.split(" — ")[0]}`,
+        `Count attempts, not outcomes`,
       ],
-      endOfWeek: `${halfWeekly} attempts logged. Hit that and Week 2 is just volume.`,
+      endOfWeek: `${halfWeekly} attempts logged.`,
     };
   }
 
   if (weekNum === 2) {
-    const timeNudge = profile.blocker === "time"
-      ? "Use the time you already have — the line at the café, the walk between classes, the grocery run."
-      : "You're allowed to leave right after the opener. A 'hi' still counts.";
     return {
       number: 2,
       heading: "Hit your number",
-      why: `Last week was the warmup. This week is your actual target — ${weekly} approaches. You set the number; time to prove it wasn't a fantasy.`,
+      why: `Warmup's over. Target — ${weekly} approaches. Prove the number wasn't a fantasy.`,
       tasks: [
-        `${daily} ${daily === 1 ? "approach" : "approaches"} a day, ${weekly} for the week`,
-        `Lean on routine. Same ${spots.split(" — ")[0]} — different faces`,
-        timeNudge,
+        `${daily} a day · ${weekly}/week`,
+        `Same spots, different faces`,
+        profile.blocker === "time" ? "Use time you already have — café lines, commutes" : "Leaving after the opener still counts",
       ],
-      endOfWeek: `${weekly} approaches. Your number, hit clean.`,
+      endOfWeek: `${weekly} approaches, hit clean.`,
     };
   }
 
@@ -132,11 +129,11 @@ export function buildWeek(weekNum: 1 | 2 | 3 | 4, profile: PlanProfile): PlanWee
     return {
       number: 3,
       heading: "Go deeper",
-      why: `You're past "can I even do this." Now we stretch — same ${weekly} approaches, but on at least half of them, actually stick around.`,
+      why: `Past "can I even do this." Stretch — same ${weekly}, but stick around on half.`,
       tasks: [
-        `Keep your ${daily}-a-day pace — ${weekly} for the week`,
-        `On half of them, hold a 60+ second conversation. Ask one follow-up. Listen to her answer`,
-        `Practice the exit: "Anyway, I gotta run — was good talking." Say it and mean it`,
+        `${daily} a day · ${weekly}/week`,
+        `Carry 60+ seconds on half. One follow-up, one thing about you`,
+        `Clean exit: "Anyway, I gotta run"`,
       ],
       endOfWeek: "One 2-minute conversation that doesn't feel forced.",
     };
@@ -146,12 +143,12 @@ export function buildWeek(weekNum: 1 | 2 | 3 | 4, profile: PlanProfile): PlanWee
   return {
     number: 4,
     heading: "Close the loop",
-    why: `You're not walking away empty-handed anymore.\n\n${goalLine(profile.goal)}`,
+    why: `Stop walking away empty-handed. ${goalLine(profile.goal)}`,
     tasks: [
-      `Keep ${daily} a day — ${weekly} for the week`,
-      `1 ask per day for an Instagram or number. Exact line: "I gotta go but you seem cool — what's your Instagram?"`,
-      `If she says no: "all good, have a great one" — walk. Clean exit, no wounded energy`,
+      `${daily} a day · ${weekly}/week`,
+      `1 ask a day: "I gotta go but you seem cool — what's your IG?"`,
+      `If no, clean exit. No wounded energy`,
     ],
-    endOfWeek: "One closed loop this week. Whether she replies or ghosts doesn't matter — you closed.",
+    endOfWeek: "One closed loop — ghost or not, you closed.",
   };
 }

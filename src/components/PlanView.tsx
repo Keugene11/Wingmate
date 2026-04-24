@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { buildWeek, derivePlanState, type PlanProfile } from "@/lib/plan";
 
 type ProfileResponse = {
@@ -10,10 +10,11 @@ type ProfileResponse = {
   blocker: string | null;
   goal: string | null;
   weekly_approach_goal: number | null;
+  plan_note: string | null;
   created_at: string | null;
 };
 
-export default function PlanView() {
+export default function PlanView({ onPersonalize }: { onPersonalize?: () => void }) {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,23 +58,24 @@ export default function PlanView() {
   }
 
   const week = weeks[state.currentWeek - 1];
+  const focus = profile?.plan_note?.trim() || "";
 
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-2">
+      <div className="mb-5">
+        <h1 className="font-display text-[28px] font-bold tracking-tight leading-[1.2] mb-1">
           Your Plan
         </h1>
-        <p className="text-text-muted text-[15px] leading-relaxed">
+        <p className="text-text-muted text-[14px]">
           {state.graduated
-            ? "You've made it through the 4-week plan. Keep the reps going."
-            : `Week ${state.currentWeek} of 4 — ${state.daysIntoWeek === 0 ? "just started" : `day ${state.daysIntoWeek + 1}`}`}
+            ? "You've made it through the 4 weeks. Keep going."
+            : `Week ${state.currentWeek} of 4 · day ${state.daysIntoWeek + 1}`}
         </p>
       </div>
 
       {/* Week timeline */}
-      <div className="flex items-start gap-2 mb-6">
+      <div className="flex items-start gap-2 mb-5">
         {weeks.map((w) => {
           const isCurrent = w.number === state.currentWeek && !state.graduated;
           const isPast = w.number < state.currentWeek || (state.graduated && w.number <= 4);
@@ -108,48 +110,57 @@ export default function PlanView() {
         })}
       </div>
 
+      {/* Focus (if set) */}
+      {focus && (
+        <div className="bg-[#1a1a1a] text-white rounded-2xl px-4 py-3.5 mb-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
+            Your focus
+          </p>
+          <p className="text-[14px] leading-snug">{focus}</p>
+        </div>
+      )}
+
       {/* Current week card */}
-      <div className="bg-bg-card border border-border rounded-2xl shadow-card p-5 mb-4">
-        <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">
-          This week
-        </p>
-        <h2 className="font-display text-[22px] font-bold leading-tight mb-3">
+      <div className="bg-bg-card border border-border rounded-2xl shadow-card p-4 mb-3">
+        <h2 className="font-display text-[20px] font-bold leading-tight mb-1.5">
           {week.heading}
         </h2>
-        {week.why.split("\n\n").map((para, i) => (
-          <p
-            key={i}
-            className="text-text/80 text-[14.5px] leading-[1.6] mb-4 last:mb-5"
-          >
-            {para}
-          </p>
-        ))}
+        <p className="text-text/75 text-[13.5px] leading-snug mb-4">{week.why}</p>
 
-        <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-3">
-          Your tasks
-        </p>
-        <div className="space-y-3 mb-5">
+        <ul className="space-y-1.5 mb-4">
           {week.tasks.map((task, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full border-2 border-border shrink-0 mt-0.5" />
-              <p className="text-[14.5px] leading-[1.55] text-text/90 flex-1">
-                {task}
-              </p>
-            </div>
+            <li
+              key={i}
+              className="text-[13.5px] leading-snug text-text/90 flex gap-2"
+            >
+              <span className="text-text-muted shrink-0">·</span>
+              <span>{task}</span>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        <div className="bg-bg-input rounded-xl px-4 py-3">
-          <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">
+        <div className="bg-bg-input rounded-lg px-3 py-2">
+          <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wide mb-0.5">
             End of week
           </p>
-          <p className="text-[14px] leading-snug font-medium">{week.endOfWeek}</p>
+          <p className="text-[13px] leading-snug font-medium">{week.endOfWeek}</p>
         </div>
       </div>
 
+      {/* Personalize button */}
+      <button
+        onClick={onPersonalize}
+        className="w-full flex items-center justify-center gap-2 bg-bg-card border border-border rounded-2xl shadow-card px-4 py-3.5 press"
+      >
+        <Sparkles size={16} strokeWidth={1.75} />
+        <span className="text-[14px] font-semibold">
+          {focus ? "Refine your focus" : "Personalize with Wingmate"}
+        </span>
+      </button>
+
       {/* Footer note */}
       {!state.graduated && state.currentWeek < 4 && (
-        <p className="text-center text-[12px] text-text-muted px-6 mt-4">
+        <p className="text-center text-[12px] text-text-muted mt-4">
           Week {state.currentWeek + 1} unlocks in {7 - state.daysIntoWeek}{" "}
           {7 - state.daysIntoWeek === 1 ? "day" : "days"}.
         </p>

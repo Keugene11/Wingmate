@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   status TEXT,
   location TEXT,
   blocker TEXT,
+  plan_note TEXT,
   weekly_approach_goal INT NOT NULL DEFAULT 0,
   xp INT NOT NULL DEFAULT 0,
   level INT NOT NULL DEFAULT 1,

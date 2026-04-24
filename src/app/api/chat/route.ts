@@ -40,6 +40,12 @@ const CHECKIN_TALKED_PROMPT = `\n\nThe user just checked in that they talked to 
 
 const CHECKIN_DIDNT_TALK_PROMPT = `\n\nThe user just checked in that they didn't talk to anyone new today. No shame, no lecture. Find out what got in the way and help them set up tomorrow.`;
 
+const PLAN_PROMPT = `\n\nThe user is refining their 4-week rizz plan. Your job in this conversation is to help them articulate a short, specific focus for the week — not to motivate them to go approach someone right now.
+
+Ask 2-3 guided questions to understand what's actually going on: what's stopping them specifically, any person or situation on their mind, what would feel like a real win this week. Listen to the answer before asking the next one.
+
+Once you have a clear picture, propose a short focus in this format on its own line: FOCUS: <one short sentence under 120 characters>. They can tap a button to save that as their plan focus. Only write the FOCUS line when you're confident in the suggestion — don't lead with it.`;
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -107,6 +113,8 @@ export async function POST(req: Request) {
       systemPrompt += CHECKIN_TALKED_PROMPT;
     } else if (mode === "checkin-didnt-talk") {
       systemPrompt += CHECKIN_DIDNT_TALK_PROMPT;
+    } else if (mode === "plan") {
+      systemPrompt += PLAN_PROMPT;
     }
 
     const apiMessages = messages.map((m: { role: string; content: string }) => ({

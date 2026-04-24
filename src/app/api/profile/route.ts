@@ -114,6 +114,11 @@ export async function PATCH(req: Request) {
     updates.blocker = body.blocker;
   }
 
+  if (body.plan_note !== undefined) {
+    const note = typeof body.plan_note === "string" ? body.plan_note.trim() : "";
+    updates.plan_note = note.slice(0, 500);
+  }
+
   if (body.date_of_birth !== undefined) {
     // Expect YYYY-MM-DD. Reject anything else so we don't store garbage.
     const dob = String(body.date_of_birth);
@@ -155,7 +160,8 @@ export async function PATCH(req: Request) {
         date_of_birth = COALESCE(${updates.date_of_birth ?? null}, date_of_birth),
         status = COALESCE(${updates.status ?? null}, status),
         location = COALESCE(${updates.location ?? null}, location),
-        blocker = COALESCE(${updates.blocker ?? null}, blocker)
+        blocker = COALESCE(${updates.blocker ?? null}, blocker),
+        plan_note = COALESCE(${updates.plan_note ?? null}, plan_note)
       WHERE id = ${userId}
       RETURNING *
     `;

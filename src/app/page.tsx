@@ -35,7 +35,7 @@ function getGreeting(name?: string): string {
   return lines[dayOfYear % lines.length];
 }
 
-type AppState = "tabs" | "conversations" | "chat" | "checkin-chat";
+type AppState = "tabs" | "conversations" | "chat" | "checkin-chat" | "plan-chat";
 
 const PAGE_SIZE = 20;
 
@@ -352,6 +352,19 @@ function HomeInner() {
     );
   }
 
+  // Full-screen: plan-chat (refine your plan's focus via chat)
+  if (state === "plan-chat") {
+    return (
+      <main className="min-h-app max-w-md mx-auto">
+        <ChatCoach
+          onBack={reset}
+          planMode
+          onConversationCreated={(id) => setActiveConversationId(id)}
+        />
+      </main>
+    );
+  }
+
   // Tab-based layout (tab bar always visible)
   return (
     <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-app overflow-hidden" : "min-h-app pb-20"}`}>
@@ -428,7 +441,7 @@ function HomeInner() {
       {/* ===== PLAN TAB ===== */}
       {activeTab === "plan" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          <PlanView />
+          <PlanView onPersonalize={() => updateState("plan-chat")} />
         </div>
       )}
 
