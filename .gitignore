@@ -27,3 +27,7 @@ android/app/build/
 .apple-signing/
 
 .env*.local
+
+# Generated test output
+test-results/
+screenshots/
