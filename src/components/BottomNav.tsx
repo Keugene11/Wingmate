@@ -16,7 +16,7 @@ const tabs: { id: Tab; label: string; icon: typeof Flame }[] = [
 function useActiveTab(): { active: Tab | null; isProfile: boolean } {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  if (pathname === "/profile") return { active: null, isProfile: true };
+  if (pathname === "/profile" || pathname.startsWith("/profile/")) return { active: null, isProfile: true };
   if (pathname === "/plans") return { active: "plans", isProfile: false };
   if (pathname.startsWith("/community")) return { active: "community", isProfile: false };
   if (pathname === "/") {
