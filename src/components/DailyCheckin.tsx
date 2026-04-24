@@ -135,6 +135,9 @@ export default function DailyCheckin({ greeting, onTalkAboutIt, onCheckedIn, isL
       }
       await refreshData();
       setJustCheckedIn(true);
+      // Auto-dismiss the success banner after a few seconds so it doesn't
+      // linger on the tab forever.
+      setTimeout(() => setJustCheckedIn(false), 3500);
       onCheckedIn?.();
     } catch (e) {
       console.error("submitCheckin error:", e);
