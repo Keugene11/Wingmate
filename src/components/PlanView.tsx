@@ -24,22 +24,26 @@ type PlanUpdates = Partial<{
   plan_note: string;
 }>;
 
+// Tolerant parser — the model doesn't always format perfectly. Accepts
+// UPDATE, Update, with or without colons, single-quoted or bare values.
 function parseUpdates(content: string): PlanUpdates {
   const updates: PlanUpdates = {};
-  const regex = /^\s*UPDATE\s+(\w+)\s*=\s*(.+?)\s*$/gim;
-  const matches = [...content.matchAll(regex)];
-  for (const m of matches) {
-    const field = m[1].trim();
-    const raw = m[2].trim().replace(/^["']|["']$/g, "");
+  const regex = /UPDATE[:\s]+(\w+)\s*[=:]\s*([^\n]+)/gi;
+  for (const m of content.matchAll(regex)) {
+    const field = m[1].trim().toLowerCase();
+    let raw = m[2].trim();
+    // Strip surrounding quotes/backticks and trailing punctuation.
+    raw = raw.replace(/^["'`]|["'`]$/g, "").trim();
+    raw = raw.replace(/[.,;]+$/, "").trim();
     if (field === "weekly_approach_goal") {
       const n = parseInt(raw, 10);
       if (!Number.isNaN(n) && n >= 1 && n <= 20) updates.weekly_approach_goal = n;
-    } else if (field === "blocker" && ["rejection", "words", "confidence", "time"].includes(raw)) {
-      updates.blocker = raw;
-    } else if (field === "location" && ["city", "suburb", "town", "rural"].includes(raw)) {
-      updates.location = raw;
-    } else if (field === "status" && ["student", "working", "other"].includes(raw)) {
-      updates.status = raw;
+    } else if (field === "blocker" && ["rejection", "words", "confidence", "time"].includes(raw.toLowerCase())) {
+      updates.blocker = raw.toLowerCase();
+    } else if (field === "location" && ["city", "suburb", "town", "rural"].includes(raw.toLowerCase())) {
+      updates.location = raw.toLowerCase();
+    } else if (field === "status" && ["student", "working", "other"].includes(raw.toLowerCase())) {
+      updates.status = raw.toLowerCase();
     } else if (field === "plan_note") {
       updates.plan_note = raw.slice(0, 500);
     }
@@ -48,7 +52,7 @@ function parseUpdates(content: string): PlanUpdates {
 }
 
 function stripUpdates(content: string): string {
-  return content.replace(/^\s*UPDATE\s+\w+\s*=.*$/gim, "").trim();
+  return content.replace(/UPDATE[:\s]+\w+\s*[=:][^\n]*/gi, "").trim();
 }
 
 const OPENING_MESSAGE: Message = {
