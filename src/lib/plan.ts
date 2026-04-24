@@ -10,16 +10,30 @@ export type PlanProfile = {
   location: string | null;
   blocker: string | null;
   goal: string | null;
+  custom_goal: string | null;
   weekly_approach_goal: number | null;
   plan_note: string | null;
 };
 
 export type PlanMotivation = {
-  why: string;
-  lie: string;
-  truth: string;
+  goalLabels: string[];
+  blockerLabel: string | null;
   focus: string | null;
   weeklyTarget: number;
+};
+
+export const GOAL_LABELS: Record<string, string> = {
+  girlfriend: "Get a girlfriend",
+  rizz: "Improve my rizz",
+  memories: "Make fun memories",
+  hookups: "Meet more people & date casually",
+};
+
+export const BLOCKER_LABELS: Record<string, string> = {
+  rejection: "Fear of rejection",
+  words: "Don't know what to say",
+  confidence: "Low confidence",
+  time: "Never the right moment",
 };
 
 export type PlanState = {
@@ -44,41 +58,18 @@ export function derivePlanState(createdAt: string | Date | null | undefined): Pl
   };
 }
 
-function whyFromGoal(goal: string | null): string {
-  const goals = (goal || "").split(",").filter(Boolean);
-  if (goals.includes("girlfriend")) return "You want a girlfriend. A real one.";
-  if (goals.includes("hookups")) return "You want to live, not just scroll.";
-  if (goals.includes("rizz")) return "You want to be the guy who can talk to anyone.";
-  if (goals.includes("memories")) return "You want stories worth telling.";
-  return "You want more than what you've got.";
-}
-
-function lieFromBlocker(blocker: string | null): string {
-  switch (blocker) {
-    case "rejection": return "\"She'll reject me.\"";
-    case "words": return "\"I won't know what to say.\"";
-    case "confidence": return "\"I'm not ready.\"";
-    case "time": return "\"Not the right moment.\"";
-    default: return "\"Not today.\"";
-  }
-}
-
-function truthFromBlocker(blocker: string | null): string {
-  switch (blocker) {
-    case "rejection": return "Rejection is information. You still win by asking.";
-    case "words": return "\"Hey\" has worked forever. Use any words.";
-    case "confidence": return "You won't feel ready. Move first — feelings follow.";
-    case "time": return "There is no right moment. 10 seconds or never.";
-    default: return "Every 'not today' adds up to never.";
-  }
-}
-
 export function buildMotivation(profile: PlanProfile): PlanMotivation {
+  const ids = (profile.goal || "").split(",").filter(Boolean);
+  const goalLabels = ids.map((id) => GOAL_LABELS[id]).filter(Boolean);
+  const custom = (profile.custom_goal || "").trim();
+  if (custom) goalLabels.push(custom);
+
+  const blockerLabel = profile.blocker ? BLOCKER_LABELS[profile.blocker] ?? null : null;
   const raw = profile.weekly_approach_goal;
+
   return {
-    why: whyFromGoal(profile.goal),
-    lie: lieFromBlocker(profile.blocker),
-    truth: truthFromBlocker(profile.blocker),
+    goalLabels,
+    blockerLabel,
     focus: (profile.plan_note || "").trim() || null,
     weeklyTarget: typeof raw === "number" && raw > 0 ? raw : 5,
   };

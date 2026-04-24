@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Sparkles, ArrowUp, ChevronDown } from "lucide-react";
+import { Check, Sparkles, ArrowUp } from "lucide-react";
 import { buildMotivation, derivePlanState, type PlanProfile } from "@/lib/plan";
 
 type ProfileResponse = {
@@ -9,6 +9,7 @@ type ProfileResponse = {
   location: string | null;
   blocker: string | null;
   goal: string | null;
+  custom_goal: string | null;
   weekly_approach_goal: number | null;
   plan_note: string | null;
   created_at: string | null;
@@ -68,7 +69,6 @@ export default function PlanView() {
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [justUpdated, setJustUpdated] = useState(false);
-  const [stuckOpen, setStuckOpen] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const justUpdatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,6 +97,7 @@ export default function PlanView() {
       location: profile?.location ?? null,
       blocker: profile?.blocker ?? null,
       goal: profile?.goal ?? null,
+      custom_goal: profile?.custom_goal ?? null,
       weekly_approach_goal: profile?.weekly_approach_goal ?? null,
       plan_note: profile?.plan_note ?? null,
     }),
@@ -259,63 +260,55 @@ export default function PlanView() {
         </span>
       </div>
 
-      {/* One focus card — the thing to do this week, the why behind it, and a
-          collapsible reframe for when he freezes. */}
+      {/* Plan card — reflects the user's own answers: their goal, what's
+          stopping them, and the focus for this week. */}
       <div
         className={`bg-bg-card border border-border rounded-2xl shadow-card p-5 mb-5 transition-all ${
           justUpdated ? "ring-2 ring-green-400" : ""
         }`}
       >
-        {motivation.focus ? (
-          <>
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
-              This week
-            </p>
-            <p className="font-display text-[22px] font-extrabold leading-tight mb-3">
-              {motivation.focus}
-            </p>
-            <p className="text-[13px] text-text-muted leading-snug">
-              {motivation.why}
-            </p>
-          </>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
+          Your goal
+        </p>
+        {motivation.goalLabels.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {motivation.goalLabels.map((label) => (
+              <span
+                key={label}
+                className="text-[14px] font-semibold bg-bg-input rounded-lg px-3 py-1.5"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
         ) : (
+          <p className="text-[14px] text-text-muted">Not set</p>
+        )}
+
+        {motivation.blockerLabel && (
           <>
+            <div className="h-px bg-border my-4" />
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
-              Why
+              What&apos;s stopping me
             </p>
-            <p className="font-display text-[22px] font-extrabold leading-tight mb-3">
-              {motivation.why}
-            </p>
-            <p className="text-[13px] text-text-muted leading-snug">
-              No focus set yet. Tell the chat what to lock in this week.
+            <p className="text-[15px] font-semibold leading-snug">
+              {motivation.blockerLabel}
             </p>
           </>
         )}
 
-        <button
-          onClick={() => setStuckOpen((v) => !v)}
-          className="mt-5 pt-4 border-t border-border w-full flex items-center justify-between press"
-          aria-expanded={stuckOpen}
-        >
-          <span className="text-[13px] font-semibold">
-            {stuckOpen ? "Close" : "Stuck?"}
-          </span>
-          <ChevronDown
-            size={16}
-            strokeWidth={2}
-            className={`text-text-muted transition-transform ${stuckOpen ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        {stuckOpen && (
-          <div className="mt-3 animate-fade-in">
-            <p className="font-display text-[14px] italic text-text-muted mb-1">
-              {motivation.lie}
-            </p>
-            <p className="text-[14px] font-semibold leading-snug">
-              {motivation.truth}
-            </p>
-          </div>
+        <div className="h-px bg-border my-4" />
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-orange-500 mb-2">
+          This week
+        </p>
+        {motivation.focus ? (
+          <p className="text-[15px] font-semibold leading-snug">
+            {motivation.focus}
+          </p>
+        ) : (
+          <p className="text-[14px] text-text-muted">
+            Tell the chat what to lock in this week.
+          </p>
         )}
       </div>
 
