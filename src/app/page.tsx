@@ -35,7 +35,7 @@ function getGreeting(name?: string): string {
   return lines[dayOfYear % lines.length];
 }
 
-type AppState = "tabs" | "conversations" | "chat" | "checkin-chat" | "plan-chat";
+type AppState = "tabs" | "conversations" | "chat" | "checkin-chat";
 
 const PAGE_SIZE = 20;
 
@@ -352,21 +352,6 @@ function HomeInner() {
     );
   }
 
-  // Plan refinement chat — render inside the tab layout so the bottom nav
-  // stays accessible while the user is chatting.
-  if (state === "plan-chat") {
-    return (
-      <main className="h-app overflow-hidden max-w-md mx-auto">
-        <ChatCoach
-          onBack={reset}
-          planMode
-          showBottomPadding
-          onConversationCreated={(id) => setActiveConversationId(id)}
-        />
-      </main>
-    );
-  }
-
   // Tab-based layout (tab bar always visible)
   return (
     <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-app overflow-hidden" : "min-h-app pb-20"}`}>
@@ -443,7 +428,7 @@ function HomeInner() {
       {/* ===== PLAN TAB ===== */}
       {activeTab === "plan" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
-          <PlanView onPersonalize={() => updateState("plan-chat")} />
+          <PlanView />
         </div>
       )}
 

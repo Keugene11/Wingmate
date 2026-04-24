@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Sparkles, ArrowUp } from "lucide-react";
 import { buildWeek, derivePlanState, type PlanProfile } from "@/lib/plan";
 
 type ProfileResponse = {
@@ -14,9 +14,30 @@ type ProfileResponse = {
   created_at: string | null;
 };
 
-export default function PlanView({ onPersonalize }: { onPersonalize?: () => void }) {
+type Message = { role: "user" | "assistant"; content: string };
+
+function extractFocusLine(content: string): string | null {
+  const m = content.match(/FOCUS:\s*(.+?)(?:\n|$)/i);
+  if (!m) return null;
+  const focus = m[1].trim().replace(/^["']|["']$/g, "");
+  return focus.length > 0 ? focus.slice(0, 500) : null;
+}
+
+const OPENING_MESSAGE: Message = {
+  role: "assistant",
+  content:
+    "What do you want to change about your plan? Tell me what's not clicking for you — the number, the spots, the blocker, or something else that's actually going on.",
+};
+
+export default function PlanView() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [messages, setMessages] = useState<Message[]>([OPENING_MESSAGE]);
+  const [input, setInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [savingFocus, setSavingFocus] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetch("/api/profile")
@@ -48,6 +69,110 @@ export default function PlanView({ onPersonalize }: { onPersonalize?: () => void
     () => [1, 2, 3, 4].map((n) => buildWeek(n as 1 | 2 | 3 | 4, profileData)),
     [profileData]
   );
+
+  const pendingFocus = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role === "assistant" && m.content) {
+        const f = extractFocusLine(m.content);
+        if (f) return f;
+        break;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const saveFocus = async () => {
+    if (!pendingFocus || savingFocus) return;
+    setSavingFocus(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan_note: pendingFocus }),
+      });
+      const data = await res.json();
+      if (data.profile) setProfile(data.profile);
+    } catch {}
+    setSavingFocus(false);
+  };
+
+  const sendMessage = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || chatLoading) return;
+
+    const userMsg: Message = { role: "user", content: trimmed };
+    const history = [...messages, userMsg];
+    setMessages([...history, { role: "assistant", content: "" }]);
+    setInput("");
+    setChatLoading(true);
+    if (inputRef.current) inputRef.current.style.height = "auto";
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history, mode: "plan" }),
+      });
+
+      if (!res.ok || !res.body) throw new Error("Chat failed");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        for (const line of chunk.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              assistantContent += parsed.content;
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: "assistant", content: assistantContent };
+                return updated;
+              });
+            }
+          } catch {}
+        }
+      }
+    } catch {
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: "assistant",
+          content: "Something went wrong — try that again in a second.",
+        };
+        return updated;
+      });
+    }
+    setChatLoading(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
+  };
+
+  const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  };
 
   if (loading) {
     return (
@@ -121,7 +246,7 @@ export default function PlanView({ onPersonalize }: { onPersonalize?: () => void
       )}
 
       {/* Current week card */}
-      <div className="bg-bg-card border border-border rounded-2xl shadow-card p-4 mb-3">
+      <div className="bg-bg-card border border-border rounded-2xl shadow-card p-4 mb-5">
         <h2 className="font-display text-[20px] font-bold leading-tight mb-1.5">
           {week.heading}
         </h2>
@@ -147,16 +272,97 @@ export default function PlanView({ onPersonalize }: { onPersonalize?: () => void
         </div>
       </div>
 
-      {/* Personalize button */}
-      <button
-        onClick={onPersonalize}
-        className="w-full flex items-center justify-center gap-2 bg-bg-card border border-border rounded-2xl shadow-card px-4 py-3.5 press"
-      >
-        <Sparkles size={16} strokeWidth={1.75} />
-        <span className="text-[14px] font-semibold">
-          {focus ? "Refine your focus" : "Personalize with Wingmate"}
-        </span>
-      </button>
+      {/* Refine section */}
+      <div className="mb-2">
+        <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-3">
+          Refine your plan
+        </p>
+
+        {/* Messages */}
+        <div className="space-y-2.5 mb-3">
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className={`flex ${m.role === "user" ? "justify-end" : ""}`}
+            >
+              <div
+                className={`rounded-2xl px-3.5 py-2.5 text-[14px] leading-[1.5] ${
+                  m.role === "user"
+                    ? "bg-[#1a1a1a] text-white max-w-[85%] rounded-br-sm"
+                    : "bg-bg-card border border-border/60 max-w-[92%] rounded-bl-sm"
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{m.content}</p>
+              </div>
+            </div>
+          ))}
+          {chatLoading &&
+            messages[messages.length - 1]?.role === "assistant" &&
+            messages[messages.length - 1]?.content === "" && (
+              <div className="flex">
+                <div className="bg-bg-card border border-border/60 rounded-2xl rounded-bl-sm px-3.5 py-3">
+                  <div className="flex gap-1">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full bg-orange-400/60 animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    />
+                    <div
+                      className="w-1.5 h-1.5 rounded-full bg-orange-400/60 animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    />
+                    <div
+                      className="w-1.5 h-1.5 rounded-full bg-orange-400/60 animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+        </div>
+
+        {/* Save focus button (appears when coach emits a FOCUS: line) */}
+        {pendingFocus && (
+          <button
+            onClick={saveFocus}
+            disabled={savingFocus || pendingFocus === focus}
+            className="w-full flex items-center justify-center gap-2 bg-[#1a1a1a] text-white rounded-2xl py-3 press disabled:opacity-60 mb-3"
+          >
+            <Sparkles size={14} strokeWidth={2} />
+            <span className="text-[13.5px] font-semibold truncate px-2">
+              {savingFocus
+                ? "Saving..."
+                : pendingFocus === focus
+                ? "Saved as your focus"
+                : `Save as my focus: "${pendingFocus.length > 40 ? pendingFocus.slice(0, 40) + "..." : pendingFocus}"`}
+            </span>
+          </button>
+        )}
+
+        {/* Input */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-end gap-2 bg-bg-card border border-border rounded-2xl shadow-card pl-4 pr-2 py-2"
+        >
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={handleTextareaInput}
+            onKeyDown={handleKeyDown}
+            placeholder={messages.some((m) => m.role === "user") ? "Keep going..." : "What do you want to change..."}
+            rows={1}
+            maxLength={2000}
+            className="flex-1 bg-transparent text-text text-[15px] placeholder-text-muted/60 focus:outline-none resize-none leading-normal py-1 min-w-0"
+            disabled={chatLoading}
+          />
+          <button
+            type="submit"
+            disabled={chatLoading || !input.trim()}
+            className="bg-[#1a1a1a] disabled:opacity-15 text-white p-2.5 rounded-xl press shrink-0 transition-opacity"
+          >
+            <ArrowUp size={16} strokeWidth={2.5} />
+          </button>
+        </form>
+      </div>
 
       {/* Footer note */}
       {!state.graduated && state.currentWeek < 4 && (
