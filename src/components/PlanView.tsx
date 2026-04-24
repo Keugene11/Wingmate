@@ -227,8 +227,9 @@ export default function PlanView() {
         </h1>
       </div>
 
-      {/* Hero — the main weekly goal, big and clear */}
-      <div className="flex items-baseline gap-3 mb-2">
+      {/* Hero — the main weekly goal, reads as a sentence */}
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0 mb-2">
+        <p className="text-[15px] font-semibold text-text/80">Talk to</p>
         <p className="font-display text-[52px] font-extrabold leading-none">
           {motivation.weeklyTarget}
         </p>
