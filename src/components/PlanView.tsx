@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Sparkles, ArrowUp } from "lucide-react";
+import { Check, Sparkles, ArrowUp, ChevronDown } from "lucide-react";
 import { buildMotivation, derivePlanState, type PlanProfile } from "@/lib/plan";
 
 type ProfileResponse = {
@@ -68,6 +68,7 @@ export default function PlanView() {
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [justUpdated, setJustUpdated] = useState(false);
+  const [stuckOpen, setStuckOpen] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const justUpdatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -258,50 +259,64 @@ export default function PlanView() {
         </span>
       </div>
 
-      {/* Compact motivational card — designed to fit on one screen. */}
+      {/* One focus card — the thing to do this week, the why behind it, and a
+          collapsible reframe for when he freezes. */}
       <div
         className={`bg-bg-card border border-border rounded-2xl shadow-card p-5 mb-5 transition-all ${
           justUpdated ? "ring-2 ring-green-400" : ""
         }`}
       >
-        {/* Why */}
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-1.5">
-          Why
-        </p>
-        <p className="font-display text-[18px] font-extrabold leading-snug mb-4">
-          {motivation.why}
-        </p>
-
-        <div className="h-px bg-border my-4" />
-
-        {/* Fear → Truth */}
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-1.5">
-          Before you walk away
-        </p>
-        <p className="font-display text-[15px] italic text-text-muted mb-1.5">
-          {motivation.lie}
-        </p>
-        <p className="text-[15px] font-semibold leading-snug">
-          {motivation.truth}
-        </p>
-
-        {motivation.focus && (
+        {motivation.focus ? (
           <>
-            <div className="h-px bg-border my-4" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-orange-500 mb-1.5">
-              Your move
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
+              This week
             </p>
-            <p className="text-[15px] font-semibold leading-snug">
+            <p className="font-display text-[22px] font-extrabold leading-tight mb-3">
               {motivation.focus}
+            </p>
+            <p className="text-[13px] text-text-muted leading-snug">
+              {motivation.why}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted mb-2">
+              Why
+            </p>
+            <p className="font-display text-[22px] font-extrabold leading-tight mb-3">
+              {motivation.why}
+            </p>
+            <p className="text-[13px] text-text-muted leading-snug">
+              No focus set yet. Tell the chat what to lock in this week.
             </p>
           </>
         )}
 
-        <div className="h-px bg-border my-4" />
+        <button
+          onClick={() => setStuckOpen((v) => !v)}
+          className="mt-5 pt-4 border-t border-border w-full flex items-center justify-between press"
+          aria-expanded={stuckOpen}
+        >
+          <span className="text-[13px] font-semibold">
+            {stuckOpen ? "Close" : "Stuck?"}
+          </span>
+          <ChevronDown
+            size={16}
+            strokeWidth={2}
+            className={`text-text-muted transition-transform ${stuckOpen ? "rotate-180" : ""}`}
+          />
+        </button>
 
-        <p className="text-center font-display text-[22px] font-extrabold tracking-tight">
-          GO.
-        </p>
+        {stuckOpen && (
+          <div className="mt-3 animate-fade-in">
+            <p className="font-display text-[14px] italic text-text-muted mb-1">
+              {motivation.lie}
+            </p>
+            <p className="text-[14px] font-semibold leading-snug">
+              {motivation.truth}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Chat */}
