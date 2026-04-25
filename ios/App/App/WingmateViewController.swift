@@ -21,6 +21,14 @@ import Capacitor
 */
 class WingmateViewController: CAPBridgeViewController {
 
+    // App bg color (#f5f5f7) — kept in sync with --color-bg in globals.css.
+    // We paint it on the view + WebView + scrollView so any pixel the
+    // WebView doesn't draw (home-indicator strip on iPad in particular)
+    // shows the app bg instead of system white.
+    private static let appBg = UIColor(
+        red: 245.0/255.0, green: 245.0/255.0, blue: 247.0/255.0, alpha: 1.0
+    )
+
     // capacitorDidLoad is called in loadView() after the webView and bridge are
     // fully set up, but BEFORE viewDidLoad() calls loadWebView(). This is the
     // only correct injection point — viewDidLoad is too late.
@@ -37,6 +45,26 @@ class WingmateViewController: CAPBridgeViewController {
                 forMainFrameOnly: false
             )
         )
+    }
+
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+
+        // Override Capacitor's default white. Setting bg only on
+        // SceneDelegate's window/vc.view doesn't stick — Capacitor resets
+        // some of these in its own viewDidLoad. Setting here, after super,
+        // wins.
+        self.view.backgroundColor = Self.appBg
+
+        // Make the WebView itself transparent so the view bg shows through
+        // anywhere the page hasn't painted (e.g. before first paint), and
+        // paint the underlying scrollView bg so iPad's home-indicator
+        // bounce/over-scroll area matches the app bg.
+        if let wv = self.webView {
+            wv.isOpaque = false
+            wv.backgroundColor = Self.appBg
+            wv.scrollView.backgroundColor = Self.appBg
+        }
     }
 
     // MARK: - JavaScript safety layer
