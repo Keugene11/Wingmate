@@ -58,20 +58,13 @@ body {
 /* Android edge-to-edge under targetSdk 36: the system nav bar (home,
    back, recents) is transparent and overlaps the WebView. Push our
    BottomNav up by the safe-area-inset-bottom so the icons aren't
-   underneath it, and paint that safe-area region in a noticeable
-   gray (#e0e0e0) so the dark system-nav icons read clearly in
-   light mode instead of disappearing into the app's near-white bg.
+   underneath it. Bg stays the app bg — combined with the theme's
+   windowLightNavigationBar=true, Android renders the system icons
+   as dark gray on the light bg (standard light-mode look).
    iOS keeps no extra padding — iPad's home indicator is allowed to
    overlap. */
 html.platform-android nav {
   padding-bottom: env(safe-area-inset-bottom);
-  background: linear-gradient(
-    to bottom,
-    var(--color-bg) 0,
-    var(--color-bg) calc(100% - env(safe-area-inset-bottom)),
-    #e0e0e0 calc(100% - env(safe-area-inset-bottom)),
-    #e0e0e0 100%
-  );
 }
 
 /* Inside AppShell's flex-1 scroll container — fill the scrollable area and
