@@ -517,7 +517,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
           <div className="px-4 py-2">
             <form
               onSubmit={handleSubmit}
-              className="flex items-end gap-2 pl-2 pr-1 py-1"
+              className="flex items-end gap-2 bg-bg-card border border-border rounded-full pl-5 pr-1.5 py-1.5"
             >
               <div className="flex-1 flex items-end gap-2 min-w-0">
                 <textarea
@@ -540,7 +540,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="bg-[#1a1a1a] disabled:opacity-15 text-white p-2.5 rounded-xl press shrink-0 transition-opacity"
+                className="bg-[#1a1a1a] disabled:opacity-15 text-white w-9 h-9 flex items-center justify-center rounded-full press shrink-0 transition-opacity"
               >
                 <ArrowUp size={16} strokeWidth={2.5} />
               </button>
