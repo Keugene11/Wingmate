@@ -2,25 +2,34 @@ import { test, Page } from "@playwright/test";
 import { installMocks } from "./fixtures/demo-mocks";
 
 /**
- * Phone screenshots for the Play Store listing (540x960 viewport,
- * dsr 2 → 1080x1920 PNG, 9:16 Play Store phone spec).
- * Writes to screenshots/android-phone/.
+ * Tablet screenshots for the Play Store listing.
+ * Captured on chromium (not iPad/WebKit) to avoid the status-bar chrome
+ * that WebKit emulation bakes into iPad/iPhone shots. Written at 1200x1920
+ * which satisfies Play Store's 7"/10" tablet size requirements.
+ * Writes to screenshots/android-tablet/.
+ *
+ * The app is mobile-first with max-w-md centering, so the content renders
+ * as a phone-width column in the middle of a tablet canvas. That's honest —
+ * it's how the app looks on a tablet today.
  */
 
+const TABLET_W = 1200;
+const TABLET_H = 1920;
+
 test.use({
-  viewport: { width: 540, height: 960 },
-  deviceScaleFactor: 2,
-  isMobile: true,
+  viewport: { width: TABLET_W, height: TABLET_H },
+  deviceScaleFactor: 1,
+  isMobile: false,
   hasTouch: true,
   colorScheme: "light",
   defaultBrowserType: "chromium",
 });
 
 async function snap(page: Page, name: string) {
-  await page.waitForTimeout(800); // let animations settle
+  await page.waitForTimeout(800);
   await page.screenshot({
-    path: `screenshots/android-phone/${name}.png`,
-    clip: { x: 0, y: 0, width: 540, height: 960 },
+    path: `screenshots/android-tablet/${name}.png`,
+    clip: { x: 0, y: 0, width: TABLET_W, height: TABLET_H },
   });
 }
 

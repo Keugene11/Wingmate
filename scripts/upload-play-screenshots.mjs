@@ -1,12 +1,14 @@
-// Replace the Play Store phone screenshots with the real ones captured by
-// Playwright (see tests/android-phone-screenshots.spec.ts).
+// Replace the Play Store phone and tablet screenshots with the real ones
+// captured by Playwright (see tests/android-{phone,tablet}-screenshots.spec.ts).
 //
-// Flow: JWT auth → create edit → delete existing phone screenshots → upload
-// new PNGs → commit. Listing text and feature graphic are left untouched.
+// Flow: JWT auth → create edit → for each slot (phone, 7-inch, 10-inch):
+//   delete existing screenshots → upload new PNGs → commit.
+// Listing text and feature graphic are left untouched.
 //
-// Prereq: screenshots/android-phone/*.png exists.
+// Prereq: screenshots/android-phone/*.png and screenshots/android-tablet/*.png
+// exist from the Playwright runs.
 
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { createSign } from "crypto";
 import path from "path";
 
@@ -14,16 +16,29 @@ const SA_PATH = "c:/Users/Daniel/Downloads/voicenote-pro-484818-6d6db67c7fdb.jso
 const PACKAGE = "com.approachai.twa";
 const LANGUAGE = "en-US";
 
-// Play Store allows up to 8 phone screenshots. Ordered list = order shown.
-const SHOTS = [
+// Play Store allows up to 8 screenshots per slot. Order = order shown.
+const PHONE_SHOTS = [
   "screenshots/android-phone/01_welcome.png",
-  "screenshots/android-phone/04_pitch.png",
-  "screenshots/android-phone/05_goal.png",
-  "screenshots/android-phone/06_target.png",
-  "screenshots/android-phone/07_doable.png",
-  "screenshots/android-phone/08_blockers.png",
-  "screenshots/android-phone/03_approaches.png",
-  "screenshots/android-phone/10_plans.png",
+  "screenshots/android-phone/02_today.png",
+  "screenshots/android-phone/03_plan.png",
+  "screenshots/android-phone/04_coach.png",
+  "screenshots/android-phone/05_community.png",
+  "screenshots/android-phone/06_plans.png",
+];
+
+const TABLET_SHOTS = [
+  "screenshots/android-tablet/01_welcome.png",
+  "screenshots/android-tablet/02_today.png",
+  "screenshots/android-tablet/03_plan.png",
+  "screenshots/android-tablet/04_coach.png",
+  "screenshots/android-tablet/05_community.png",
+  "screenshots/android-tablet/06_plans.png",
+];
+
+const SLOTS = [
+  { name: "phoneScreenshots", label: "phone", files: PHONE_SHOTS },
+  { name: "sevenInchScreenshots", label: "7-inch tablet", files: TABLET_SHOTS },
+  { name: "tenInchScreenshots", label: "10-inch tablet", files: TABLET_SHOTS },
 ];
 
 const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
@@ -69,8 +84,8 @@ async function api(token, method, route, body) {
   return text ? JSON.parse(text) : {};
 }
 
-async function uploadPng(token, editId, buffer) {
-  const url = `https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/${PACKAGE}/edits/${editId}/listings/${LANGUAGE}/phoneScreenshots?uploadType=media`;
+async function uploadPng(token, editId, slot, buffer) {
+  const url = `https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/${PACKAGE}/edits/${editId}/listings/${LANGUAGE}/${slot}?uploadType=media`;
   const res = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "image/png" },
@@ -86,28 +101,40 @@ async function main() {
   const token = await getToken();
   console.log("OK\n");
 
+  // Validate files before creating an edit so we don't leave half-uploaded state.
+  for (const slot of SLOTS) {
+    for (const file of slot.files) {
+      if (!existsSync(file)) {
+        throw new Error(`Missing: ${file}. Run \`pnpm playwright test android-${slot.label.startsWith("phone") ? "phone" : "tablet"}-screenshots\` first.`);
+      }
+    }
+  }
+
   console.log("Creating edit...");
   const edit = await api(token, "POST", "edits", "{}");
   const editId = edit.id;
   console.log(`Edit: ${editId}\n`);
 
-  console.log("Deleting existing phone screenshots...");
-  await api(token, "DELETE", `edits/${editId}/listings/${LANGUAGE}/phoneScreenshots`);
-  console.log("OK\n");
+  for (const slot of SLOTS) {
+    console.log(`--- ${slot.label} (${slot.name}) ---`);
+    console.log("Deleting existing...");
+    await api(token, "DELETE", `edits/${editId}/listings/${LANGUAGE}/${slot.name}`);
 
-  console.log(`Uploading ${SHOTS.length} screenshots...`);
-  for (const file of SHOTS) {
-    const buf = readFileSync(file);
-    await uploadPng(token, editId, buf);
-    console.log(`  ✓ ${path.basename(file)}  (${(buf.length / 1024).toFixed(0)} KB)`);
+    console.log(`Uploading ${slot.files.length} screenshots...`);
+    for (const file of slot.files) {
+      const buf = readFileSync(file);
+      await uploadPng(token, editId, slot.name, buf);
+      console.log(`  ✓ ${path.basename(file)}  (${(buf.length / 1024).toFixed(0)} KB)`);
+    }
+    console.log("");
   }
 
-  console.log("\nCommitting edit...");
+  console.log("Committing edit...");
   const commit = await api(token, "POST", `edits/${editId}:commit`);
   console.log(`Committed edit ${commit.id}`);
 
   console.log("\n=== DONE ===");
-  console.log("Screenshots replaced on the en-US Play Store listing.");
+  console.log("Phone + 7-inch + 10-inch screenshots replaced on the en-US Play Store listing.");
   console.log("Play Console may take a few minutes to reflect the change.");
 }
 
