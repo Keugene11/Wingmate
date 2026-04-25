@@ -517,7 +517,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
           <div className="px-4 py-2">
             <form
               onSubmit={handleSubmit}
-              className="flex items-end gap-2 bg-bg-card rounded-2xl shadow-card pl-4 pr-2 py-2"
+              className="flex items-end gap-2 bg-bg-input rounded-2xl pl-4 pr-2 py-2"
             >
               <div className="flex-1 flex items-end gap-2 min-w-0">
                 <textarea

@@ -33,10 +33,7 @@ export default function BottomNavBar() {
   const { active, isProfile } = useActiveTab();
 
   return (
-    <nav
-      className="shrink-0 bg-bg border-t border-border shadow-nav"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
+    <nav className="shrink-0 bg-bg border-t border-border shadow-nav">
       <div className="bg-bg">
         <div className="max-w-md mx-auto flex items-center justify-around py-2">
           {tabs.map(({ id, label, icon: Icon }) => {
