@@ -130,7 +130,16 @@ export const COMMUNITY_POSTS = {
 };
 
 export const PLAN_COUNTS = { monthly: 1284, yearly: 3967 };
-export const STRIPE_STATUS = { isPro: true, plan: "yearly", renewsAt: null };
+// page.tsx + community pages check `d.subscribed` — NOT `isPro`. Using the
+// wrong field causes the gate at page.tsx:206 to redirect to /onboarding.
+// `current_period_end` is rendered on the plans page as "Renews <date>".
+export const STRIPE_STATUS = {
+  subscribed: true,
+  subscription: {
+    status: "active",
+    current_period_end: new Date(Date.now() + 28 * 24 * 3600 * 1000).toISOString(),
+  },
+};
 
 const json = (body: unknown) => ({
   status: 200,
