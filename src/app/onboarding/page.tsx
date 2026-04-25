@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, Suspense, useState, useRef, Fragment } from "react";
+import { Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { useSession } from "next-auth/react";
@@ -262,7 +263,7 @@ function OnboardingInner() {
   const [blocker, setBlocker] = useState<string | null>(null);
   const [weeklyTarget, setWeeklyTarget] = useState<number>(5);
   const [showApple, setShowApple] = useState(false);
-  const selectedPlan: "yearly" = "yearly";
+  const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">("yearly");
   const [purchasing, setPurchasing] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [iapPackages, setIapPackages] = useState<{ monthly?: any; yearly?: any }>({});
@@ -310,7 +311,7 @@ function OnboardingInner() {
     setPurchasing(true);
     try {
       if (isNativePlatform()) {
-        const pkg = iapPackages.yearly;
+        const pkg = selectedPlan === "monthly" ? iapPackages.monthly : iapPackages.yearly;
         if (!pkg) {
           setLiveError("This plan isn't available yet. Try again in a moment.");
           return;
@@ -1370,33 +1371,96 @@ function OnboardingInner() {
   }
 
   if (step === "trialPayment") {
+    const isYearly = selectedPlan === "yearly";
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-8 onb-anim onb-no-divider">
         <TrialHeader onBack={() => setStep("trialReminder")} onClose={() => setStep("auth")} />
 
         <div className="mt-6 text-center">
           <h1 className="font-display text-[26px] font-bold tracking-tight leading-[1.1]">
-            Start your 3-day <span className="text-green-500">FREE</span> trial to continue.
+            Choose your plan
           </h1>
+          <p className="text-text-muted text-[14px] mt-2">
+            Start with 3 days free on yearly, or go monthly.
+          </p>
         </div>
 
-        <div className="flex-1 flex items-center justify-center min-h-0">
-          <PhoneMockup width="min(220px, 62vw)" />
+        <div className="flex-1 flex flex-col justify-center gap-3 min-h-0 py-6">
+          <button
+            onClick={() => setSelectedPlan("yearly")}
+            className={`relative w-full rounded-2xl border-2 p-4 text-left press transition-colors ${
+              isYearly ? "border-[#1a1a1a] bg-bg-card" : "border-border bg-bg-card"
+            }`}
+          >
+            <span className="absolute -top-2.5 left-4 bg-green-500 text-white text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full">
+              3 days free
+            </span>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-[16px]">Yearly</p>
+                <p className="text-[13px] text-text-muted">3 days free, then billed yearly</p>
+              </div>
+              <div className="text-right">
+                <p className="font-display text-[20px] font-extrabold leading-none">$29.99</p>
+                <p className="text-[12px] text-text-muted mt-0.5">/year</p>
+              </div>
+            </div>
+            <div className={`mt-3 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              isYearly ? "border-[#1a1a1a] bg-[#1a1a1a]" : "border-border"
+            }`}>
+              {isYearly && <Check size={12} strokeWidth={3} className="text-white" />}
+            </div>
+          </button>
+
+          <button
+            onClick={() => setSelectedPlan("monthly")}
+            className={`w-full rounded-2xl border-2 p-4 text-left press transition-colors ${
+              !isYearly ? "border-[#1a1a1a] bg-bg-card" : "border-border bg-bg-card"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-[16px]">Monthly</p>
+                <p className="text-[13px] text-text-muted">Billed monthly, no free trial</p>
+              </div>
+              <div className="text-right">
+                <p className="font-display text-[20px] font-extrabold leading-none">$9.99</p>
+                <p className="text-[12px] text-text-muted mt-0.5">/month</p>
+              </div>
+            </div>
+            <div className={`mt-3 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              !isYearly ? "border-[#1a1a1a] bg-[#1a1a1a]" : "border-border"
+            }`}>
+              {!isYearly && <Check size={12} strokeWidth={3} className="text-white" />}
+            </div>
+          </button>
         </div>
 
         <div className="shrink-0 pb-2">
           <p className="text-center text-[14px] font-medium text-text-muted mb-3">
-            No Payment Due Now
+            {isYearly ? "No Payment Due Now" : "Billed immediately"}
           </p>
           <button
             onClick={handleStartTrial}
             disabled={purchasing}
             className="w-full bg-[#1a1a1a] text-white py-[20px] rounded-2xl font-bold text-[18px] press disabled:opacity-60"
           >
-            {purchasing ? "Starting…" : "Try for $0.00"}
+            {purchasing
+              ? "Starting…"
+              : isYearly
+              ? "Try for $0.00"
+              : "Subscribe — $9.99/mo"}
           </button>
           <p className="text-center text-[12px] text-text-muted mt-3">
-            <span className="font-semibold text-text">3 days free</span>, then $29.99/year ($2.49/mo)
+            {isYearly ? (
+              <>
+                <span className="font-semibold text-text">3 days free</span>, then $29.99/year ($2.49/mo)
+              </>
+            ) : (
+              <>
+                <span className="font-semibold text-text">$9.99/month</span>, auto-renews until cancelled
+              </>
+            )}
           </p>
         </div>
       </main>
