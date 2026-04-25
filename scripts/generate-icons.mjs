@@ -12,7 +12,7 @@ function createSvg(size, { maskable = false, transparent = false } = {}) {
   const loose = maskable || transparent;
   const radius = loose ? 0 : Math.round(size * 0.22);
   const pad = loose ? 0.30 : 0.18;
-  const strokeWidth = Math.round(size * (loose ? 0.11 : 0.14));
+  const strokeWidth = Math.round(size * (loose ? 0.082 : 0.10));
 
   const span = 1 - 2 * pad;
   const x1 = size * pad;
@@ -23,7 +23,7 @@ function createSvg(size, { maskable = false, transparent = false } = {}) {
 
   const yTop = size * (pad + 0.08);
   const yBottom = size * (1 - pad - 0.08);
-  const yMid = yTop + (yBottom - yTop) * 0.45;
+  const yMid = yTop + (yBottom - yTop) * 0.70;
 
   const d = `M ${x1} ${yTop} L ${x2} ${yBottom} L ${x3} ${yMid} L ${x4} ${yBottom} L ${x5} ${yTop}`;
 
