@@ -9,7 +9,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
+        // Match the web app's bg color (#f5f5f7) so any safe-area region the
+        // WebView doesn't fully paint (status bar inset on iPad, home-indicator
+        // strip) shows the app bg instead of a white system default.
+        let appBg = UIColor(red: 245.0/255.0, green: 245.0/255.0, blue: 247.0/255.0, alpha: 1.0)
+        window.backgroundColor = appBg
         let vc = WingmateViewController()
+        vc.view.backgroundColor = appBg
         window.rootViewController = vc
         self.window = window
         window.makeKeyAndVisible()
