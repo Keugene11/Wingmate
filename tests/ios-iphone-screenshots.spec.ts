@@ -2,20 +2,20 @@ import { test, Page } from "@playwright/test";
 import { installMocks } from "./fixtures/demo-mocks";
 
 /**
- * iPhone screenshots for App Store Connect.
- * iPhone 6.7" Display spec: 1290 x 2796 (portrait) — ASC API doesn't
- * have an enum for 6.9" yet; 6.7" is the largest accepted slot and
- * Apple expects exactly these dimensions.
- * Captured at viewport 645x1398 with deviceScaleFactor 2.
- * Writes to screenshots/ios-iphone/.
+ * iPhone screenshots for App Store Connect. Final image 1290 x 2796
+ * portrait — the only iPhone slot the ASC API exposes (APP_IPHONE_67;
+ * there is no APP_IPHONE_69 enum yet). Captured at 430 x 932 CSS
+ * pixels with deviceScaleFactor 3, matching iPhone 15 Pro Max's
+ * actual on-device CSS dimensions so mobile-first layouts render
+ * correctly instead of zoomed-out.
  */
 
-const VW = 645;
-const VH = 1398;
+const VW = 430;
+const VH = 932;
 
 test.use({
   viewport: { width: VW, height: VH },
-  deviceScaleFactor: 2,
+  deviceScaleFactor: 3,
   isMobile: true,
   hasTouch: true,
   colorScheme: "light",

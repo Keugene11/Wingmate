@@ -1,4 +1,4 @@
-// Upload iPhone (6.9") and iPad (13") screenshots to App Store Connect.
+// Upload iPhone 6.7" and iPad 13" screenshots to App Store Connect.
 //
 // Flow per slot:
 //   1. Resolve the latest in-progress App Store version
@@ -7,7 +7,7 @@
 //   4. For each PNG: reserve an upload, PUT the bytes, commit with checksum
 //
 // Prereqs:
-//   - screenshots/ios-iphone/*.png   (1320 x 2868 — from Playwright)
+//   - screenshots/ios-iphone/*.png   (1290 x 2796 — from Playwright, APP_IPHONE_67)
 //   - screenshots/ios-ipad/*.png     (2064 x 2752 — from build-ipad-screenshots.mjs)
 
 import { readFileSync, statSync, existsSync } from "fs";
@@ -225,7 +225,7 @@ async function main() {
   }
 
   console.log("=== DONE ===");
-  console.log("iPhone 6.9\" + iPad 13\" screenshots replaced on the en-US App Store listing.");
+  console.log("iPhone 6.7\" + iPad 13\" screenshots replaced on the en-US App Store listing.");
 }
 
 main().catch((e) => {
