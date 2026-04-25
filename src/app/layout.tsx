@@ -37,6 +37,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="antialiased">
+        {/* Tag <html> with the Capacitor platform so CSS can scope styles
+            (e.g. the Android-only edge-to-edge nav-bar gray) before paint. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=(window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform())||'web';document.documentElement.classList.add('platform-'+p)}catch(e){}})();`,
+          }}
+        />
         {/* Safety net: hide splash after 4s even if React fails to mount */}
         <script
           dangerouslySetInnerHTML={{

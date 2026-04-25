@@ -30,20 +30,9 @@ html {
 /* Body is viewport-sized and non-scrolling. AppShell provides the internal
    scroll container, so fixed/sticky positioning issues are bypassed entirely
    -- the BottomNav is a flex child of a static-height container, not
-   viewport-fixed.
-
-   The background gradient paints the bottom safe-area region (which shows
-   behind Android's transparent system nav bar under targetSdk 36
-   edge-to-edge) in the dark gray, while the rest of body is the app bg. */
+   viewport-fixed. */
 body {
-  background:
-    linear-gradient(
-      to bottom,
-      var(--color-bg) 0,
-      var(--color-bg) calc(100% - env(safe-area-inset-bottom)),
-      #374151 calc(100% - env(safe-area-inset-bottom)),
-      #374151 100%
-    );
+  background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -55,6 +44,21 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+/* Android-only: paint the bottom safe-area-inset region in the dark
+   system-nav gray. Under targetSdk 36 edge-to-edge, Android's transparent
+   nav bar shows the body bg through, and a flat dark area reads cleanest.
+   iOS doesn't need this — the home-indicator area should match the app bg. */
+html.platform-android body {
+  background:
+    linear-gradient(
+      to bottom,
+      var(--color-bg) 0,
+      var(--color-bg) calc(100% - env(safe-area-inset-bottom)),
+      #374151 calc(100% - env(safe-area-inset-bottom)),
+      #374151 100%
+    );
 }
 
 /* Inside AppShell's flex-1 scroll container — fill the scrollable area and
