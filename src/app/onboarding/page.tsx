@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, Suspense, useState, useRef, Fragment } from "react";
-import { Check } from "lucide-react";
+import { Check, MessageCircle, Target, Flame, Users } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithApple } from "@/lib/auth-client";
 import { useSession } from "next-auth/react";
@@ -1373,10 +1373,10 @@ function OnboardingInner() {
   if (step === "trialPayment") {
     const isYearly = selectedPlan === "yearly";
     const features = [
-      "Unlimited AI coaching",
-      "Approach tracker & stats",
-      "Daily check-ins & streaks",
-      "Community access",
+      { icon: MessageCircle, label: "Unlimited AI coaching" },
+      { icon: Target, label: "Approach tracker & stats" },
+      { icon: Flame, label: "Daily check-ins & streaks" },
+      { icon: Users, label: "Community access" },
     ];
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-8 onb-anim onb-no-divider">
@@ -1384,18 +1384,18 @@ function OnboardingInner() {
 
         <div className="mt-6 text-center">
           <h1 className="font-display text-[26px] font-bold tracking-tight leading-[1.1]">
-            Choose your plan
+            Start your 3-day <span className="text-green-500">FREE</span> trial to continue.
           </h1>
         </div>
 
         <div className="flex-1 flex flex-col justify-center min-h-0 py-6">
           <ul className="space-y-4">
-            {features.map((f) => (
-              <li key={f} className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0">
-                  <Check size={14} strokeWidth={3} className="text-white" />
+            {features.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0">
+                  <Icon size={18} strokeWidth={2} className="text-white" />
                 </span>
-                <span className="text-[15px] font-medium">{f}</span>
+                <span className="text-[15px] font-medium">{label}</span>
               </li>
             ))}
           </ul>
