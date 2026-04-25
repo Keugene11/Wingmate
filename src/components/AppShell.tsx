@@ -26,9 +26,19 @@ function shouldShowNav(pathname: string) {
 // top, BottomNav on the bottom as a flex child (NOT position:fixed).
 // The viewport-tied fixed positioning was what let Android's dynamic inset
 // slide the nav around during scroll; a flex child can't do that.
+//
+// Top safe-area is painted by a fixed-height <div> in bg-bg above the scroll,
+// so the status-bar inset matches the app bg seamlessly instead of showing
+// a separate strip. The BottomNav handles its own bottom safe-area; on
+// nav-less screens we fall back to a similar bg-bg filler at the bottom.
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col h-full">
+    <div id="app-shell" className="flex flex-col h-full">
+      <div
+        aria-hidden
+        className="shrink-0 bg-bg"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {children}
       </div>
@@ -60,7 +70,16 @@ function useKeyboardOpen() {
 function NavSlot() {
   const pathname = usePathname();
   const keyboardOpen = useKeyboardOpen();
-  if (!shouldShowNav(pathname)) return null;
-  if (keyboardOpen) return null;
+  if (!shouldShowNav(pathname) || keyboardOpen) {
+    // No BottomNav on this screen — still need a bg-bg strip at the
+    // bottom safe-area so the home-indicator region matches the app bg.
+    return (
+      <div
+        aria-hidden
+        className="shrink-0 bg-bg"
+        style={{ height: "env(safe-area-inset-bottom)" }}
+      />
+    );
+  }
   return <BottomNavBar />;
 }
