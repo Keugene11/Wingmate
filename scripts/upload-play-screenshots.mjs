@@ -105,7 +105,10 @@ async function main() {
   for (const slot of SLOTS) {
     for (const file of slot.files) {
       if (!existsSync(file)) {
-        throw new Error(`Missing: ${file}. Run \`pnpm playwright test android-${slot.label.startsWith("phone") ? "phone" : "tablet"}-screenshots\` first.`);
+        const hint = slot.label === "phone"
+          ? "Run `pnpm playwright test --project=android-phone` first."
+          : "Run `node scripts/build-tablet-screenshots.mjs` first (it composites phone shots onto tablet canvases).";
+        throw new Error(`Missing: ${file}. ${hint}`);
       }
     }
   }
