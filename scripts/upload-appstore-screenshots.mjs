@@ -30,7 +30,6 @@ const SLOTS = [
       "screenshots/ios-iphone/03_plan.png",
       "screenshots/ios-iphone/04_coach.png",
       "screenshots/ios-iphone/05_community.png",
-      "screenshots/ios-iphone/06_plans.png",
     ],
   },
   {
@@ -42,7 +41,6 @@ const SLOTS = [
       "screenshots/ios-ipad/03_plan.png",
       "screenshots/ios-ipad/04_coach.png",
       "screenshots/ios-ipad/05_community.png",
-      "screenshots/ios-ipad/06_plans.png",
     ],
   },
 ];

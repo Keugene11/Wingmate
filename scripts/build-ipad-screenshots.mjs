@@ -15,7 +15,6 @@ const SCREENS = [
   { name: "03_plan", title: "Your weekly game plan", subtitle: "One focus. No excuses." },
   { name: "04_coach", title: "A coach in your pocket", subtitle: "Real advice, 24/7" },
   { name: "05_community", title: "You're not alone", subtitle: "Real stories from real guys" },
-  { name: "06_plans", title: "Simple pricing", subtitle: "No ads. Cancel anytime." },
 ];
 
 // App Store Connect iPad Pro 12.9" 3rd gen+ slot — expects exactly 2048x2732.
