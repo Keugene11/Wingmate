@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 
 import SignInModal from "@/components/SignInModal";
+import WingmateLogo from "@/components/WingmateLogo";
 
 interface Message {
   role: "user" | "assistant";
@@ -421,7 +422,10 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
           </button>
         )}
         <div className="flex-1 text-center">
-          <p className="font-display text-[15px] font-bold">Wingmate</p>
+          <div className="flex items-center justify-center gap-2">
+            <WingmateLogo className="w-7 h-7" />
+            <p className="font-display text-[22px] font-bold">Wingmate</p>
+          </div>
           <p className={`text-[11px] text-orange-500 font-medium transition-opacity ${isLoading ? "opacity-100" : "opacity-0"}`}>thinking...</p>
         </div>
         {onNewChat ? (

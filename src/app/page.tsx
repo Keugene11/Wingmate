@@ -13,6 +13,7 @@ import { isNativePlatform } from "@/lib/platform";
 import ChatCoach from "@/components/ChatCoach";
 import ConversationList from "@/components/ConversationList";
 import DailyCheckin from "@/components/DailyCheckin";
+import WingmateLogo from "@/components/WingmateLogo";
 import type { Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
 import PlanView from "@/components/PlanView";
@@ -412,6 +413,10 @@ function HomeInner() {
       {/* ===== CHECK-IN TAB ===== */}
       {activeTab === "checkin" && (
         <div className="px-5 pt-14 pb-10 animate-fade-in">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <WingmateLogo className="w-9 h-9" />
+            <h1 className="font-display text-[28px] font-bold tracking-tight">Wingmate</h1>
+          </div>
           <DailyCheckin
             greeting={greeting}
             onTalkAboutIt={(talked) => {
