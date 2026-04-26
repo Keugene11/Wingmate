@@ -596,7 +596,7 @@ function OnboardingInner() {
             How many conversations do you start per week?
           </h1>
           <p className="text-text-muted text-[15px] leading-relaxed mt-2">
-            Be honest — we&apos;ll use this to build your plan.
+            We&apos;ll use this to build your plan.
           </p>
         </div>
 
@@ -1276,12 +1276,9 @@ function OnboardingInner() {
               <path d="M9 13l2 2 4-4" />
             </svg>
           </div>
-          <h1 className="font-display text-[32px] font-extrabold tracking-tight leading-[1.1] mb-4">
+          <h1 className="font-display text-[32px] font-extrabold tracking-tight leading-[1.1]">
             Time to build your plan.
           </h1>
-          <p className="text-text-muted text-[15px] leading-relaxed max-w-[320px]">
-            We&apos;ll use your answers to put together a custom rizz plan — routines, focus areas, and a weekly target that&apos;s actually doable for you.
-          </p>
         </div>
 
         <button
@@ -1482,8 +1479,7 @@ function OnboardingInner() {
               }`}
             >
               <p className="font-semibold text-[15px]">Monthly</p>
-              <p className="font-display text-[22px] font-extrabold leading-none mt-2">$9.99</p>
-              <p className="text-[12px] text-text-muted mt-1">/month</p>
+              <p className="font-display text-[16px] font-extrabold mt-2">$9.99/month</p>
             </button>
 
             <button
@@ -1496,8 +1492,7 @@ function OnboardingInner() {
                 3 days free
               </span>
               <p className="font-semibold text-[15px]">Yearly</p>
-              <p className="font-display text-[22px] font-extrabold leading-none mt-2">$29.99</p>
-              <p className="text-[12px] text-text-muted mt-1">/year · $2.49/mo</p>
+              <p className="font-display text-[16px] font-extrabold mt-2">$29.99/year</p>
             </button>
           </div>
 
@@ -1515,7 +1510,7 @@ function OnboardingInner() {
           <p className="text-center text-[12px] text-text-muted mt-3">
             {isYearly ? (
               <>
-                <span className="font-semibold text-text">3 days free</span>, then $29.99/year. Cancel anytime.
+                <span className="font-semibold text-text">3 days free</span>, then $2.49/mo. Cancel anytime.
               </>
             ) : (
               <>
@@ -2468,21 +2463,19 @@ function PhoneMockup({ width = "min(220px, 62vw)" }: { width?: string } = {}) {
               </div>
             </div>
 
-            {/* Messages — flex-col-reverse pins the latest message to the
-                bottom, so as new bubbles land older ones scroll up out of
-                view instead of pushing the whole stack down. */}
+            {/* Messages — stack from the top of the chat area downward so
+                bubbles never overlap the input pill. Bottom value clears
+                the input bar (bottom: 18 + ~36px tall + 8px buffer). */}
             <div
-              className="absolute left-0 right-0 px-3 flex flex-col-reverse gap-1.5 overflow-hidden"
-              style={{ top: "82px", bottom: "48px" }}
+              className="absolute left-0 right-0 px-3 flex flex-col gap-1.5 overflow-hidden"
+              style={{ top: "82px", bottom: "62px" }}
             >
+              {DEMO_SCRIPT.slice(0, shown).map((m, i) => (
+                <MessageBubble key={i} from={m.from}>
+                  {m.text}
+                </MessageBubble>
+              ))}
               {typing && <TypingBubble from={typing} />}
-              {DEMO_SCRIPT.slice(0, shown)
-                .map((m, i) => (
-                  <MessageBubble key={i} from={m.from}>
-                    {m.text}
-                  </MessageBubble>
-                ))
-                .reverse()}
             </div>
 
             {/* Input bar */}

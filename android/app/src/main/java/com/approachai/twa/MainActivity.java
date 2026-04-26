@@ -1,5 +1,6 @@
 package com.approachai.twa;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import androidx.core.view.WindowCompat;
@@ -19,14 +20,37 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().setOverScrollMode(View.OVER_SCROLL_NEVER);
         }
-        // Force dark (gray) system nav buttons regardless of device dark-mode
-        // setting. Theme attr windowLightNavigationBar is unreliable across
-        // OEMs / DayNight setups — this is the authoritative API.
-        WindowInsetsControllerCompat insetsController =
+        applyLightSystemBars();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        // Some OEMs reset the appearance flags after IME or theme transitions.
+        // Re-apply on every focus regain so the dark icons survive.
+        if (hasFocus) applyLightSystemBars();
+    }
+
+    private void applyLightSystemBars() {
+        // Force dark (gray) system nav + status bar icons regardless of the
+        // device dark-mode setting. The app bg is always light, so we always
+        // want dark icons.
+        //
+        // setAppearanceLightNavigationBars on its own is unreliable when the
+        // system applies an automatic contrast scrim (Android 10+ adds a
+        // translucent dark overlay behind a transparent nav bar, which makes
+        // the OS think the bar is "dark" and ignore the appearance flag).
+        // setNavigationBarContrastEnforced(false) disables that scrim so the
+        // appearance flag actually takes effect.
+        WindowInsetsControllerCompat controller =
             WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        if (insetsController != null) {
-            insetsController.setAppearanceLightNavigationBars(true);
-            insetsController.setAppearanceLightStatusBars(true);
+        if (controller != null) {
+            controller.setAppearanceLightNavigationBars(true);
+            controller.setAppearanceLightStatusBars(true);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setNavigationBarContrastEnforced(false);
+            getWindow().setStatusBarContrastEnforced(false);
         }
     }
 
