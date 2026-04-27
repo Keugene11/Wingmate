@@ -51,19 +51,12 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* Android-only: paint the bottom safe-area-inset region in the dark
-   system-nav gray. Under targetSdk 36 edge-to-edge, Android's transparent
-   nav bar shows the body bg through, and a flat dark area reads cleanest.
-   iOS doesn't need this — the home-indicator area should match the app bg. */
-/* Android edge-to-edge under targetSdk 36: the system nav bar (home,
-   back, recents) is transparent and overlaps the WebView. Push our
-   BottomNav up by the safe-area-inset-bottom so the icons aren't
-   underneath it. Bg stays the app bg — combined with the theme's
-   windowLightNavigationBar=true, Android renders the system icons
-   as dark gray on the light bg (standard light-mode look).
-   iOS keeps no extra padding — iPad's home indicator is allowed to
-   overlap. */
-html.platform-android nav {
+/* Android edge-to-edge (targetSdk 36) and iOS edge-to-edge (viewportFit
+   cover + contentInset never): the system nav / home indicator overlaps
+   the WebView. Pad the nav by safe-area-inset-bottom so the icons sit
+   above the system-controlled strip instead of underneath it. Bg stays
+   the app bg; the system bar / home indicator is drawn on top. */
+nav {
   padding-bottom: env(safe-area-inset-bottom);
 }
 

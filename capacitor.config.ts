@@ -14,7 +14,10 @@ const config: CapacitorConfig = {
     allowNavigation: ["accounts.google.com", "*.google.com", "appleid.apple.com"],
   },
   ios: {
-    contentInset: "automatic",
+    // Don't let iOS auto-inset the WebView for safe areas — it leaves a
+    // dead-space strip below our flex-column BottomNav on iPad. We handle
+    // the home-indicator region ourselves via env(safe-area-inset-bottom).
+    contentInset: "never",
     scheme: "Wingmate",
   },
   android: {
