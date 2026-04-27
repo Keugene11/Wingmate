@@ -1504,7 +1504,7 @@ function OnboardingInner() {
             {purchasing
               ? "Starting…"
               : isYearly
-              ? "Try for $0.00"
+              ? "Start my 3-day free trial"
               : "Subscribe — $9.99/mo"}
           </button>
           <p className="text-center text-[12px] text-text-muted mt-3">
@@ -2274,7 +2274,7 @@ function QuizHeader({ onBack, progress }: { onBack: () => void; progress: number
   }, [progress]);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 shrink-0 h-11">
       <button
         onClick={onBack}
         className="w-11 h-11 rounded-full bg-bg-input flex items-center justify-center press shrink-0"
@@ -2284,7 +2284,7 @@ function QuizHeader({ onBack, progress }: { onBack: () => void; progress: number
           <path d="M15 18l-6-6 6-6" />
         </svg>
       </button>
-      <div className="flex-1 h-1.5 bg-bg-input rounded-full overflow-hidden">
+      <div className="flex-1 min-w-0 h-1.5 bg-bg-input rounded-full overflow-hidden">
         <div
           ref={barRef}
           className="h-full bg-[#1a1a1a] rounded-full transition-all duration-300"

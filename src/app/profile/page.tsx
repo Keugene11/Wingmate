@@ -257,14 +257,14 @@ export default function ProfilePage() {
       <div className="space-y-2 mb-5">
         <Link
           href="/profile/stats"
-          className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
         >
           <span className="flex-1 font-medium text-[15px] text-left">Stats</span>
           <ChevronRight size={16} className="text-border shrink-0" />
         </Link>
         <Link
           href="/profile/personal-details"
-          className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
         >
           <span className="flex-1 font-medium text-[15px] text-left">Personal details</span>
           <ChevronRight size={16} className="text-border shrink-0" />
@@ -312,7 +312,7 @@ export default function ProfilePage() {
       <div className="space-y-2 mb-5">
         <Link
           href="/terms"
-          className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
         >
           <FileText size={18} strokeWidth={1.5} className="text-text-muted shrink-0" />
           <span className="flex-1 font-medium text-[15px] text-left">Terms of Service</span>
@@ -320,7 +320,7 @@ export default function ProfilePage() {
         </Link>
         <Link
           href="/privacy"
-          className="flex items-center gap-3.5 bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
+          className="flex items-center gap-3.5 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 press"
         >
           <Shield size={18} strokeWidth={1.5} className="text-text-muted shrink-0" />
           <span className="flex-1 font-medium text-[15px] text-left">Privacy Policy</span>
