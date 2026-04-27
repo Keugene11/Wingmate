@@ -227,6 +227,13 @@ html.platform-android nav {
   to { opacity: 1; }
 }
 
+/* Lock every direct child of an onboarding step to its natural height —
+   only the .flex-1 middle child grows or shrinks with the viewport. This
+   prevents flex-col compression from nudging the QuizHeader (back button +
+   progress bar) up or down between steps with denser content. */
+main.onb-anim > * { flex-shrink: 0; }
+main.onb-anim > .flex-1 { flex-shrink: 1; }
+
 /* Step-level: middle children cascade in; first (QuizHeader / PhoneMockup)
    stays still; last (button area) only fades so its bottom position is
    stable. */

@@ -1372,7 +1372,7 @@ function OnboardingInner() {
 
   if (step === "trialIntro") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-8 onb-anim onb-no-divider">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-5 pb-4 onb-anim onb-no-divider">
         <TrialHeader onClose={() => setStep("auth")} />
 
         <h1 className="mt-2 font-display text-[28px] font-extrabold tracking-tight leading-[1.1] text-center">
@@ -1403,7 +1403,7 @@ function OnboardingInner() {
 
   if (step === "trialReminder") {
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-8 onb-anim onb-no-divider">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-5 pb-4 onb-anim onb-no-divider">
         <TrialHeader onBack={() => setStep("trialIntro")} onClose={() => setStep("auth")} />
 
         <div className="mt-6 text-center">
@@ -1448,7 +1448,7 @@ function OnboardingInner() {
       { icon: Users, label: "Community access" },
     ];
     return (
-      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-6 pb-8 onb-anim onb-no-divider">
+      <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-5 pb-4 onb-anim onb-no-divider">
         <TrialHeader onBack={() => setStep("trialReminder")} onClose={() => setStep("auth")} />
 
         <div className="mt-6 text-center">
