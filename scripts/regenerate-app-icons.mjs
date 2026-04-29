@@ -15,7 +15,7 @@ import { dirname } from "path";
 const BG = "#1a1a1a";
 const SCALE_REGULAR = 0.78;       // iOS, PWA, TWA legacy, Capacitor legacy
 const SCALE_MASKABLE = 0.62;      // PWA maskable (Android crops aggressively)
-const SCALE_ADAPTIVE_FG = 0.5;    // Capacitor adaptive foreground (transparent)
+const SCALE_ADAPTIVE_FG = 0.62;   // Capacitor adaptive foreground (transparent) — needs to match SCALE_REGULAR's apparent size on the home screen, since real launchers crop the 108dp canvas more aggressively than the 72dp viewport spec implies
 
 const componentSrc = readFileSync("src/components/WingmateLogo.tsx", "utf8");
 const PATH_DS = [...componentSrc.matchAll(/<path[^/]*d="([^"]+)"/g)].map((m) => m[1]);
