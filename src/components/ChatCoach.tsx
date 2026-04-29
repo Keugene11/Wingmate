@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import SignInModal from "@/components/SignInModal";
 import WingmateLogo from "@/components/WingmateLogo";
+import { isNativeiOS } from "@/lib/platform";
 
 interface Message {
   role: "user" | "assistant";
@@ -351,12 +352,18 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   };
 
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   // Capacitor Keyboard plugin events on native (iOS/Android) — fire for
   // floating/split iPad keyboards too, and report the actual keyboard
   // height. visualViewport doesn't shrink for iPad floating keyboards,
   // which would leave the input covered.
+  //
+  // Android resizes the WebView itself (capacitor.config.ts has
+  // resizeOnFullScreen: true), so applying keyboardOffset on top would
+  // double-shift and hide the input + top of the chat. iOS keeps
+  // resize: None — the offset is what lifts the input above the keyboard.
   useEffect(() => {
     if (typeof window === "undefined" || !window.Capacitor?.isNativePlatform()) return;
     let showSub: { remove: () => Promise<void> } | null = null;
@@ -367,9 +374,11 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         const { Keyboard } = await import("@capacitor/keyboard");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const showHandle = await Keyboard.addListener("keyboardWillShow", (info: any) => {
-          setKeyboardOffset(info?.keyboardHeight ?? 0);
+          setKeyboardOpen(true);
+          if (isNativeiOS()) setKeyboardOffset(info?.keyboardHeight ?? 0);
         });
         const hideHandle = await Keyboard.addListener("keyboardWillHide", () => {
+          setKeyboardOpen(false);
           setKeyboardOffset(0);
         });
         if (cancelled) {
@@ -395,6 +404,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     const vv = window.visualViewport;
     const onResize = () => {
       const offset = window.innerHeight - vv.height;
+      setKeyboardOpen(offset > 0);
       setKeyboardOffset(offset > 0 ? offset : 0);
     };
     vv.addEventListener("resize", onResize);
@@ -407,7 +417,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 flex flex-col max-w-md mx-auto bg-bg animate-fade-in overflow-hidden ${showBottomPadding && keyboardOffset === 0 ? "bottom-[calc(3.25rem+max(0.5rem,env(safe-area-inset-bottom)))]" : "bottom-0"}`}
+      className={`fixed top-0 left-0 right-0 flex flex-col max-w-md mx-auto bg-bg animate-fade-in overflow-hidden ${showBottomPadding && !keyboardOpen ? "bottom-[calc(3.25rem+max(0.5rem,env(safe-area-inset-bottom)))]" : "bottom-0"}`}
       style={keyboardOffset > 0 ? { bottom: `${keyboardOffset}px` } : undefined}
     >
       {/* Header */}

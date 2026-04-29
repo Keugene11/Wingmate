@@ -34,8 +34,14 @@ const config: CapacitorConfig = {
       backgroundColor: "#1a1a1a",
     },
     Keyboard: {
+      // iOS: keep None so manual keyboardOffset works for iPad floating/split
+      // keyboards (visualViewport doesn't shrink for those).
+      // Android: ignored (resize is iOS-only). We rely on resizeOnFullScreen
+      // below — without it, StatusBar.overlaysWebView: true puts the activity
+      // in fullscreen mode, which suppresses Android's adjustResize and leaves
+      // the keyboard overlaying the WebView (input + top of chat hidden).
       resize: KeyboardResize.None,
-      resizeOnFullScreen: false,
+      resizeOnFullScreen: true,
     },
     StatusBar: {
       style: "DARK",
