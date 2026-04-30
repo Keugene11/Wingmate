@@ -12,7 +12,7 @@ export default defineConfig({
   projects: [
     {
       name: "iPad Air",
-      testIgnore: /(android-phone|ios-iphone)-screenshots\.spec\.ts/,
+      testIgnore: /(android-phone|ios-iphone)-screenshots\.spec\.ts|android-layout-verify\.spec\.ts/,
       use: {
         ...devices["iPad Mini"],
         // iPad Air 11-inch dimensions (the review device)
@@ -25,7 +25,7 @@ export default defineConfig({
     },
     {
       name: "iPad Air Landscape",
-      testIgnore: /(android-phone|ios-iphone)-screenshots\.spec\.ts/,
+      testIgnore: /(android-phone|ios-iphone)-screenshots\.spec\.ts|android-layout-verify\.spec\.ts/,
       use: {
         ...devices["iPad Mini landscape"],
         viewport: { width: 1180, height: 820 },
@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: "iPhone 15",
-      testIgnore: /(android-phone|ios-iphone)-screenshots\.spec\.ts/,
+      testIgnore: /(android-phone|ios-iphone)-screenshots\.spec\.ts|android-layout-verify\.spec\.ts/,
       use: {
         ...devices["iPhone 15"],
       },
@@ -49,6 +49,18 @@ export default defineConfig({
     {
       name: "ios-iphone",
       testMatch: /ios-iphone-screenshots\.spec\.ts/,
+    },
+    {
+      name: "android-layout",
+      testMatch: /android-layout-verify\.spec\.ts/,
+      use: {
+        baseURL: "http://localhost:3000",
+        viewport: { width: 412, height: 915 },
+        deviceScaleFactor: 2.625,
+        isMobile: true,
+        hasTouch: true,
+        defaultBrowserType: "chromium",
+      },
     },
   ],
 });

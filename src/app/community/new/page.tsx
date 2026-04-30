@@ -54,8 +54,8 @@ export default function NewPostPage() {
   }
 
   return (
-    <main className="min-h-app max-w-md mx-auto px-5 pt-6 pb-10 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <main className="h-app max-w-md mx-auto px-5 pt-6 pb-4 flex flex-col animate-fade-in">
+      <div className="flex items-center justify-between mb-6 shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/?tab=community" className="p-1 -ml-1 press">
             <ArrowLeft size={20} strokeWidth={1.5} />
@@ -75,17 +75,14 @@ export default function NewPostPage() {
         </button>
       </div>
 
-      <div className="space-y-2">
-        <textarea
-          placeholder="What's on your mind?"
-          value={body}
-          onChange={(e) => setBody(e.target.value.slice(0, 2000))}
-          rows={10}
-          autoFocus
-          className="w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-[16px] leading-relaxed placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors resize-none"
-        />
-        <p className="text-[12px] text-text-muted text-right">{body.length}/2000</p>
-      </div>
+      <textarea
+        placeholder="What's on your mind?"
+        value={body}
+        onChange={(e) => setBody(e.target.value.slice(0, 2000))}
+        autoFocus
+        className="flex-1 min-h-0 w-full bg-bg-card border border-border rounded-xl shadow-card px-4 py-3.5 text-[16px] leading-relaxed placeholder:text-text-muted/50 outline-none focus:border-text-muted transition-colors resize-none"
+      />
+      <p className="text-[12px] text-text-muted text-right mt-2 shrink-0">{body.length}/2000</p>
     </main>
   );
 }
