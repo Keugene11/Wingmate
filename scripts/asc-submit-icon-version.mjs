@@ -156,24 +156,26 @@ async function attachBuild(versionId, buildId) {
 }
 
 async function submitForReview(versionId) {
-  const existing = await api(
-    "GET",
-    `appStoreVersions/${versionId}/relationships/appStoreVersionSubmission`,
-  );
-  if (existing.data?.id) {
-    console.log(`Already submitted (submission ${existing.data.id})`);
-    return existing.data.id;
-  }
-  const sub = await api("POST", "appStoreVersionSubmissions", {
-    data: {
-      type: "appStoreVersionSubmissions",
-      relationships: {
-        appStoreVersion: { data: { type: "appStoreVersions", id: versionId } },
+  // POST directly — Apple's relationship endpoint returns 404 (not data:null)
+  // when no submission exists yet, so we can't reliably precheck.
+  try {
+    const sub = await api("POST", "appStoreVersionSubmissions", {
+      data: {
+        type: "appStoreVersionSubmissions",
+        relationships: {
+          appStoreVersion: { data: { type: "appStoreVersions", id: versionId } },
+        },
       },
-    },
-  });
-  console.log(`✓ Submitted for review: ${sub.data.id}`);
-  return sub.data.id;
+    });
+    console.log(`✓ Submitted for review: ${sub.data.id}`);
+    return sub.data.id;
+  } catch (e) {
+    if (String(e.message).includes("409")) {
+      console.log("(already submitted)");
+      return null;
+    }
+    throw e;
+  }
 }
 
 async function main() {
