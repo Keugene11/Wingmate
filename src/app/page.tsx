@@ -354,7 +354,7 @@ function HomeInner() {
 
   // Tab-based layout (tab bar always visible)
   return (
-    <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-app overflow-hidden" : "min-h-app pb-20"}`}>
+    <main className={`max-w-md mx-auto ${activeTab === "coach" ? "h-app overflow-hidden" : "min-h-app pb-6"}`}>
 
       {/* Update banner */}
       {updateAvailable && (

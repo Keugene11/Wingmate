@@ -399,15 +399,29 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     };
   }, []);
 
-  // Web fallback — visualViewport works on desktop and most mobile browsers.
+  // visualViewport — runs on web AND native as a redundant detector, so if
+  // the Capacitor Keyboard events don't fire reliably (we've seen Android
+  // sometimes skip keyboardDidShow), the layout still flips. The two paths
+  // converge on the same state — idempotent, no race.
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return;
-    if (window.Capacitor?.isNativePlatform()) return;
     const vv = window.visualViewport;
+    let baseline = vv.height;
     const onResize = () => {
-      const offset = window.innerHeight - vv.height;
-      setKeyboardOpen(offset > 0);
-      setKeyboardOffset(offset > 0 ? offset : 0);
+      if (vv.height > baseline) baseline = vv.height;
+      const offset = baseline - vv.height;
+      const open = offset > 100;
+      setKeyboardOpen(open);
+      // On native Android the WebView itself resizes when the keyboard opens
+      // (resizeOnFullScreen: true), so applying keyboardOffset would
+      // double-shift. iOS WebView doesn't resize — we need the offset to
+      // lift the input above the keyboard. Web: apply offset.
+      const isNativeAndroid = !!window.Capacitor?.isNativePlatform() && !isNativeiOS();
+      if (isNativeAndroid) {
+        setKeyboardOffset(0);
+      } else {
+        setKeyboardOffset(open ? offset : 0);
+      }
     };
     vv.addEventListener("resize", onResize);
     vv.addEventListener("scroll", onResize);
@@ -453,7 +467,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 pt-3"
+        className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4 pt-3"
       >
         {viewingHistory ? (
           <div className="flex items-center justify-center py-20">
