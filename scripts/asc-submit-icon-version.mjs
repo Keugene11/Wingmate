@@ -63,7 +63,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function findLatestBuildForTrain() {
   const r = await api(
     "GET",
-    `apps/${APP_ID}/builds?sort=-uploadedDate&limit=20&fields[builds]=version,uploadedDate,processingState,expired&include=preReleaseVersion&fields[preReleaseVersions]=version,platform`,
+    `builds?filter[app]=${APP_ID}&sort=-uploadedDate&limit=20&fields[builds]=version,uploadedDate,processingState,expired,preReleaseVersion&include=preReleaseVersion&fields[preReleaseVersions]=version,platform`,
   );
   for (const b of r.data) {
     if (b.attributes.expired) continue;
