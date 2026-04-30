@@ -366,34 +366,36 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
   // resize: None — the offset is what lifts the input above the keyboard.
   useEffect(() => {
     if (typeof window === "undefined" || !window.Capacitor?.isNativePlatform()) return;
-    let showSub: { remove: () => Promise<void> } | null = null;
-    let hideSub: { remove: () => Promise<void> } | null = null;
+    const handles: { remove: () => Promise<void> }[] = [];
     let cancelled = false;
     (async () => {
       try {
         const { Keyboard } = await import("@capacitor/keyboard");
+        // keyboardWillShow/keyboardWillHide are iOS-only — Android only emits
+        // keyboardDidShow/keyboardDidHide. Subscribe to both pairs so the
+        // keyboardOpen flag flips on either platform.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const showHandle = await Keyboard.addListener("keyboardWillShow", (info: any) => {
+        const onShow = (info: any) => {
           setKeyboardOpen(true);
           if (isNativeiOS()) setKeyboardOffset(info?.keyboardHeight ?? 0);
-        });
-        const hideHandle = await Keyboard.addListener("keyboardWillHide", () => {
+        };
+        const onHide = () => {
           setKeyboardOpen(false);
           setKeyboardOffset(0);
-        });
-        if (cancelled) {
-          showHandle.remove();
-          hideHandle.remove();
-        } else {
-          showSub = showHandle;
-          hideSub = hideHandle;
-        }
+        };
+        const subs = await Promise.all([
+          Keyboard.addListener("keyboardWillShow", onShow),
+          Keyboard.addListener("keyboardDidShow", onShow),
+          Keyboard.addListener("keyboardWillHide", onHide),
+          Keyboard.addListener("keyboardDidHide", onHide),
+        ]);
+        if (cancelled) subs.forEach((s) => s.remove());
+        else handles.push(...subs);
       } catch {}
     })();
     return () => {
       cancelled = true;
-      showSub?.remove();
-      hideSub?.remove();
+      handles.forEach((h) => h.remove());
     };
   }, []);
 
