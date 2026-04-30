@@ -9,7 +9,7 @@
 // most polished iOS/Android icons aim for.
 
 import sharp from "sharp";
-import { readFileSync, mkdirSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { dirname } from "path";
 
 const BG = "#1a1a1a";
@@ -47,6 +47,11 @@ async function emit(filePath, opts) {
   }
   const svg = buildSvg(opts);
   await sharp(Buffer.from(svg)).png().toFile(filePath);
+  if (opts.alsoWriteSvg) {
+    const svgPath = filePath.replace(/\.png$/, ".svg");
+    writeFileSync(svgPath, svg);
+    console.log(`  ${svgPath}`);
+  }
   console.log(`  ${filePath}  (${opts.size}px, scale ${opts.scale}, bg ${opts.bg})`);
 }
 
@@ -74,12 +79,12 @@ await emit("ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png", 
 });
 
 console.log("\nPWA (rounded):");
-await emit("public/icons/icon-512.png", { size: 512, scale: SCALE_REGULAR, bg: "rounded" });
-await emit("public/icons/icon-192.png", { size: 192, scale: SCALE_REGULAR, bg: "rounded" });
+await emit("public/icons/icon-512.png", { size: 512, scale: SCALE_REGULAR, bg: "rounded", alsoWriteSvg: true });
+await emit("public/icons/icon-192.png", { size: 192, scale: SCALE_REGULAR, bg: "rounded", alsoWriteSvg: true });
 
 console.log("\nPWA maskable (full-bleed, smaller glyph):");
-await emit("public/icons/icon-maskable-512.png", { size: 512, scale: SCALE_MASKABLE, bg: "square" });
-await emit("public/icons/icon-maskable-192.png", { size: 192, scale: SCALE_MASKABLE, bg: "square" });
+await emit("public/icons/icon-maskable-512.png", { size: 512, scale: SCALE_MASKABLE, bg: "square", alsoWriteSvg: true });
+await emit("public/icons/icon-maskable-192.png", { size: 192, scale: SCALE_MASKABLE, bg: "square", alsoWriteSvg: true });
 
 if (existsSync("android-twa/app/src/main/res")) {
   console.log("\nTWA legacy launcher icons:");
