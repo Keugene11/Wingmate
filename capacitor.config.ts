@@ -1,18 +1,30 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 import { KeyboardResize } from "@capacitor/keyboard";
 
+// Set CAP_LIVE=1 and CAP_HOST=<your-laptop-IP> to point the native app at
+// the local Next.js dev server for instant edit→reload on a real device.
+// Otherwise the app loads from production at wingmate.live.
+const liveReload = process.env.CAP_LIVE === "1";
+const liveHost = process.env.CAP_HOST || "192.168.68.58";
+
 const config: CapacitorConfig = {
   appId: "live.wingmate.app",
   appName: "Wingmate",
   webDir: "out",
-  server: {
-    url: "https://wingmate.live",
-    cleartext: false,
-    errorPath: "error.html",
-    // Without this, Capacitor opens external hosts in the system browser instead
-    // of navigating in the WebView — which breaks OAuth redirects to Google.
-    allowNavigation: ["accounts.google.com", "*.google.com", "appleid.apple.com"],
-  },
+  server: liveReload
+    ? {
+        url: `http://${liveHost}:3000`,
+        cleartext: true,
+        allowNavigation: ["accounts.google.com", "*.google.com", "appleid.apple.com"],
+      }
+    : {
+        url: "https://wingmate.live",
+        cleartext: false,
+        errorPath: "error.html",
+        // Without this, Capacitor opens external hosts in the system browser instead
+        // of navigating in the WebView — which breaks OAuth redirects to Google.
+        allowNavigation: ["accounts.google.com", "*.google.com", "appleid.apple.com"],
+      },
   ios: {
     // Don't let iOS auto-inset the WebView for safe areas — it leaves a
     // dead-space strip below our flex-column BottomNav on iPad. We handle

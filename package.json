@@ -12,6 +12,7 @@
     "cap:sync:android": "npm run cap:prepare && npx cap sync android",
     "cap:open": "npx cap open ios",
     "android:build": "npm run cap:sync:android && cd android && ./gradlew bundleRelease",
+    "android:live": "node scripts/android-live.mjs",
     "android:upload:internal": "cd android && fastlane android internal",
     "android:upload:production": "cd android && fastlane android production",
     "test:ipad": "playwright test --project='iPad Air'",
