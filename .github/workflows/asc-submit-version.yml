@@ -1,0 +1,34 @@
+name: ASC Submit Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version string (must match an uploaded TestFlight train)"
+        required: false
+        default: "1.0.1"
+      release_notes:
+        description: "What's New text"
+        required: false
+        default: "Updated app icon."
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Submit version
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          VERSION_STRING: ${{ inputs.version }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: node scripts/asc-submit-icon-version.mjs
