@@ -156,26 +156,60 @@ async function attachBuild(versionId, buildId) {
 }
 
 async function submitForReview(versionId) {
-  // POST directly — Apple's relationship endpoint returns 404 (not data:null)
-  // when no submission exists yet, so we can't reliably precheck.
-  try {
-    const sub = await api("POST", "appStoreVersionSubmissions", {
-      data: {
-        type: "appStoreVersionSubmissions",
-        relationships: {
-          appStoreVersion: { data: { type: "appStoreVersions", id: versionId } },
-        },
-      },
-    });
-    console.log(`✓ Submitted for review: ${sub.data.id}`);
-    return sub.data.id;
-  } catch (e) {
-    if (String(e.message).includes("409")) {
-      console.log("(already submitted)");
-      return null;
+  // Apple deprecated CREATE on appStoreVersionSubmissions — must use the
+  // newer reviewSubmissions flow: create → add item → set submitted=true.
+
+  // Look for an existing in-progress submission with this version as an item.
+  const existing = await api(
+    "GET",
+    `reviewSubmissions?filter[app]=${APP_ID}&filter[platform]=${PLATFORM}&filter[state]=READY_FOR_REVIEW,COMPLETING,IN_REVIEW,UNRESOLVED_ISSUES,WAITING_FOR_REVIEW&limit=10&include=items`,
+  );
+  for (const s of existing.data || []) {
+    const itemRels = s.relationships?.items?.data || [];
+    for (const itemRel of itemRels) {
+      const item = existing.included?.find((i) => i.id === itemRel.id);
+      const ver = item?.relationships?.appStoreVersion?.data;
+      if (ver?.id === versionId) {
+        console.log(`Already in submission ${s.id} (state ${s.attributes.state})`);
+        return s.id;
+      }
     }
-    throw e;
   }
+
+  console.log("Creating reviewSubmission…");
+  const sub = await api("POST", "reviewSubmissions", {
+    data: {
+      type: "reviewSubmissions",
+      attributes: { platform: PLATFORM },
+      relationships: {
+        app: { data: { type: "apps", id: APP_ID } },
+      },
+    },
+  });
+  const submissionId = sub.data.id;
+  console.log(`  → ${submissionId}`);
+
+  console.log("Adding version as submission item…");
+  await api("POST", "reviewSubmissionItems", {
+    data: {
+      type: "reviewSubmissionItems",
+      relationships: {
+        reviewSubmission: { data: { type: "reviewSubmissions", id: submissionId } },
+        appStoreVersion: { data: { type: "appStoreVersions", id: versionId } },
+      },
+    },
+  });
+
+  console.log("Submitting…");
+  await api("PATCH", `reviewSubmissions/${submissionId}`, {
+    data: {
+      type: "reviewSubmissions",
+      id: submissionId,
+      attributes: { submitted: true },
+    },
+  });
+  console.log(`✓ Submitted for review: ${submissionId}`);
+  return submissionId;
 }
 
 async function main() {
