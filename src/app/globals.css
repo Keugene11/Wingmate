@@ -53,11 +53,18 @@ body {
 
 /* Android edge-to-edge (targetSdk 36) and iOS edge-to-edge (viewportFit
    cover + contentInset never): the system nav / home indicator overlaps
-   the WebView. Pad the nav by safe-area-inset-bottom so the icons sit
-   above the system-controlled strip instead of underneath it. Bg stays
-   the app bg; the system bar / home indicator is drawn on top. */
+   the WebView. Reserve a *fraction* of safe-area-inset-bottom below the
+   icons — using the full inset (~20px on iPad portrait, ~34px on iPhone
+   notched) reads as a big dead band below the labels, since our icons
+   are smaller than Apple's UITabBar. The home indicator only needs ~10px
+   visual clearance to avoid touching the icons.
+   Both this rule and ChatCoach's bottom inset use --nav-safe-bottom so
+   the chat container exactly clears the nav. */
+:root {
+  --nav-safe-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) * 0.5));
+}
 nav {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--nav-safe-bottom);
 }
 
 /* Inside AppShell's flex-1 scroll container — fill the scrollable area and

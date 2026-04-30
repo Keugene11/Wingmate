@@ -419,7 +419,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 flex flex-col max-w-md mx-auto bg-bg animate-fade-in overflow-hidden ${showBottomPadding && !keyboardOpen ? "bottom-[calc(3.25rem+max(0.5rem,env(safe-area-inset-bottom)))]" : "bottom-0"}`}
+      className={`fixed top-0 left-0 right-0 flex flex-col max-w-md mx-auto bg-bg animate-fade-in overflow-hidden ${showBottomPadding && !keyboardOpen ? "bottom-[calc(3.25rem+var(--nav-safe-bottom))]" : "bottom-0"}`}
       style={keyboardOffset > 0 ? { bottom: `${keyboardOffset}px` } : undefined}
     >
       {/* Header */}
