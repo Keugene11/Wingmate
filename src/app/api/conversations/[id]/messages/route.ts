@@ -90,7 +90,9 @@ export async function POST(
     return NextResponse.json({ error: "Messages required" }, { status: 400 });
   }
 
-  // Cap total message size to prevent DB bloat / abuse.
+  if (messages.some((m: { content?: string }) => (m.content?.length || 0) > 2000)) {
+    return NextResponse.json({ error: "Messages too long" }, { status: 400 });
+  }
   const totalLength = messages.reduce(
     (sum: number, m: { content?: string }) => sum + (m.content?.length || 0),
     0,
