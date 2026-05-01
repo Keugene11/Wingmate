@@ -386,10 +386,12 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
         </div>
       )}
 
-      {/* Comment input — fixed to bottom, lifted above system nav */}
+      {/* Comment input — fixed to bottom, lifted above system nav AND the
+          soft keyboard (--kb-h is set by AppShell from Capacitor's
+          keyboardDidShow event; defaults to 0 when the keyboard is closed). */}
       <div
         className="fixed left-0 right-0 bg-bg border-t border-border px-5 py-3"
-        style={{ bottom: "env(safe-area-inset-bottom)" }}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + var(--kb-h, 0px))" }}
       >
         <div className="max-w-md mx-auto flex items-center gap-2">
           <input
