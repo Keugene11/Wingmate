@@ -390,9 +390,17 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     };
   }, []);
 
-  // Web + Android: visualViewport drives keyboardOpen for the bottom-padding
-  // toggle. On Android the html height is already pinned to vv.height (see
-  // globals.css), so we only need keyboardOpen here — the offset stays 0.
+  // Web + Android: visualViewport detects the keyboard via baseline tracking
+  // (track the tallest vv.height we've seen as the no-keyboard reference,
+  // anything >100px shorter is the keyboard opening). Works whether or not
+  // the WebView itself resizes:
+  //   - If the WebView resizes (windowSoftInputMode=adjustResize), both
+  //     window.innerHeight and vv.height shrink together — innerHeight
+  //     minus vv.height is 0, so we don't apply a manual offset (the
+  //     resized WebView already puts bottom-0 above the keyboard).
+  //   - If the WebView doesn't resize, vv.height shrinks but innerHeight
+  //     stays full — the difference is the keyboard height, which we apply
+  //     as `bottom` on the fixed chat container to lift it above the keyboard.
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return;
     if (isNativeiOS()) return;
@@ -400,7 +408,9 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     let baseline = vv.height;
     const onResize = () => {
       if (vv.height > baseline) baseline = vv.height;
-      setKeyboardOpen(baseline - vv.height > 100);
+      const drop = baseline - vv.height;
+      setKeyboardOpen(drop > 100);
+      setKeyboardOffset(Math.max(0, window.innerHeight - vv.height));
     };
     vv.addEventListener("resize", onResize);
     vv.addEventListener("scroll", onResize);

@@ -4,28 +4,6 @@ import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import BottomNavBar from "./BottomNav";
 
-// Android-only: sync html height with visualViewport so the layout shrinks
-// above the soft keyboard. Without this, targetSdk 36 + overlaysWebView
-// leaves body at full WebView height when the keyboard opens, hiding inputs
-// behind the keyboard and showing bg-bg (gray) where content should be.
-function useAndroidViewportHeight() {
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.visualViewport) return;
-    if (!document.documentElement.classList.contains("platform-android")) return;
-    const vv = window.visualViewport;
-    const apply = () => {
-      document.documentElement.style.setProperty("--vvh", `${vv.height}px`);
-    };
-    apply();
-    vv.addEventListener("resize", apply);
-    vv.addEventListener("scroll", apply);
-    return () => {
-      vv.removeEventListener("resize", apply);
-      vv.removeEventListener("scroll", apply);
-    };
-  }, []);
-}
-
 // Paths where the bottom nav should NOT render.
 const NAV_HIDDEN_PATHS = new Set([
   "/onboarding",
@@ -54,7 +32,6 @@ function shouldShowNav(pathname: string) {
 // a separate strip. The BottomNav handles its own bottom safe-area; on
 // nav-less screens we fall back to a similar bg-bg filler at the bottom.
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  useAndroidViewportHeight();
   return (
     <div id="app-shell" className="flex flex-col h-full">
       <div
