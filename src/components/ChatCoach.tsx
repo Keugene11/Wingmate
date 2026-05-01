@@ -355,29 +355,22 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  // Capacitor Keyboard plugin events on native (iOS/Android) — fire for
-  // floating/split iPad keyboards too, and report the actual keyboard
-  // height. visualViewport doesn't shrink for iPad floating keyboards,
-  // which would leave the input covered.
-  //
-  // Android resizes the WebView itself (capacitor.config.ts has
-  // resizeOnFullScreen: true), so applying keyboardOffset on top would
-  // double-shift and hide the input + top of the chat. iOS keeps
-  // resize: None — the offset is what lifts the input above the keyboard.
+  // Capacitor Keyboard plugin events on iOS — report the actual keyboard
+  // height for floating/split iPad keyboards (visualViewport doesn't shrink
+  // for those). On Android we drive layout height via --vvh in globals.css
+  // (set by AppShell from visualViewport), so position:fixed bottom-0 already
+  // lands at the top of the keyboard and no manual offset is needed.
   useEffect(() => {
-    if (typeof window === "undefined" || !window.Capacitor?.isNativePlatform()) return;
+    if (typeof window === "undefined" || !isNativeiOS()) return;
     const handles: { remove: () => Promise<void> }[] = [];
     let cancelled = false;
     (async () => {
       try {
         const { Keyboard } = await import("@capacitor/keyboard");
-        // keyboardWillShow/keyboardWillHide are iOS-only — Android only emits
-        // keyboardDidShow/keyboardDidHide. Subscribe to both pairs so the
-        // keyboardOpen flag flips on either platform.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const onShow = (info: any) => {
           setKeyboardOpen(true);
-          if (isNativeiOS()) setKeyboardOffset(info?.keyboardHeight ?? 0);
+          setKeyboardOffset(info?.keyboardHeight ?? 0);
         };
         const onHide = () => {
           setKeyboardOpen(false);
@@ -385,9 +378,7 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
         };
         const subs = await Promise.all([
           Keyboard.addListener("keyboardWillShow", onShow),
-          Keyboard.addListener("keyboardDidShow", onShow),
           Keyboard.addListener("keyboardWillHide", onHide),
-          Keyboard.addListener("keyboardDidHide", onHide),
         ]);
         if (cancelled) subs.forEach((s) => s.remove());
         else handles.push(...subs);
@@ -399,29 +390,17 @@ export default function ChatCoach({ onBack, checkinMode, conversationId, onConve
     };
   }, []);
 
-  // visualViewport — runs on web AND native as a redundant detector, so if
-  // the Capacitor Keyboard events don't fire reliably (we've seen Android
-  // sometimes skip keyboardDidShow), the layout still flips. The two paths
-  // converge on the same state — idempotent, no race.
+  // Web + Android: visualViewport drives keyboardOpen for the bottom-padding
+  // toggle. On Android the html height is already pinned to vv.height (see
+  // globals.css), so we only need keyboardOpen here — the offset stays 0.
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return;
+    if (isNativeiOS()) return;
     const vv = window.visualViewport;
     let baseline = vv.height;
     const onResize = () => {
       if (vv.height > baseline) baseline = vv.height;
-      const offset = baseline - vv.height;
-      const open = offset > 100;
-      setKeyboardOpen(open);
-      // On native Android the WebView itself resizes when the keyboard opens
-      // (resizeOnFullScreen: true), so applying keyboardOffset would
-      // double-shift. iOS WebView doesn't resize — we need the offset to
-      // lift the input above the keyboard. Web: apply offset.
-      const isNativeAndroid = !!window.Capacitor?.isNativePlatform() && !isNativeiOS();
-      if (isNativeAndroid) {
-        setKeyboardOffset(0);
-      } else {
-        setKeyboardOffset(open ? offset : 0);
-      }
+      setKeyboardOpen(baseline - vv.height > 100);
     };
     vv.addEventListener("resize", onResize);
     vv.addEventListener("scroll", onResize);

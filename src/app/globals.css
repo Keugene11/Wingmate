@@ -31,6 +31,28 @@ html {
   background: var(--color-bg);
 }
 
+/* Android: drive layout height from visualViewport.height (set as --vvh by
+   AppShell), not 100%. With targetSdk 36 + StatusBar.overlaysWebView,
+   Capacitor's resizeOnFullScreen doesn't reliably shrink the WebView when
+   the keyboard opens — body would stay full-height, and inputs/content
+   below would render *behind* the keyboard, leaving only the bg-bg
+   (gray) showing in the visible portion above. visualViewport always
+   reflects the actually-visible area, so binding to it is the safe path. */
+html.platform-android,
+html.platform-android body {
+  height: var(--vvh, 100%);
+}
+
+/* Anchor position:fixed elements (ChatCoach container, community comment
+   input, modals) to body on Android. Without this, fixed elements pin to
+   the visual viewport — and the WebView's visual viewport may not shrink
+   with the keyboard, so the input renders behind it. With this transform,
+   body becomes the containing block for fixed children, so they fit inside
+   the --vvh-sized body. */
+html.platform-android body {
+  transform: translateZ(0);
+}
+
 /* Body is viewport-sized and non-scrolling. AppShell provides the internal
    scroll container, so fixed/sticky positioning issues are bypassed entirely
    -- the BottomNav is a flex child of a static-height container, not
