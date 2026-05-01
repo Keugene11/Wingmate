@@ -500,6 +500,17 @@ function OnboardingInner() {
   };
 
   if (step === "welcome") {
+    // Post-OAuth users land back here on /onboarding?paywall=1 with their
+    // session still loading. Don't flash the welcome screen during the
+    // moment before the useEffect routes them to / (if subscribed) or
+    // trialIntro (if not).
+    if (searchParams.get("paywall") === "1") {
+      return (
+        <main className="h-app flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
+        </main>
+      );
+    }
     return (
       <main key={step} className="h-app max-w-md mx-auto flex flex-col px-6 pt-5 pb-4 onb-anim onb-no-divider">
         <PhoneMockup />
