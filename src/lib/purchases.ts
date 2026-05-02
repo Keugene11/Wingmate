@@ -80,24 +80,52 @@ export async function getOfferings(): Promise<{ availablePackages?: unknown[]; [
 }
 
 /**
- * Purchase a package by its identifier.
- * Returns true if purchase was successful.
+ * Get a specific named offering by identifier (e.g. "winback").
+ * Falls back to null if RevenueCat hasn't loaded that offering yet.
+ */
+export async function getOfferingById(
+  id: string
+): Promise<{ availablePackages?: unknown[]; [key: string]: unknown } | null> {
+  if (!isNativePlatform() || !initialized) return null;
+
+  try {
+    const { Purchases } = await import("@revenuecat/purchases-capacitor");
+    const offerings = await Purchases.getOfferings();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const all = offerings?.all as Record<string, any> | undefined;
+    return (all?.[id] as { availablePackages?: unknown[]; [key: string]: unknown }) ?? null;
+  } catch (e) {
+    console.error(`[IAP] getOfferingById(${id}) ERROR:`, e);
+    return null;
+  }
+}
+
+export type PurchaseResult =
+  | { status: "success" }
+  | { status: "cancelled" }
+  | { status: "unavailable" }; // !isNative or !initialized — caller can fall back
+
+/**
+ * Purchase a package. Returns a discriminated result so callers can react
+ * to user-cancel separately from real errors (real errors still throw).
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function purchasePackage(packageToPurchase: any) {
-  if (!isNativePlatform() || !initialized) return false;
+export async function purchasePackage(packageToPurchase: any): Promise<PurchaseResult> {
+  if (!isNativePlatform() || !initialized) return { status: "unavailable" };
 
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     const result = await Purchases.purchasePackage({ aPackage: packageToPurchase });
-    // Check if the user now has an active entitlement
     const entitlements = result?.customerInfo?.entitlements?.active;
-    return !!entitlements && Object.keys(entitlements).length > 0;
+    const ok = !!entitlements && Object.keys(entitlements).length > 0;
+    // No active entitlement after a non-throwing purchase is unusual but
+    // shouldn't trigger the win-back flow — treat it as a silent failure.
+    return ok ? { status: "success" } : { status: "unavailable" };
   } catch (e: unknown) {
     const error = e as { code?: number | string; userCancelled?: boolean; message?: string };
     // RevenueCat code 1 = PURCHASE_CANCELLED_ERROR
     const code = String(error.code ?? "");
-    if (error.userCancelled || code === "1") return false;
+    if (error.userCancelled || code === "1") return { status: "cancelled" };
     console.error("Purchase failed:", JSON.stringify(e));
     throw e;
   }

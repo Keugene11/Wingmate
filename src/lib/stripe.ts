@@ -26,4 +26,11 @@ export const PRICES = {
     label: "Yearly",
     description: "$29.99/year",
   },
+  winback_yearly: {
+    lookup_key: "wingmate_winback_yearly",
+    amount: 1999, // $19.99/year — one-shot win-back offer after paywall cancel
+    interval: "year" as const,
+    label: "Win-back Yearly",
+    description: "$19.99/year",
+  },
 };

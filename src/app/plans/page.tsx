@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { ArrowLeft, Check, CreditCard, ChevronDown, RotateCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SignInModal from "@/components/SignInModal";
 import { isNativeAndroid, isNativeiOS, isNativePlatform } from "@/lib/platform";
 import { initPurchases, identifyUser, getOfferings, purchasePackage, restorePurchases } from "@/lib/purchases";
+import { maybeRouteToWinback } from "@/lib/winback";
 import { useSession } from "next-auth/react";
 import { openInAppBrowser, initSocialLogin } from "@/lib/capacitor";
 
@@ -37,7 +38,16 @@ const FAQ = [
 ];
 
 export default function PlansPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlansPageInner />
+    </Suspense>
+  );
+}
+
+function PlansPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [subscription, setSubscription] = useState<Subscription>(null);
   const [loaded, setLoaded] = useState(false);
@@ -131,6 +141,15 @@ export default function PlansPage() {
     fetch("/api/stripe/plan-counts").then((r) => r.json()).then(setPlanCounts).catch(() => {});
   }, [initIAP]);
 
+  // Stripe-redirect cancel lands the user back here with ?checkout=cancelled.
+  // Try the win-back flow once we know they aren't already a subscriber.
+  useEffect(() => {
+    if (!loaded) return;
+    if (searchParams.get("checkout") !== "cancelled") return;
+    if (subscription?.status === "active" || subscription?.status === "trialing") return;
+    maybeRouteToWinback(router);
+  }, [loaded, searchParams, subscription, router]);
+
   const handleCheckout = async (plan: "monthly" | "yearly") => {
     setLoading(plan);
     setError(null);
@@ -151,8 +170,8 @@ export default function PlansPage() {
           await identifyUser(session.user.id);
         }
 
-        const success = await purchasePackage(pkg as unknown as Parameters<typeof purchasePackage>[0]);
-        if (success) {
+        const result = await purchasePackage(pkg as unknown as Parameters<typeof purchasePackage>[0]);
+        if (result.status === "success") {
           // Refresh subscription status
           const res = await fetch("/api/stripe/status");
           const data = await res.json();
@@ -163,6 +182,9 @@ export default function PlansPage() {
           if (!isLoggedIn) {
             setShowSignIn(true);
           }
+        } else if (result.status === "cancelled") {
+          // User dismissed the App Store / Play sheet — try the win-back flow.
+          await maybeRouteToWinback(router);
         }
       } catch (e: unknown) {
         const err = e as { code?: number | string; message?: string };

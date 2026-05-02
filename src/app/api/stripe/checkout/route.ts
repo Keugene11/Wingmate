@@ -1,7 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe, PRICES } from "@/lib/stripe";
 import { auth } from "@/lib/auth";
+import { sql } from "@/lib/db";
 import { checkRateLimit } from "@/lib/ratelimit";
+
+async function resolveCustomerId(userId: string, userEmail: string): Promise<string> {
+  // 1. Authoritative source: the customer id we already saved for this user.
+  const rows = await sql`
+    SELECT stripe_customer_id FROM subscriptions WHERE user_id = ${userId} LIMIT 1
+  `;
+  const stored = rows[0]?.stripe_customer_id;
+  if (stored) {
+    return stored;
+  }
+
+  // 2. Fallback: look up by email, but only reuse if the customer's metadata
+  //    confirms it's ours. Prevents account-takeover via a pre-existing Stripe
+  //    customer seeded under the victim's email.
+  if (userEmail) {
+    const existing = await getStripe().customers.list({ email: userEmail, limit: 10 });
+    const match = existing.data.find((c) => c.metadata?.supabase_user_id === userId);
+    if (match) {
+      await persistCustomerId(userId, match.id);
+      return match.id;
+    }
+  }
+
+  // 3. Create fresh customer with metadata anchoring it to our user id.
+  const created = await getStripe().customers.create({
+    email: userEmail || undefined,
+    metadata: { supabase_user_id: userId },
+  });
+  await persistCustomerId(userId, created.id);
+  return created.id;
+}
+
+async function persistCustomerId(userId: string, customerId: string) {
+  await sql`
+    INSERT INTO subscriptions (user_id, stripe_customer_id, status)
+    VALUES (${userId}, ${customerId}, 'inactive')
+    ON CONFLICT (user_id) DO UPDATE SET stripe_customer_id = EXCLUDED.stripe_customer_id
+  `;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,9 +57,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { plan } = await request.json();
-    const priceConfig = plan === "yearly" ? PRICES.yearly : PRICES.monthly;
+    const priceConfig =
+      plan === "yearly" ? PRICES.yearly :
+      plan === "winback_yearly" ? PRICES.winback_yearly :
+      PRICES.monthly;
 
-    // Look up price by lookup key
     const prices = await getStripe().prices.list({
       lookup_keys: [priceConfig.lookup_key],
     });
@@ -31,34 +73,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find or create Stripe customer
-    const existingCustomers = await getStripe().customers.list({
-      email: userEmail,
-      limit: 1,
-    });
-
-    let customerId: string;
-    if (existingCustomers.data.length > 0) {
-      customerId = existingCustomers.data[0].id;
-    } else {
-      const customer = await getStripe().customers.create({
-        email: userEmail!,
-        metadata: { supabase_user_id: userId },
-      });
-      customerId = customer.id;
-    }
+    const customerId = await resolveCustomerId(userId, userEmail);
 
     const origin = request.headers.get("origin") || "http://localhost:3000";
 
-    // 3-day free trial applies to the yearly plan only.
-    const isYearly = plan === "yearly";
+    // 3-day free trial applies to both yearly plans (regular and win-back).
+    const isYearly = plan === "yearly" || plan === "winback_yearly";
+    // Win-back cancel returns to the offer page, not the regular paywall —
+    // the user has already been told this is their one shot, and bouncing
+    // them back to /plans would let them re-trigger the cancel flow.
+    const cancelPath = plan === "winback_yearly" ? "/winback-offer?checkout=cancelled" : "/plans?checkout=cancelled";
 
     const checkoutSession = await getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/?checkout=success`,
-      cancel_url: `${origin}/plans?checkout=cancelled`,
+      cancel_url: `${origin}${cancelPath}`,
       subscription_data: {
         metadata: { supabase_user_id: userId },
         ...(isYearly && {

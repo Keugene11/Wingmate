@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { hideSplash, setupAuthDeepLinkListener, initSocialLogin } from "@/lib/capacitor";
 import { isApplePlatform, isNativePlatform } from "@/lib/platform";
 import { initPurchases, getOfferings, purchasePackage, identifyUser } from "@/lib/purchases";
+import { maybeRouteToWinback } from "@/lib/winback";
 
 type Step =
   | "welcome"
@@ -323,9 +324,13 @@ function OnboardingInner() {
           return;
         }
         if (session?.user?.id) await identifyUser(session.user.id);
-        const ok = await purchasePackage(pkg);
-        if (ok) {
+        const result = await purchasePackage(pkg);
+        if (result.status === "success") {
           window.location.href = "/";
+          return;
+        }
+        if (result.status === "cancelled") {
+          await maybeRouteToWinback(router);
         }
         return;
       }
