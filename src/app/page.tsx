@@ -17,6 +17,7 @@ import WingmateLogo from "@/components/WingmateLogo";
 import type { Tab } from "@/components/BottomNav";
 import PostCard from "@/components/PostCard";
 import PlanView from "@/components/PlanView";
+import LearnView from "@/components/LearnView";
 
 function getGreeting(name?: string): string {
   const first = name || "king";
@@ -59,7 +60,7 @@ function HomeInner() {
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       const saved = typeof window !== "undefined" && sessionStorage.getItem("wingmate-active-tab");
-      if (saved && ["checkin", "coach", "plan", "community", "plans"].includes(saved)) return saved as Tab;
+      if (saved && ["checkin", "coach", "learn", "community", "plans"].includes(saved)) return saved as Tab;
     } catch {}
     return "checkin";
   });
@@ -92,12 +93,12 @@ function HomeInner() {
   // React to URL tab changes (BottomNav uses Link navigation).
   useEffect(() => {
     const tabParam = searchParams.get("tab") as Tab | null;
-    if (tabParam && ["checkin", "coach", "plan", "community", "plans"].includes(tabParam)) {
+    if (tabParam && ["checkin", "coach", "learn", "community", "plans"].includes(tabParam)) {
       setActiveTab(tabParam);
       setState(tabParam === "coach" ? "chat" : "tabs");
       try { sessionStorage.setItem("wingmate-active-tab", tabParam); } catch {}
-    } else if (!tabParam) {
-      // No ?tab= => checkin (default landing tab).
+    } else {
+      // No ?tab= or unknown tab (e.g. legacy ?tab=plan) => checkin.
       setActiveTab("checkin");
       setState("tabs");
       try { sessionStorage.setItem("wingmate-active-tab", "checkin"); } catch {}
@@ -426,13 +427,16 @@ function HomeInner() {
             isLoggedIn={isLoggedIn === true}
             isPro={isPro === true}
           />
+          <div className="mt-10">
+            <PlanView />
+          </div>
         </div>
       )}
 
-      {/* ===== PLAN TAB ===== */}
-      {activeTab === "plan" && (
-        <div className="px-5 pt-14 pb-4 animate-fade-in">
-          <PlanView />
+      {/* ===== LEARN TAB ===== */}
+      {activeTab === "learn" && (
+        <div className="px-5 pt-14 pb-10">
+          <LearnView />
         </div>
       )}
 
