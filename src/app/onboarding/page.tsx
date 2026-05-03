@@ -231,6 +231,8 @@ function OnboardingInner() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [liveError, setLiveError] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+  const addDebug = (msg: string) => setDebugLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
   const [step, setStep] = useState<Step>("welcome");
   const prevStepRef = useRef<Step>("welcome");
   // Mirror of `step` readable inside async listeners (e.g. the Android
@@ -318,19 +320,34 @@ function OnboardingInner() {
     setPurchasing(true);
     try {
       if (isNativePlatform()) {
+        addDebug(`native start (plan=${selectedPlan}, signedIn=${!!session?.user?.id})`);
         const pkg = selectedPlan === "monthly" ? iapPackages.monthly : iapPackages.yearly;
         if (!pkg) {
+          addDebug(`pkg missing for ${selectedPlan}`);
           setLiveError("This plan isn't available yet. Try again in a moment.");
           return;
         }
         if (session?.user?.id) await identifyUser(session.user.id);
+        addDebug(`purchasePackage starting…`);
         const result = await purchasePackage(pkg);
+        addDebug(`purchasePackage result: ${result.status}`);
         if (result.status === "success") {
           window.location.href = "/";
           return;
         }
         if (result.status === "cancelled") {
-          await maybeRouteToWinback(router);
+          addDebug(`cancelled — checking eligibility…`);
+          try {
+            const elig = await fetch("/api/winback/eligibility");
+            const eligData = await elig.json();
+            addDebug(`eligibility: ${JSON.stringify(eligData)}`);
+            if (eligData?.eligible) {
+              addDebug(`navigating to /spin`);
+              router.push("/spin");
+            }
+          } catch (err) {
+            addDebug(`elig fetch failed: ${(err as Error)?.message ?? err}`);
+          }
         }
         return;
       }
@@ -348,7 +365,24 @@ function OnboardingInner() {
       if (data.url) { window.location.href = data.url; return; }
       setLiveError(data.error || "Couldn't start checkout. Try again.");
     } catch (e) {
-      setLiveError((e as Error)?.message || "Purchase failed.");
+      const err = e as { code?: number | string; userCancelled?: boolean; message?: string };
+      const code = String(err.code ?? "");
+      addDebug(`handleStartTrial threw: code=${code} cancelled=${!!err.userCancelled} msg=${err.message?.substring(0, 80)}`);
+      // Safety net: if RC threw an unexpected shape that purchasePackage
+      // didn't recognise as a cancel, still try the win-back path.
+      if (code === "1" || err.userCancelled || err.message?.toLowerCase().includes("cancel")) {
+        addDebug(`cancel via catch — checking eligibility…`);
+        try {
+          const elig = await fetch("/api/winback/eligibility");
+          const eligData = await elig.json();
+          addDebug(`eligibility (catch): ${JSON.stringify(eligData)}`);
+          if (eligData?.eligible) router.push("/spin");
+        } catch (e2) {
+          addDebug(`elig fetch failed: ${(e2 as Error)?.message ?? e2}`);
+        }
+      } else {
+        setLiveError((e as Error)?.message || "Purchase failed.");
+      }
     } finally {
       setPurchasing(false);
     }
@@ -1487,6 +1521,18 @@ function OnboardingInner() {
         </div>
 
         <div className="shrink-0 pb-2">
+          {/* Temporary debug panel — diagnosing Android win-back trigger */}
+          {isNativePlatform() && (
+            <div className="bg-black text-green-300 font-mono text-[10px] rounded-xl p-3 mb-4 max-h-[180px] overflow-y-auto whitespace-pre-wrap break-all">
+              <div className="text-white font-bold mb-2">debug log ({debugLog.length})</div>
+              {debugLog.length === 0 ? (
+                <div className="text-green-500/70">no events yet — tap Start trial</div>
+              ) : (
+                debugLog.map((line, i) => <div key={i}>{line}</div>)
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3 mb-4">
             <button
               onClick={() => setSelectedPlan("monthly")}
