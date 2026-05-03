@@ -505,8 +505,10 @@ function PlansPageInner() {
         </div>
       </div>
 
-      {/* Inline debug panel — append ?debug=1 to /plans (and stays in URL through nav) */}
-      {searchParams.get("debug") === "1" && (
+      {/* Inline debug panel — temporarily always-on while we diagnose the
+          Android win-back trigger. Capacitor has no address bar so we can't
+          gate it on ?debug=1. Will be removed/gated once the bug is fixed. */}
+      {isNative && (
         <div className="bg-black text-green-300 font-mono text-[10px] rounded-xl p-3 mb-6 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-all">
           <div className="text-white font-bold mb-2">debug log ({debugLog.length})</div>
           {debugLog.length === 0 ? (
