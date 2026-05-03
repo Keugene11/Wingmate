@@ -170,7 +170,9 @@ function PlansPageInner() {
           await identifyUser(session.user.id);
         }
 
+        addDebug(`purchasePackage start (plan=${plan})`);
         const result = await purchasePackage(pkg as unknown as Parameters<typeof purchasePackage>[0]);
+        addDebug(`purchasePackage result: ${result.status}`);
         if (result.status === "success") {
           // Refresh subscription status
           const res = await fetch("/api/stripe/status");
@@ -184,15 +186,37 @@ function PlansPageInner() {
           }
         } else if (result.status === "cancelled") {
           // User dismissed the App Store / Play sheet — try the win-back flow.
-          await maybeRouteToWinback(router);
+          addDebug(`cancelled — checking winback eligibility (loggedIn=${isLoggedIn})`);
+          try {
+            const elig = await fetch("/api/winback/eligibility");
+            const eligData = await elig.json();
+            addDebug(`eligibility: ${JSON.stringify(eligData)}`);
+            if (eligData?.eligible) {
+              addDebug(`navigating to /spin`);
+              router.push("/spin");
+            }
+          } catch (err) {
+            addDebug(`eligibility error: ${(err as Error)?.message ?? err}`);
+          }
         }
       } catch (e: unknown) {
-        const err = e as { code?: number | string; message?: string };
-        // purchasePackage already handles cancellation (returns false), so
-        // any error here is a real failure. Use string comparison for RevenueCat codes.
+        const err = e as { code?: number | string; message?: string; userCancelled?: boolean };
         const code = String(err.code ?? "");
-        if (code === "1" || err.message?.includes("cancelled")) {
-          // User cancelled — not an error (safety fallback)
+        addDebug(`purchasePackage threw: code=${code} cancelled=${!!err.userCancelled} msg=${err.message?.substring(0, 80)}`);
+        // purchasePackage already handles cancellation (returns false), so
+        // any error here is a real failure. Safety fallback below:
+        if (code === "1" || err.userCancelled || err.message?.toLowerCase().includes("cancel")) {
+          // User cancelled — try win-back path here too in case RC threw an
+          // unexpected shape that purchasePackage didn't recognise
+          addDebug(`cancel via catch — checking winback`);
+          try {
+            const elig = await fetch("/api/winback/eligibility");
+            const eligData = await elig.json();
+            addDebug(`eligibility (catch): ${JSON.stringify(eligData)}`);
+            if (eligData?.eligible) router.push("/spin");
+          } catch (e2) {
+            addDebug(`elig fetch failed: ${(e2 as Error)?.message ?? e2}`);
+          }
         } else if (code === "2") {
           // STORE_PROBLEM — StoreKit/App Store issue
           setError("The App Store couldn't process this purchase right now. Please try again in a moment.");
@@ -480,6 +504,18 @@ function PlansPageInner() {
           ))}
         </div>
       </div>
+
+      {/* Inline debug panel — append ?debug=1 to /plans (and stays in URL through nav) */}
+      {searchParams.get("debug") === "1" && (
+        <div className="bg-black text-green-300 font-mono text-[10px] rounded-xl p-3 mb-6 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-all">
+          <div className="text-white font-bold mb-2">debug log ({debugLog.length})</div>
+          {debugLog.length === 0 ? (
+            <div className="text-green-500/70">no events yet — tap Subscribe to begin</div>
+          ) : (
+            debugLog.map((line, i) => <div key={i}>{line}</div>)
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <div className="text-center text-[13px] text-text-muted pb-6 space-y-1">
